@@ -1,15 +1,15 @@
-
 'use client';
 import { notFound, useParams } from "next/navigation";
 import VideoPlayer from "@/components/watch/video-player";
 import EpisodeList from "@/components/watch/episode-list";
-import Comments from "@/components/watch/comments";
+import CommentsSection from "@/components/watch/comments";
 import { Badge } from "@/components/ui/badge";
 import MediaCard from "@/components/media/media-card";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
 import { AnimeAboutResponse, AnimeEpisode } from "@/types/anime";
 import { useState } from "react";
+import PollsSection from "@/components/watch/PollsSection";
 
 export default function WatchPage() {
   const params = useParams();
@@ -59,7 +59,10 @@ export default function WatchPage() {
             <p className="mt-4 text-muted-foreground" dangerouslySetInnerHTML={{ __html: anime.info.description }}></p>
           </div>
           <div className="mt-8">
-            <Comments />
+            <PollsSection animeId={id} episodeId={currentEpisode?.episodeId} />
+          </div>
+          <div className="mt-8">
+            <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
           </div>
         </div>
         <div className="lg:col-span-1">

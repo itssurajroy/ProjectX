@@ -1,41 +1,25 @@
 /**
  * Core Philosophy: This ruleset implements a mixed security model. User data is strictly private and
- * owner-controlled. Media metadata and comments are public to read, facilitating a community
- * experience. Write permissions are carefully controlled: users can only write their own data (profiles,
- * comments), while a separate role-based system grants administrators elevated privileges to manage
- * the shared media catalog and moderate content. Anonymous users are supported for read-only access.
+ * owner-controlled. Media metadata is public to read. Comments and Polls are publicly readable but
+ * writes are controlled to prevent abuse. Anonymous users are supported for read-only access.
  *
  * Data Structure:
- * - /users/{userId}: Contains private user information, such as watchlists and history. Access is
- *   restricted to the document owner.
+ * - /users/{userId}: Contains private user information. Access is restricted to the document owner.
  * - /media/{mediaId}: A public, top-level collection for all media metadata. Writable only by admins.
- * - /media/{mediaId}/comments/{commentId}: A public subcollection for comments on a media item.
- *   Users can create their own comments and modify/delete them. Admins can moderate all comments.
+ * - /comments/{animeId}/episodes/{episodeId}/messages/{messageId}: Comments for a specific episode.
+ *   Users can create their own, but not edit or delete.
+ * - /polls/{pollId}/votes/{userId}: User votes for a specific poll (e.g., an episode rating).
+ *   Users can create or update their own vote, but not read others' votes directly.
  * - /roles_admin/{userId}: A restricted collection where the existence of a document signifies a user's
  *   administrator status. This collection is not client-writable.
  *
  * Key Security Decisions:
- * - User Isolation: The top-level /users collection is not listable, preventing enumeration of all users.
- *   Each user's document is accessible only by them.
- * - Public Read, Controlled Write: Core content like media and comments are publicly readable to all
- *   users (including anonymous ones), but creating or modifying content requires authentication and
- *   adherence to ownership or admin role checks.
- * - Admin Supremacy: Admin roles are checked using an `exists()` call to the `/roles_admin`
- *   collection. Admins have full create, update, and delete permissions on the `/media` collection
- *   and can delete any comment for moderation purposes.
- * - Server-Side Admin Management: The `/roles_admin` collection is read-only from the client side
- *   to prevent privilege escalation. Admin roles must be granted via a secure server environment
- *   (e.g., Cloud Functions, IAM).
- *
- * Denormalization for Authorization:
- * To ensure fast and secure rules, authorization data is denormalized. Each comment document in
- * `/media/{mediaId}/comments/{commentId}` contains a `userId` field. This allows rules to check
- * comment ownership directly without performing a slow and costly `get()` on another document.
- *
- * Structural Segregation:
- * User-private data (`/users`) and public content (`/media`) are stored in separate top-level
- * collections. This is a secure and performant pattern that simplifies rules for list operations,
- * ensuring private data can never be accidentally exposed in a public query.
+ * - User Isolation: The top-level /users collection is not listable. Each user's document is accessible only by them.
+ * - Public Read, Controlled Write: Core content like media, comments, and poll results (via aggregate) are publicly readable.
+ *   Creating or modifying content requires authentication and adherence to ownership or admin role checks.
+ * - Real-time Features: Rules are structured to support real-time comments and polls. Writes are cheap, reads are protected.
+ * - No Direct Vote Reading: To prevent users from seeing who voted for what, reading individual documents in the 'votes'
+ *   subcollection is disallowed. Clients get aggregated results from the application logic.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -67,8 +51,7 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if a user has an admin role by seeing if a document exists for them
-     * in the roles_admin collection.
+     * Checks if a user has an admin role.
      */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
@@ -81,37 +64,17 @@ service cloud.firestore {
     function isValidNewUser(userId) {
       return isOwner(userId) && request.resource.data.firebaseUid == userId;
     }
-
+    
     /**
-     * Validates that the immutable firebaseUid field is not changed during an update.
+     * Validates the schema for a new comment.
      */
-    function isImmutableUserFields() {
-      return request.resource.data.firebaseUid == resource.data.firebaseUid;
-    }
-
-    /**
-     * Validates that a new comment is being created with the creator's UID
-     * and the correct mediaId from the path.
-     */
-    function isValidNewComment(mediaId) {
+    function isValidNewComment() {
+      let data = request.resource.data;
       return isSignedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.mediaId == mediaId;
-    }
-
-    /**
-     * Checks if the requesting user is the owner of an existing comment.
-     */
-    function isExistingCommentOwner() {
-      return isSignedIn() && resource != null && request.auth.uid == resource.data.userId;
-    }
-
-    /**
-     * Ensures that relational fields on a comment cannot be changed after creation.
-     */
-    function isImmutableCommentFields() {
-      return request.resource.data.userId == resource.data.userId
-        && request.resource.data.mediaId == resource.data.mediaId;
+        && data.userId == request.auth.uid
+        && data.text is string && data.text.size() > 0 && data.text.size() < 1000
+        && data.username is string
+        && data.avatar is string;
     }
 
 
@@ -121,62 +84,53 @@ service cloud.firestore {
 
     /**
      * @description Stores private user data like watchlists and history.
-     * @path /users/{userId}
-     * @allow A signed-in user with UID 'user_abc' can (get) their own document at `/users/user_abc`.
-     * @deny A user with UID 'user_xyz' cannot (get) the document at `/users/user_abc`.
-     * @principle Restricts access to a user's own data tree.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
+      allow get, delete: if isOwner(userId);
       allow list: if false;
       allow create: if isValidNewUser(userId);
-      allow update: if isExistingOwner(userId) && isImmutableUserFields();
-      allow delete: if isExistingOwner(userId);
-    }
+      allow update: if isExistingOwner(userId);
 
-    /**
-     * @description Stores the public catalog of media items. Readable by anyone, but only
-     *              admins can create, modify, or delete entries.
-     * @path /media/{mediaId}
-     * @allow Any user, including anonymous ones, can (get) or (list) all media documents.
-     * @deny A regular signed-in user cannot (create) a new media document.
-     * @principle Enforces public read access with Role-Based Access Control (RBAC) for all writes.
-     */
-    match /media/{mediaId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin() && resource != null;
-      allow delete: if isAdmin() && resource != null;
-
-      /**
-       * Comments are public to read. Users can create their own comments,
-       * and can only update or delete their own. Admins can delete any comment
-       * for moderation.
-       */
-      match /comments/{commentId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isValidNewComment(mediaId);
-        allow update: if isExistingCommentOwner() && isImmutableCommentFields();
-        allow delete: if isExistingCommentOwner() || (isAdmin() && resource != null);
+      // Users can manage their own history documents
+      match /history/{animeId} {
+         allow get, create, update, delete: if isOwner(userId);
       }
     }
 
     /**
-     * @description Defines user roles. The existence of a document grants admin privileges.
-     *              This collection is read-only from the client to prevent privilege escalation.
-     * @path /roles_admin/{userId}
-     * @allow An authenticated admin can (get) a document to check if another user is an admin.
-     * @deny A non-admin user cannot (get) any document in this collection.
-     * @principle Secures privileged role data and prevents enumeration of administrators.
+     * @description Stores the public catalog of media items.
+     */
+    match /media/{mediaId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    /**
+     * @description Stores comments for a specific episode.
+     */
+    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
+        allow list, get: if true; // All users can read comments
+        allow create: if isValidNewComment(); // Only signed-in users can create valid comments
+        allow update, delete: if false; // Comments are immutable
+    }
+
+    /**
+     * @description Stores poll votes for episodes.
+     * The path is structured as /polls/{animeId}-{episodeId}/votes/{userId}
+     */
+    match /polls/{pollId}/votes/{userId} {
+      allow list, get: if false; // Disallow reading individual votes to maintain anonymity
+      allow create, update: if isOwner(userId); // A user can create or change their own vote
+      allow delete: if false; // Users cannot delete their vote, only change it
+    }
+
+
+    /**
+     * @description Defines user roles. Read-only from client.
      */
     match /roles_admin/{userId} {
       allow get: if isAdmin();
-      allow list: if false;
-      allow create: if false; // Must be managed server-side (e.g., Cloud Function)
-      allow update: if false; // Must be managed server-side
-      allow delete: if false; // Must be managed server-side
+      allow list, create, update, delete: if false;
     }
   }
 }
