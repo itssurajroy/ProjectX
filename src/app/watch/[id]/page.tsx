@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import { AnimeBase, AnimeEpisode } from "@/types/anime";
 import Link from "next/link";
 import Image from "next/image";
+import PollsSection from "@/components/watch/PollsSection";
 
 export default function WatchPage() {
   const params = useParams();
@@ -89,62 +90,25 @@ export default function WatchPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-16">
-      {/* Player */}
-      <div className="relative">
+      <div className="container mx-auto px-4 max-w-7xl">
         {currentEpisodeId ? (
           <AdvancedMegaPlayPlayer
             episodeId={currentEpisodeId}
-            initialLang={language}
+            lang={language}
             title={anime.info.name}
             episode={String(currentEpisode.number)}
             onNextEpisode={handleNext}
           />
         ) : (
-          <div className="aspect-video bg-black flex items-center justify-center">
+          <div className="aspect-video bg-black rounded-xl flex items-center justify-center">
             <p className="text-gray-500 text-lg">Select an episode to start watching</p>
           </div>
         )}
-
-        {/* Top Controls Overlay */}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none">
-          {/* Language Switcher */}
-          <div className="flex gap-2 backdrop-blur-md bg-black/60 rounded-lg p-1 pointer-events-auto">
-            <Button
-              size="sm"
-              variant={language === "sub" ? "default" : "ghost"}
-              className={language === "sub" ? "bg-primary hover:bg-primary/90" : "text-white hover:bg-white/10"}
-              onClick={() => setLanguage("sub")}
-            >
-              SUB
-            </Button>
-            <Button
-              size="sm"
-              variant={language === "dub" ? "default" : "ghost"}
-              className={language === "dub" ? "bg-primary hover:bg-primary/90" : "text-white hover:bg-white/10"}
-              onClick={() => setLanguage("dub")}
-            >
-              DUB
-            </Button>
-          </div>
-
-          {/* Next Episode */}
-          <Button
-            size="sm"
-            className="backdrop-blur-md bg-black/60 hover:bg-white/20 pointer-events-auto"
-            onClick={handleNext}
-            disabled={currentIndex >= episodes.length - 1}
-          >
-            Next Episode →
-          </Button>
-        </div>
       </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Side – Info + Comments */}
-          <div className="lg:col-span-3 space-y-8">
-            {/* Title + Episode */}
+         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-glow">{anime.info.name}</h1>
               <p className="text-lg text-muted-foreground mt-2">
@@ -152,8 +116,38 @@ export default function WatchPage() {
                 {currentEpisode.title && `: ${currentEpisode.title}`}
               </p>
             </div>
+            <div className="flex gap-2 backdrop-blur-md bg-card rounded-lg p-1 mt-4 md:mt-0">
+                <Button
+                size="sm"
+                variant={language === "sub" ? "default" : "ghost"}
+                className={language === "sub" ? "bg-primary hover:bg-primary/90" : "hover:bg-muted"}
+                onClick={() => setLanguage("sub")}
+                >
+                SUB
+                </Button>
+                <Button
+                size="sm"
+                variant={language === "dub" ? "default" : "ghost"}
+                className={language === "dub" ? "bg-primary hover:bg-primary/90" : "hover:bg-muted"}
+                onClick={() => setLanguage("dub")}
+                >
+                DUB
+                </Button>
+            </div>
+        </div>
 
-            {/* Genres */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Left Side – Info + Comments */}
+          <div className="lg:col-span-3 space-y-8">
+            <PollsSection animeId={id} episodeId={currentEpisode.episodeId} />
+
+            {/* Synopsis */}
+            <div
+              className="prose prose-invert max-w-none text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: anime.info.description }}
+            />
+
+             {/* Genres */}
             <div className="flex flex-wrap gap-2">
               {anime.moreInfo?.genres?.map((g: string) => (
                 <Badge
@@ -165,12 +159,6 @@ export default function WatchPage() {
                 </Badge>
               ))}
             </div>
-
-            {/* Synopsis */}
-            <div
-              className="prose prose-invert max-w-none text-muted-foreground leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: anime.info.description }}
-            />
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-3">
