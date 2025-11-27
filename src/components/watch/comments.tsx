@@ -1,4 +1,4 @@
-import { comments } from "@/lib/data";
+
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
@@ -7,7 +7,7 @@ import { Send } from "lucide-react";
 export default function Comments() {
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Comments ({comments.length})</h2>
+      <h2 className="text-2xl font-bold">Comments</h2>
       
       {/* Post Comment Form */}
       <div className="flex gap-4 items-start">
@@ -27,23 +27,8 @@ export default function Comments() {
         </div>
       </div>
       
-      {/* Comments List */}
-      <div className="space-y-6">
-        {comments.map((comment) => (
-          <div key={comment.id} className="flex gap-4">
-            <Avatar>
-              <AvatarImage src={comment.avatar} alt={comment.author} />
-              <AvatarFallback>{comment.author.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-semibold">{comment.author}</p>
-                <p className="text-xs text-muted-foreground">{comment.timestamp}</p>
-              </div>
-              <p className="mt-1 text-sm">{comment.text}</p>
-            </div>
-          </div>
-        ))}
+      <div className="text-center py-8 text-muted-foreground">
+        <p>Comments are coming soon!</p>
       </div>
     </div>
   );

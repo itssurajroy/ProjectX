@@ -1,7 +1,8 @@
 
 'use client';
 
-import { mediaItems } from '@/lib/data';
+import { AnimeService } from '@/lib/AnimeService';
+import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Play, TrendingUp, Heart, Calendar, Bookmark, Clapperboard } from 'lucide-react';
 import Image from 'next/image';
@@ -10,7 +11,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import MediaCard from "@/components/media/media-card";
 
-const SpotlightSection = ({ spotlights }: { spotlights: any[] | undefined }) => {
+const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const autoplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -47,8 +48,8 @@ const SpotlightSection = ({ spotlights }: { spotlights: any[] | undefined }) => 
             {spotlights.map((s, index) => (
                 <Image
                     key={s.id}
-                    src={s.image.imageUrl}
-                    alt={s.title}
+                    src={s.poster}
+                    alt={s.name}
                     fill
                     className={cn(
                         'object-cover transition-opacity duration-1000',
@@ -63,16 +64,16 @@ const SpotlightSection = ({ spotlights }: { spotlights: any[] | undefined }) => 
         
         <div className="px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
            <div key={currentIndex} className="animate-banner-fade-in w-full">
-              <span className="text-primary font-bold text-sm md:text-base">#{currentIndex + 1} Spotlight</span>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold my-3 text-glow max-w-2xl line-clamp-2">{spotlight.title}</h1>
+              <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold my-3 text-glow max-w-2xl line-clamp-2">{spotlight.name}</h1>
               <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4">
-                  {spotlight.genres.map((info: string, i: number) => (
+                  {spotlight.otherInfo.map((info, i) => (
                     <span key={i} className="flex items-center gap-1.5">
                        {info}
                     </span>
                   ))}
               </div>
-              <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-xs md:text-sm leading-relaxed">{spotlight.description}</p>
+              <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-xs md:text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
               
               <div className="flex gap-3 items-center">
                   <Link href={`/watch/${spotlight.id}`} className="bg-primary text-primary-foreground px-4 md:px-6 py-3 rounded-lg font-bold text-sm md:text-base flex items-center gap-2 hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
@@ -123,7 +124,7 @@ const PollSection = () => (
     </div>
 )
 
-const SmallListSection = ({ title, animes }: { title: string, animes: any[] | undefined }) => {
+const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[] | undefined }) => {
     if (!animes || animes.length === 0) return null;
 
     return (
@@ -136,13 +137,13 @@ const SmallListSection = ({ title, animes }: { title: string, animes: any[] | un
                     {animes.slice(0, 7).map(anime => (
                         <Link href={`/watch/${anime.id}`} key={anime.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
-                                <Image src={anime.image.imageUrl} alt={anime.title} fill className="object-cover rounded-md" />
+                                <Image src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
                             </div>
                             <div className='overflow-hidden'>
-                                <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{anime.title}</p>
+                                <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{anime.name}</p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                     {anime.type && <span>{anime.type}</span>}
-                                    {anime.episodes && <span className="flex items-center gap-1"><Clapperboard className="w-3 h-3"/> {anime.episodes}</span>}
+                                    {anime.episodes?.sub && <span className="flex items-center gap-1"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
                                 </div>
                             </div>
                         </Link>
@@ -157,9 +158,9 @@ const SmallListSection = ({ title, animes }: { title: string, animes: any[] | un
 const ScheduleSidebar = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const { data: scheduleResult, isLoading } = useQuery<{ data: any } | { success: false; error: string }>({
+    const { data: scheduleResult, isLoading } = useQuery<{ data: ScheduleResponse } | { success: false; error: string }>({
         queryKey: ['schedule', selectedDate.toISOString().split('T')[0]],
-        queryFn: () => Promise.resolve({ data: { scheduledAnimes: mediaItems.slice(0,5).map((item, i) => ({...item, time: `${18+i}:00`})) } }),
+        queryFn: () => AnimeService.getSchedule(selectedDate.toISOString().split('T')[0]),
     });
 
     const days = Array.from({ length: 7 }).map((_, i) => {
@@ -193,9 +194,9 @@ const ScheduleSidebar = () => {
                         <Link key={anime.id} href={`/watch/${anime.id}`} className="flex justify-between items-center group p-2 rounded-md hover:bg-muted/50 border-b border-border/50 last:border-b-0">
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <span className="text-sm font-bold text-primary w-10 text-center">{anime.time}</span>
-                                <p className="truncate font-semibold text-sm group-hover:text-primary transition-colors">{anime.title}</p>
+                                <p className="truncate font-semibold text-sm group-hover:text-primary transition-colors">{anime.name}</p>
                             </div>
-                            <span className='text-xs text-muted-foreground'>EP {anime.episodes || '?'}</span>
+                            <span className='text-xs text-muted-foreground'>EP {anime.episode || '?'}</span>
                         </Link>
                     )
                 }) : (
@@ -207,7 +208,7 @@ const ScheduleSidebar = () => {
 };
 
 
-const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: any[] | undefined }) => {
+const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | undefined }) => {
     const [trendingPeriod, setTrendingPeriod] = useState<'today' | 'week' | 'month'>('today');
     if (!trendingAnimes) return null;
 
@@ -228,15 +229,15 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: any[] | undefined
             {animesToDisplay.slice(0, 10).map((anime: any, index) => (
               <Link key={anime.id} href={`/watch/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-start gap-4 group">
-                  <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(index + 1).padStart(2, '0')}</span>
+                  <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
                   <div className="relative w-14 h-20 flex-shrink-0">
-                     <Image src={anime.image.imageUrl} alt={anime.title} fill className="rounded-md object-cover" />
+                     <Image src={anime.poster} alt={anime.name} fill className="rounded-md object-cover" />
                   </div>
                   <div className="flex-grow overflow-hidden">
-                    <p className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-2">{anime.title}</p>
+                    <p className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-2">{anime.name}</p>
                      <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground mt-1">
-                       {anime.episodes && <span className="px-1.5 py-0.5 rounded-sm bg-muted/80">SUB {anime.episodes}</span>}
-                       {anime.type === 'DUB' && <span className="px-1.5 py-0.5 rounded-sm bg-blue-500/50 text-blue-300">DUB {anime.episodes}</span>}
+                       {anime.episodes?.sub && <span className="px-1.5 py-0.5 rounded-sm bg-muted/80">SUB {anime.episodes.sub}</span>}
+                       {anime.episodes?.dub && <span className="px-1.5 py-0.5 rounded-sm bg-blue-500/50 text-blue-300">DUB {anime.episodes.dub}</span>}
                     </div>
                   </div>
                 </div>
@@ -249,16 +250,9 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: any[] | undefined
 
 
 export default function MainDashboardPage() {
-  const { data: apiResponse, isLoading, error } = useQuery<{data: any} | { success: false; error: string }>({
+  const { data: apiResponse, isLoading, error } = useQuery<{data: HomeData} | { success: false; error: string }>({
     queryKey: ['homeData'],
-    queryFn: () => Promise.resolve({ data: {
-        spotlightAnimes: mediaItems.slice(0, 5),
-        trendingAnimes: mediaItems.slice().sort((a,b) => b.views - a.views),
-        latestEpisodeAnimes: mediaItems.slice().sort((a,b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
-        topAiringAnimes: mediaItems.filter(i => i.status === 'Airing'),
-        topUpcomingAnimes: mediaItems.filter(i => i.status === 'Upcoming'),
-        latestCompletedAnimes: mediaItems.filter(i => i.status === 'Finished'),
-    } }),
+    queryFn: AnimeService.getHomeData,
   });
 
   const [filter, setFilter] = useState<'all' | 'sub' | 'dub'>('all');
@@ -270,16 +264,16 @@ export default function MainDashboardPage() {
   }, [error]);
 
   if (isLoading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div></div>;
-  if (error || !apiResponse || (apiResponse && 'success' in apiResponse && !apiResponse.success) || !apiResponse.data) {
+  if (error || !apiResponse || (apiResponse && 'success' in apiResponse && !apiResponse.success) || !('data' in apiResponse) || !apiResponse.data) {
     return <div className="flex justify-center items-center h-screen">Could not load home data.</div>;
   }
   
   const data = apiResponse.data;
   const { spotlightAnimes, trendingAnimes, latestEpisodeAnimes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes } = data;
 
-  const filteredLatest = latestEpisodeAnimes?.filter((anime: any) => {
-    if (filter === 'sub') return anime.type === 'SUB';
-    if (filter === 'dub') return anime.type === 'DUB';
+  const filteredLatest = latestEpisodeAnimes?.filter(anime => {
+    if (filter === 'sub') return !!anime.episodes?.sub;
+    if (filter === 'dub') return !!anime.episodes?.dub;
     return true;
   });
 
@@ -302,7 +296,7 @@ export default function MainDashboardPage() {
                          </div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-                        {filteredLatest?.slice(0, 10).map((anime: any) => (
+                        {filteredLatest?.slice(0, 10).map((anime) => (
                             <MediaCard key={anime.id} media={anime} />
                         ))}
                     </div>
