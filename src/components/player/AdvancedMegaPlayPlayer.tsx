@@ -2,9 +2,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Loader2, AlertCircle, Play, Volume2, VolumeX, Maximize2, Settings, ChevronDown } from "lucide-react";
+import { Loader2, AlertCircle, Play, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface AdvancedMegaPlayPlayerProps {
   episodeId: string;
@@ -20,7 +19,6 @@ export default function AdvancedMegaPlayPlayer({
   lang = "sub",
   title = "Episode",
   episode = "",
-  onNextEpisode,
   onSourceError,
 }: AdvancedMegaPlayPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -141,39 +139,6 @@ export default function AdvancedMegaPlayPlayer({
         }`}
         onMouseEnter={() => setShowControls(true)}
       >
-        {/* Bottom Bar */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pb-8 pt-20 pointer-events-auto">
-          <div className="px-6 flex items-center justify-between">
-            {/* Left: Source Info */}
-            <div className="flex items-center gap-4">
-              <div className="text-sm">
-                <p className="text-muted-foreground font-medium">MegaPlay Server</p>
-                <p className="text-xs text-muted-foreground/50">Protected • High Availability</p>
-              </div>
-            </div>
-
-            {/* Right: Action Buttons */}
-            <div className="flex items-center gap-3">
-              {onNextEpisode && (
-                <Button
-                  onClick={onNextEpisode}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6"
-                >
-                  Next Episode →
-                </Button>
-              )}
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-white hover:bg-white/20 backdrop-blur-md"
-                onClick={toggleFullscreen}
-              >
-                <Maximize2 className="w-6 h-6" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
         {/* Center Play Button (appears on hover) */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
           <div className="bg-white/10 backdrop-blur-lg rounded-full p-8 border border-white/20">
