@@ -6,7 +6,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, List, Mic, ClosedCaptioning, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, List, Mic, Captions, Search } from 'lucide-react';
 import { Input } from '../ui/input';
 
 interface EpisodeListProps {
@@ -58,7 +58,7 @@ export default function EpisodeList({
                     <Search className='w-4 h-4 mr-1'/> Find
                 </Button>
                 <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:bg-muted/50 hover:text-primary">
-                    <ClosedCaptioning className='w-5 h-5'/>
+                    <Captions className='w-5 h-5'/>
                 </Button>
                 <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:bg-muted/50 hover:text-primary">
                     <Mic className='w-5 h-5'/>
@@ -89,7 +89,7 @@ export default function EpisodeList({
         </div>
 
         <ScrollArea className="h-72">
-            <div className="grid grid-cols-5 gap-2 pr-4">
+            <div className="grid grid-cols-4 gap-2 pr-4">
                 {displayedEpisodes.map((ep) => {
                 const epId = extractEpisodeId(ep.episodeId);
                 if (!epId) return null;
