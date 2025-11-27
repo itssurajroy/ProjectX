@@ -1,15 +1,12 @@
-
 'use client';
 
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn, extractEpisodeId } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { AnimeEpisode } from '@/types/anime';
 
 interface EpisodeListProps {
   episodes: AnimeEpisode[];
-  currentEpisodeId: string | undefined;
-  animeId: string;
+  currentEpisodeId: string | null;
   loading: boolean;
   onEpisodeSelect: (episode: AnimeEpisode) => void;
 }
@@ -17,7 +14,6 @@ interface EpisodeListProps {
 export default function EpisodeList({
   episodes,
   currentEpisodeId,
-  animeId,
   loading,
   onEpisodeSelect
 }: EpisodeListProps) {
@@ -31,8 +27,8 @@ export default function EpisodeList({
           </div>
         ) : (
           <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
-            {episodes.map((ep, index) => {
-              const epId = ep.episodeId;
+            {episodes.map((ep) => {
+              const epId = extractEpisodeId(ep.episodeId);
               if (!epId) return null;
 
               return (

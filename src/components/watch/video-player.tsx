@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { AnimeAbout, AnimeEpisode } from "@/types/anime";
-import { Loader2, RefreshCw, AlertTriangle, ExternalLink } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Loader2, RefreshCw, AlertTriangle } from "lucide-react";
+import { cn, extractEpisodeId } from "@/lib/utils";
 
 type VideoPlayerProps = {
   anime: AnimeAbout;
@@ -50,7 +50,17 @@ export default function VideoPlayer({ anime, episode, language }: VideoPlayerPro
     )
   }
 
-  const episodeNumberId = episode.episodeId;
+  const episodeNumberId = extractEpisodeId(episode.episodeId);
+  if (!episodeNumberId) {
+    // Handle cases where the episodeId format is unexpected
+     return (
+        <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
+           <AlertTriangle className="w-12 h-12 text-destructive mb-4" />
+           <p className="text-lg font-semibold mb-2">Invalid Episode ID</p>
+        </div>
+    )
+  }
+
   const iframeSrc = `https://megaplay.buzz/stream/s-2/${episodeNumberId}/${language}`;
 
   const handleManualReload = () => {

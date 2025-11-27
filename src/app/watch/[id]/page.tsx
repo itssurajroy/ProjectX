@@ -11,7 +11,7 @@ import { AnimeAboutResponse, AnimeEpisode } from "@/types/anime";
 import { useEffect, useState } from "react";
 import PollsSection from "@/components/watch/PollsSection";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, extractEpisodeId } from "@/lib/utils";
 
 export default function WatchPage() {
   const params = useParams();
@@ -27,7 +27,7 @@ export default function WatchPage() {
     enabled: !!id,
   });
 
-  const { data: episodesResponse, isLoading: isLoadingEpisodes } = useQuery<{ data: { episodes: AnimeEpisode[] } } | { success: false; error: string }>({
+  const { data: episodesResponse, isLoading: isLoadingEpisodes } = useQuery<{ data: { episodes: AnimeEpisode[], totalEpisodes: number } } | { success: false; error: string }>({
     queryKey: ['animeEpisodes', id],
     queryFn: () => AnimeService.getEpisodes(id),
     enabled: !!id,
@@ -36,9 +36,9 @@ export default function WatchPage() {
   useEffect(() => {
     if (!isLoadingEpisodes && episodesResponse && 'data' in episodesResponse) {
       const episodes = episodesResponse.data.episodes;
-      if (!episodeParam && episodes.length > 0) {
-        // Redirect to the first episode if 'ep' is not in URL
-        router.replace(`/watch/${id}?ep=${episodes[0].episodeId}`);
+      const firstEpisodeId = episodes.length > 0 ? extractEpisodeId(episodes[0].episodeId) : null;
+      if (!episodeParam && firstEpisodeId) {
+        router.replace(`/watch/${id}?ep=${firstEpisodeId}`);
       }
     }
   }, [isLoadingEpisodes, episodesResponse, episodeParam, id, router]);
@@ -54,10 +54,13 @@ export default function WatchPage() {
   const { anime, relatedAnimes } = aboutResponse.data;
   const episodes = (episodesResponse && 'data' in episodesResponse) ? episodesResponse.data.episodes : [];
   
-  const currentEpisode = episodes.find(e => e.episodeId === episodeParam) || episodes[0];
+  const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === episodeParam) || episodes[0];
 
   const handleEpisodeSelect = (episode: AnimeEpisode) => {
-    router.push(`/watch/${id}?ep=${episode.episodeId}`);
+    const epId = extractEpisodeId(episode.episodeId);
+    if (epId) {
+      router.push(`/watch/${id}?ep=${epId}`);
+    }
   };
 
   return (
@@ -86,10 +89,8 @@ export default function WatchPage() {
         </div>
         <div className="lg:col-span-1">
           <EpisodeList 
-            animeId={id}
-            anime={anime}
             episodes={episodes}
-            currentEpisodeId={currentEpisode?.episodeId}
+            currentEpisodeId={episodeParam}
             onEpisodeSelect={handleEpisodeSelect}
             loading={isLoadingEpisodes}
           />
