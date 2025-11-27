@@ -1,0 +1,235 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application.  This entity stores user-specific data, but not authentication credentials.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "firebaseUid": {
+          "type": "string",
+          "description": "The Firebase User ID associated with this user. This is used to link the local user data with the Firebase authentication system."
+        },
+        "watchlist": {
+          "type": "array",
+          "description": "References to Media items in the user's watchlist. (Relationship: User 1:N Media)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "history": {
+          "type": "array",
+          "description": "References to Media items in the user's viewing history. (Relationship: User 1:N Media)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "firebaseUid"
+      ]
+    },
+    "Media": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Media",
+      "type": "object",
+      "description": "Represents a video, tv show episode, or movie.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Media entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the media."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of media (e.g., 'movie', 'episode')."
+        },
+        "sources": {
+          "type": "array",
+          "description": "A list of available media sources.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "genres": {
+          "type": "array",
+          "description": "A list of genre names.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "year": {
+          "type": "number",
+          "description": "The year the media was released."
+        },
+        "season": {
+          "type": "string",
+          "description": "The season of this media. (Only relevant for episodes)"
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the media (e.g., 'airing', 'completed')."
+        },
+        "studio": {
+          "type": "string",
+          "description": "The studio that produced the media."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "type"
+      ]
+    },
+    "Comment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Comment",
+      "type": "object",
+      "description": "Represents a comment on a media item.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Comment entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the User who created the comment. (Relationship: User 1:N Comment)"
+        },
+        "mediaId": {
+          "type": "string",
+          "description": "Reference to the Media item the comment is on. (Relationship: Media 1:N Comment)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The content of the comment."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The timestamp of when the comment was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "mediaId",
+        "text",
+        "timestamp"
+      ]
+    },
+    "Admin": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Admin",
+      "type": "object",
+      "description": "Represents an administrator user with elevated privileges.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Admin entity."
+        },
+        "firebaseUid": {
+          "type": "string",
+          "description": "The Firebase User ID associated with this admin user.  Used to link with the Firebase authentication system."
+        },
+        "permissions": {
+          "type": "array",
+          "description": "A list of permissions granted to the admin user.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "firebaseUid"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data. Path-based ownership ensures that only the authenticated user can access their own data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase User ID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/media/{mediaId}",
+        "definition": {
+          "entityName": "Media",
+          "schema": {
+            "$ref": "#/backend/entities/Media"
+          },
+          "description": "Stores media metadata. Accessible to all users for reading. Write access restricted based on role.",
+          "params": [
+            {
+              "name": "mediaId",
+              "description": "The unique identifier for the media item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/media/{mediaId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": {
+            "$ref": "#/backend/entities/Comment"
+          },
+          "description": "Stores comments for each media item. Includes denormalized 'userId' and 'mediaId' for authorization independence.",
+          "params": [
+            {
+              "name": "mediaId",
+              "description": "The unique identifier for the media item."
+            },
+            {
+              "name": "commentId",
+              "description": "The unique identifier for the comment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "Admin",
+          "schema": {
+            "$ref": "#/backend/entities/Admin"
+          },
+          "description": "Stores admin roles. Existence of a document grants admin privileges. Authorization relies on document existence, not content.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase User ID of the administrator."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support ProjectX's core features, focusing on scalability, security, and real-time updates. It leverages path-based ownership for user-specific data, a membership map for collaborative data, and dedicated collections for global roles (admin). Denormalization is heavily employed to ensure authorization independence and efficient read operations.\n\n*   **Users:** User data is stored under `/users/{userId}`, enabling easy management and securing of user-specific information like watchlist and history.\n*   **Media:** Media metadata is stored in a top-level `/media/{mediaId}` collection. This allows for efficient searching, filtering, and retrieval of media data, and simplifies indexing.\n*   **Comments:** Comments are stored in a subcollection `/media/{mediaId}/comments/{commentId}`.  The `userId` is denormalized into each comment document, along with the `mediaId`, ensuring that list operations are secure (QAPs - rules are not filters).  This eliminates the need for `get()` calls in security rules.\n*   **Admin Roles:** Admin roles are managed via the `/roles_admin/{userId}` collection. Existence of a document in this collection grants admin privileges, simplifying role-based access control.\n\n**Authorization Independence (CRITICAL):**\nAuthorization independence is achieved by denormalizing authorization-relevant data. For example, the `comments` subcollection includes the `userId`. This avoids the need to `get()` the parent document in security rules, which would break atomic operations and increase complexity. Similarly, for any collaborative entities (if they existed), the membership map would be denormalized into subcollections where access depends on that membership.\n\n**QAPs (Rules are not Filters):**\nSecure list operations are supported using structural segregation and denormalization.\n*   User-owned data (watchlist, history) is stored under the `/users/{userId}` path, allowing rules to easily filter based on `request.auth.uid`.\n*   Comments, despite being tied to media items, denormalize user IDs, enabling secure listing. An admin can list all comments (after checking their role in `/roles_admin`) without filtering based on comment content.\n\nThis structure prioritizes security, scalability, and maintainability by adhering to the core design principles and strategy mandates."
+  }
+}
