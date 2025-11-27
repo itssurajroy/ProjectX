@@ -23,13 +23,13 @@ export default function WatchPage() {
 
   const { data: aboutResponse, isLoading: isLoadingAbout } = useQuery<{ data: AnimeAboutResponse } | { success: false; error: string }>({
     queryKey: ['animeAbout', id],
-    fn: () => AnimeService.getAnimeAbout(id),
+    queryFn: () => AnimeService.getAnimeAbout(id),
     enabled: !!id,
   });
 
   const { data: episodesResponse, isLoading: isLoadingEpisodes } = useQuery<{ data: { episodes: AnimeEpisode[] } } | { success: false; error: string }>({
     queryKey: ['animeEpisodes', id],
-    fn: () => AnimeService.getEpisodes(id),
+    queryFn: () => AnimeService.getEpisodes(id),
     enabled: !!id,
   });
   
