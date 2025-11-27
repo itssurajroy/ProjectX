@@ -1,40 +1,56 @@
 
 import { NextRequest, NextResponse } from "next/server";
+import { env } from '@/lib/env';
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const path = searchParams.get('path');
-    
-    if (!path) {
-        return NextResponse.json({ error: 'Path is required' }, { status: 400 });
+  const { searchParams } = new URL(req.url);
+  const path = searchParams.get("path");
+  
+  if (!path) {
+    return NextResponse.json({ error: 'Missing path parameter' }, { status: 400 });
+  }
+
+  // Reconstruct the original query parameters intended for the target API
+  const targetParams = new URLSearchParams();
+  searchParams.forEach((value, key) => {
+    if (key !== 'path') {
+      targetParams.append(key, value);
     }
+  });
 
-    // Remove the 'path' parameter itself from the search params to pass the rest to the target API
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.delete('path');
+  const targetUrl = `${env.HIANIME_API_BASE}${path}?${targetParams.toString()}`;
 
-    const apiBase = process.env.HIANIME_API_BASE;
-    if (!apiBase) {
-        return NextResponse.json({ error: 'API base URL is not configured' }, { status: 500 });
-    }
-    
-    const targetUrl = `${apiBase}${path}?${newSearchParams.toString()}`;
+  const forwardHeaders = new Headers();
+  if (req.headers.has('user-agent')) {
+    forwardHeaders.set('User-Agent', req.headers.get('user-agent')!);
+  }
+  forwardHeaders.set('Accept', 'application/json');
+  
+  try {
+    const res = await fetch(targetUrl, { headers: forwardHeaders });
 
-    try {
-        const apiRes = await fetch(targetUrl, {
-            headers: {
-                'Accept': 'application/json',
-            },
-        });
-
-        if (!apiRes.ok) {
-            const errorBody = await apiRes.text();
-            return NextResponse.json({ error: `API Error: ${errorBody}` }, { status: apiRes.status });
+    if (!res.ok) {
+        let errorBody;
+        try {
+            errorBody = await res.json();
+        } catch {
+            errorBody = { error: await res.text() };
         }
-
-        const data = await apiRes.json();
-        return NextResponse.json(data);
-    } catch (error: any) {
-        return NextResponse.json({ error: 'Proxy error: ' + error.message }, { status: 500 });
+        console.error(`Upstream API error for ${targetUrl}:`, res.status, errorBody);
+        return NextResponse.json({ error: 'Upstream API Error', details: errorBody }, { status: res.status });
     }
+
+    const data = await res.json();
+
+    return NextResponse.json(data, {
+      status: res.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
+  } catch (e: any) {
+    console.error(`Proxy request failed for ${targetUrl}:`, e);
+    return NextResponse.json({ error: 'Proxy failed', details: e.message }, { status: 502 });
+  }
 }
