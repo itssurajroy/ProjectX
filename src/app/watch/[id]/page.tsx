@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
@@ -18,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 
 const WatchPageSkeleton = () => (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="col-span-12 lg:col-span-3">
                 <Skeleton className="h-[600px] w-full" />
@@ -118,7 +119,7 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
         <div className="bg-card/60 backdrop-blur-md rounded-lg border border-border/50">
             {currentEpisodeId && currentServer ? (
                 <AdvancedMegaPlayPlayer
-                  episodeId={episodeIdForPlayer}
+                  episodeId={currentEpisode.episodeId}
                   server={currentServer.serverName}
                   initialLang={lang}
                   title={anime.info.name}
@@ -288,5 +289,3 @@ export default function EliteWatchPage() {
     </div>
   );
 }
-
-    
