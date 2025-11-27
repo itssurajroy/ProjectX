@@ -95,6 +95,10 @@ service cloud.firestore {
       match /history/{animeId} {
          allow get, create, update, delete: if isOwner(userId);
       }
+       // Users can manage their own bookmarks (watchlist)
+      match /bookmarks/{animeId} {
+         allow get, create, update, delete: if isOwner(userId);
+      }
     }
 
     /**
@@ -134,3 +138,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
