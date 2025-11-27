@@ -1,3 +1,4 @@
+
 // app/watch/[id]/page.tsx
 "use client";
 
@@ -23,8 +24,6 @@ export default function EliteWatchPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const episodeParam = searchParams.get("ep");
-
-  const [language, setLanguage] = useState<"sub" | "dub">("sub");
 
   const { data: aboutResponse, isLoading: loadingAbout } = useQuery({
     queryKey: ["anime-about", id],
@@ -102,22 +101,6 @@ export default function EliteWatchPage() {
 
       {/* Main Content */}
       <div className="relative pt-8">
-        {/* Player */}
-        <div className="container mx-auto px-6">
-          {currentEpisodeId ? (
-            <AdvancedMegaPlayPlayer
-              episodeId={currentEpisodeId}
-              lang={language}
-              title={anime.info.name}
-              episode={String(currentEpisode.number)}
-              onNextEpisode={handleNext}
-            />
-          ) : (
-            <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center rounded-xl">
-              <p className="text-3xl font-bold">Select an episode to begin</p>
-            </div>
-          )}
-        </div>
 
         {/* Breadcrumb */}
         <div className="container mx-auto px-6 py-4">
@@ -134,35 +117,11 @@ export default function EliteWatchPage() {
         <div className="container mx-auto px-6 pb-20">
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             
-            {/* Left Sidebar: Episode List */}
+            {/* Left Sidebar: Anime Details */}
             <div className="xl:col-span-3 space-y-8 order-2 xl:order-1">
-              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Episodes</h2>
-                  <div className="flex gap-2">
-                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
-                      <ChevronLeft className="w-5 h-5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-                <EpisodeList
-                  episodes={episodes}
-                  currentEpisodeId={episodeParam || ""}
-                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-                  loading={loadingEpisodes}
-                />
-              </div>
-            </div>
-
-            {/* Center: Info + Comments */}
-            <div className="xl:col-span-6 space-y-8 order-1 xl:order-2">
-              {/* Poster + Title Card */}
-              <div className="flex flex-col md:flex-row gap-8 items-start">
-                <div className="relative flex-shrink-0">
-                  <div className="w-48 md:w-64 rounded-lg overflow-hidden shadow-2xl border border-white/10">
+               <div className="flex flex-col gap-8 items-start">
+                <div className="relative flex-shrink-0 w-full">
+                  <div className="w-full rounded-lg overflow-hidden shadow-2xl border border-white/10">
                     <Image
                       src={anime.info.poster}
                       alt={anime.info.name}
@@ -171,16 +130,13 @@ export default function EliteWatchPage() {
                       className="w-full h-auto"
                     />
                   </div>
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-t from-black to-transparent pt-8">
-                    <Badge className="bg-red-600 text-white text-lg px-4 py-2">TV Series</Badge>
-                  </div>
                 </div>
 
                 <div className="flex-1 space-y-6">
                   <div>
-                    <h1 className="text-4xl md:text-6xl font-black leading-tight">{anime.info.name}</h1>
+                    <h1 className="text-3xl font-black leading-tight">{anime.info.name}</h1>
                     {anime.moreInfo?.japanese && (
-                      <p className="text-xl text-gray-400 mt-2">{anime.moreInfo.japanese}</p>
+                      <p className="text-lg text-gray-400 mt-1">{anime.moreInfo.japanese}</p>
                     )}
                   </div>
 
@@ -199,7 +155,7 @@ export default function EliteWatchPage() {
                     ))}
                   </div>
 
-                  <p className="text-gray-300 text-lg leading-relaxed max-w-4xl" dangerouslySetInnerHTML={{ __html: anime.info.description || "No synopsis available."}}/>
+                  <p className="text-gray-300 text-sm leading-relaxed max-w-4xl" dangerouslySetInnerHTML={{ __html: anime.info.description || "No synopsis available."}}/>
 
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-4">
@@ -212,29 +168,14 @@ export default function EliteWatchPage() {
                     <Button size="lg" variant="outline" className="border-gray-600">
                       <Download className="w-5 h-5 mr-2" /> Download
                     </Button>
-                    <Button size="lg" variant="outline" className="border-gray-600">
-                      <Bug className="w-5 h-5 mr-2" /> Report
-                    </Button>
-                    <Button size="lg" variant="outline" className="border-gray-600">
-                      <Users className="w-5 h-5 mr-2" /> Watch Together
-                    </Button>
                   </div>
                 </div>
               </div>
-
-              {/* Comments */}
-              <div className="mt-16">
-                <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
-              </div>
-            </div>
-
-            {/* Right Sidebar: Relations & Recommendations */}
-            <div className="xl:col-span-3 space-y-8 order-3">
-              {relatedAnimes?.length > 0 && (
+               {relatedAnimes?.length > 0 && (
                 <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
                   <h2 className="text-2xl font-bold mb-6">You Might Like</h2>
                   <div className="space-y-4">
-                    {relatedAnimes.slice(0, 8).map((item: AnimeBase) => (
+                    {relatedAnimes.slice(0, 5).map((item: AnimeBase) => (
                       <Link
                         key={item.id}
                         href={`/watch/${item.id}`}
@@ -259,6 +200,54 @@ export default function EliteWatchPage() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* Center: Player + Comments */}
+            <div className="xl:col-span-6 space-y-8 order-1 xl:order-2">
+              <div className="relative">
+                {currentEpisodeId ? (
+                  <AdvancedMegaPlayPlayer
+                    episodeId={currentEpisodeId}
+                    lang={"sub"}
+                    title={anime.info.name}
+                    episode={String(currentEpisode.number)}
+                    onNextEpisode={handleNext}
+                  />
+                ) : (
+                  <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center rounded-xl">
+                    <p className="text-3xl font-bold">Select an episode to begin</p>
+                  </div>
+                )}
+              </div>
+               {currentEpisodeId && animeId && <PollsSection animeId={id} episodeId={currentEpisode?.episodeId} />}
+              {currentEpisodeId && animeId && (
+                <div className="mt-16">
+                  <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
+                </div>
+              )}
+            </div>
+
+            {/* Right Sidebar: Episode List */}
+            <div className="xl:col-span-3 space-y-8 order-3">
+              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">Episodes</h2>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <EpisodeList
+                  episodes={episodes}
+                  currentEpisodeId={episodeParam || ""}
+                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
+                  loading={loadingEpisodes}
+                />
+              </div>
             </div>
           </div>
         </div>
