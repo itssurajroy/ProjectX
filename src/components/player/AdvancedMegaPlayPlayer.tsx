@@ -12,7 +12,6 @@ interface AdvancedMegaPlayPlayerProps {
   initialLang?: "sub" | "dub" | "raw";
   title?: string;
   episode?: string;
-  onNextEpisode?: () => void;
   onSourceError?: () => void;
 }
 
@@ -21,7 +20,6 @@ export default function AdvancedMegaPlayPlayer({
   initialLang = "sub",
   title = "Episode",
   episode = "",
-  onNextEpisode,
   onSourceError,
 }: AdvancedMegaPlayPlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -69,6 +67,10 @@ export default function AdvancedMegaPlayPlayer({
     setIsLoading(true);
     setHasError(false);
   }, [episodeId, lang]);
+  
+  useEffect(() => {
+    setLang(initialLang);
+  }, [initialLang])
 
   // Language switcher
   const changeLanguage = (newLang: "sub" | "dub" | "raw") => {
@@ -202,12 +204,6 @@ export default function AdvancedMegaPlayPlayer({
             </div>
 
             <div className="flex items-center gap-4">
-              {onNextEpisode && (
-                <Button onClick={onNextEpisode} className="bg-primary hover:bg-primary/80">
-                  <Play className="w-4 h-4 mr-2" />
-                  Next Episode
-                </Button>
-              )}
               <Button size="lg" variant="ghost" className="text-white hover:bg-white/20" onClick={toggleFullscreen}>
                 <Maximize className="w-6 h-6" />
               </Button>

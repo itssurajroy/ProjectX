@@ -12,6 +12,7 @@ import PollsSection from "@/components/watch/PollsSection";
 import { useRouter } from "next/navigation";
 import { cn, extractEpisodeId } from "@/lib/utils";
 import AdvancedMegaPlayPlayer from "@/components/player/AdvancedMegaPlayPlayer";
+import { Button } from "@/components/ui/button";
 
 export default function WatchPage() {
   const params = useParams();
@@ -83,13 +84,19 @@ export default function WatchPage() {
               initialLang={language}
               title={anime.info.name}
               episode={String(currentEpisode.number)}
-              onNextEpisode={handleNextEpisode}
             />
           ) : (
             <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
               <p className="text-muted-foreground">Select an episode to begin.</p>
             </div>
           )}
+           <div className="flex justify-between items-center mt-4">
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setLanguage('sub')} variant={language === 'sub' ? 'default' : 'outline'}>SUB</Button>
+                <Button onClick={() => setLanguage('dub')} variant={language === 'dub' ? 'default' : 'outline'}>DUB</Button>
+              </div>
+              <Button onClick={handleNextEpisode}>Next Episode</Button>
+            </div>
           <div className="mt-6">
             <h1 className="text-3xl font-bold font-headline">{anime.info.name}</h1>
              {currentEpisode && <p className="text-lg text-muted-foreground mt-1">Episode {currentEpisode.number}: {currentEpisode.title}</p>}
