@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
 type VideoPlayerProps = {
   anime: AnimeAbout;
   episode: AnimeEpisode | undefined;
+  language: 'sub' | 'dub';
 }
 
-export default function VideoPlayer({ anime, episode }: VideoPlayerProps) {
-  const [language, setLanguage] = useState<'sub' | 'dub'>('sub');
+export default function VideoPlayer({ anime, episode, language }: VideoPlayerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [iframeKey, setIframeKey] = useState(Date.now());
@@ -32,7 +32,7 @@ export default function VideoPlayer({ anime, episode }: VideoPlayerProps) {
 
       return () => clearTimeout(timer);
     }
-  }, [episode, language]);
+  }, [episode, language, loading]);
 
   if (!episode) {
     return (
@@ -42,7 +42,7 @@ export default function VideoPlayer({ anime, episode }: VideoPlayerProps) {
     )
   }
 
-  const episodeNumberId = episode.episodeId.split('?ep=')[1];
+  const episodeNumberId = episode.episodeId;
   const iframeSrc = `https://megaplay.buzz/stream/s-2/${episodeNumberId}/${language}`;
 
   const handleReload = () => {

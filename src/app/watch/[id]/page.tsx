@@ -1,4 +1,3 @@
-
 'use client';
 import { notFound, useParams, useSearchParams } from "next/navigation";
 import VideoPlayer from "@/components/watch/video-player";
@@ -12,6 +11,7 @@ import { AnimeAboutResponse, AnimeEpisode } from "@/types/anime";
 import { useEffect, useState } from "react";
 import PollsSection from "@/components/watch/PollsSection";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function WatchPage() {
   const params = useParams();
@@ -19,16 +19,17 @@ export default function WatchPage() {
   const searchParams = useSearchParams();
   const id = params.id as string;
   const episodeParam = searchParams.get('ep');
+  const [language, setLanguage] = useState<'sub' | 'dub'>('sub');
 
   const { data: aboutResponse, isLoading: isLoadingAbout } = useQuery<{ data: AnimeAboutResponse } | { success: false; error: string }>({
     queryKey: ['animeAbout', id],
-    queryFn: () => AnimeService.getAnimeAbout(id),
+    fn: () => AnimeService.getAnimeAbout(id),
     enabled: !!id,
   });
 
   const { data: episodesResponse, isLoading: isLoadingEpisodes } = useQuery<{ data: { episodes: AnimeEpisode[] } } | { success: false; error: string }>({
     queryKey: ['animeEpisodes', id],
-    queryFn: () => AnimeService.getEpisodes(id),
+    fn: () => AnimeService.getEpisodes(id),
     enabled: !!id,
   });
   
@@ -63,7 +64,11 @@ export default function WatchPage() {
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <VideoPlayer anime={anime} episode={currentEpisode} />
+          <VideoPlayer anime={anime} episode={currentEpisode} language={language} />
+          <div className="mt-4 flex items-center gap-2">
+            <button onClick={() => setLanguage('sub')} className={cn('px-4 py-2 rounded-md text-sm font-semibold', language === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>SUB</button>
+            <button onClick={() => setLanguage('dub')} className={cn('px-4 py-2 rounded-md text-sm font-semibold', language === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>DUB</button>
+          </div>
           <div className="mt-6">
             <h1 className="text-3xl font-bold font-headline">{anime.info.name}</h1>
              {currentEpisode && <p className="text-lg text-muted-foreground mt-1">Episode {currentEpisode.number}: {currentEpisode.title}</p>}
