@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, doc } from 'firebase/firestore';
@@ -49,7 +50,7 @@ export default function CommentsSection({ animeId, episodeId }: { animeId: strin
       }, 
       (error) => {
         const permissionError = new FirestorePermissionError({
-            path: (commentsQuery as any).path,
+            path: (commentsQuery as any)._query.path.canonicalString(),
             operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);

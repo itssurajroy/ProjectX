@@ -1,3 +1,4 @@
+
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase } from '@/types/anime';
@@ -335,5 +336,3 @@ export default function AnimeDetailsPage({ params }: { params: { id: string } })
   const { id } = params;
   return <AnimeDetailsPageClient id={id} />;
 }
-
-    

@@ -1,3 +1,4 @@
+
 'use client';
 import { notFound, useParams, useSearchParams } from "next/navigation";
 import VideoPlayer from "@/components/watch/video-player";

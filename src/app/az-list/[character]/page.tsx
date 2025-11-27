@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AnimeService } from '@/lib/AnimeService';

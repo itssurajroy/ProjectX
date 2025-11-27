@@ -1,4 +1,5 @@
 
+
 export interface AnimeBase {
     id: string;
     name: string;

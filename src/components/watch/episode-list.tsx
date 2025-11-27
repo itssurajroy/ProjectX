@@ -1,16 +1,17 @@
+
 'use client';
 
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import { AnimeBase, AnimeEpisode } from '@/types/anime';
+import { AnimeEpisode } from '@/types/anime';
 
 interface EpisodeListProps {
   episodes: AnimeEpisode[];
   currentEpisodeId: string | undefined;
   animeId: string;
   loading: boolean;
-  relatedAnimes?: AnimeBase[];
+  onEpisodeSelect: (episode: AnimeEpisode) => void;
 }
 
 export default function EpisodeList({
@@ -19,13 +20,7 @@ export default function EpisodeList({
   animeId,
   loading,
   onEpisodeSelect
-}: {
-  episodes: AnimeEpisode[];
-  currentEpisodeId: string | undefined;
-  animeId: string;
-  loading: boolean;
-  onEpisodeSelect: (episode: AnimeEpisode) => void;
-}) {
+}: EpisodeListProps) {
   return (
     <div className="space-y-6 sticky top-20">
       <div className="bg-card/50 p-4 rounded-lg border border-border">

@@ -1,4 +1,5 @@
 
+
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 
 type ServiceError = { success: false; error: string; status?: number };
@@ -84,3 +85,4 @@ export class AnimeService {
     return res?.data || res;
   }
 }
+
