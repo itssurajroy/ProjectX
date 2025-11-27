@@ -1,67 +1,68 @@
+'use client';
 
-import { ScrollArea } from "../ui/scroll-area";
-import { Play } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { AnimeAbout, AnimeEpisode } from "@/types/anime";
-import Image from 'next/image';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
+import { AnimeBase, AnimeEpisode } from '@/types/anime';
 
 interface EpisodeListProps {
-    anime: AnimeAbout;
-    episodes: AnimeEpisode[];
-    currentEpisodeId: string | undefined;
-    onEpisodeSelect: (episode: AnimeEpisode) => void;
+  episodes: AnimeEpisode[];
+  currentEpisodeId: string | undefined;
+  animeId: string;
+  loading: boolean;
+  relatedAnimes?: AnimeBase[];
 }
 
-export default function EpisodeList({ anime, episodes, currentEpisodeId, onEpisodeSelect }: EpisodeListProps) {
-  if (!episodes || episodes.length === 0) {
-    return (
-        <div className="bg-card rounded-lg border">
-            <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold">Episodes</h2>
-            </div>
-            <div className="p-4 text-center text-muted-foreground">No episodes available.</div>
-        </div>
-    )
-  }
-  
+export default function EpisodeList({
+  episodes,
+  currentEpisodeId,
+  animeId,
+  loading,
+  onEpisodeSelect
+}: {
+  episodes: AnimeEpisode[];
+  currentEpisodeId: string | undefined;
+  animeId: string;
+  loading: boolean;
+  onEpisodeSelect: (episode: AnimeEpisode) => void;
+}) {
   return (
-    <div className="bg-card rounded-lg border">
-        <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Episodes ({episodes.length})</h2>
-        </div>
-      <ScrollArea className="h-[600px]">
-        <div className="p-2 space-y-2">
-          {episodes.map((ep, index) => (
-            <button
-              key={ep.episodeId}
-              onClick={() => onEpisodeSelect(ep)}
-              className={cn(
-                "flex items-center gap-4 p-2 rounded-md cursor-pointer hover:bg-secondary w-full text-left",
-                currentEpisodeId === ep.episodeId && "bg-secondary"
-              )}
-            >
-              <div className="relative w-32 h-20 rounded-md overflow-hidden flex-shrink-0">
-                <Image
-                  src={`https://img.anili.st/media/${anime.info.id}`}
-                  alt={ep.title}
-                  fill
-                  className="object-cover"
-                  onError={(e) => e.currentTarget.src = "https://picsum.photos/seed/placeholder/320/180"}
-                />
-                 {currentEpisodeId === ep.episodeId && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <Play className="h-6 w-6 text-white"/>
-                    </div>
-                 )}
-              </div>
-              <div className="flex-grow overflow-hidden">
-                <h3 className="font-semibold text-sm truncate">Episode {ep.number}: {ep.title}</h3>
-                {ep.isFiller && <span className="text-xs text-yellow-400">Filler</span>}
-              </div>
-            </button>
-          ))}
-        </div>
-      </ScrollArea>
+    <div className="space-y-6 sticky top-20">
+      <div className="bg-card/50 p-4 rounded-lg border border-border">
+        <h2 className="text-lg font-bold mb-3">Up Next 🍿</h2>
+        {loading ? (
+          <div className="flex justify-center items-center h-48">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+            {episodes.map((ep, index) => {
+              const epId = ep.episodeId;
+              if (!epId) return null;
+
+              return (
+                <button
+                  onClick={() => onEpisodeSelect(ep)}
+                  key={ep.episodeId}
+                  className={cn(
+                    'block w-full text-left p-2.5 rounded-md transition-colors',
+                    epId === currentEpisodeId
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/50 hover:bg-muted'
+                  )}
+                >
+                  <p className="font-semibold text-sm truncate">
+                    Episode {ep.number}
+                    {ep.isFiller && <span className="text-xs text-orange-400 ml-2">(Filler)</span>}
+                  </p>
+                  <p className={cn("text-xs truncate", epId === currentEpisodeId ? 'text-primary-foreground/80' : 'text-muted-foreground/80')}>{ep.title}</p>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      
     </div>
   );
 }
