@@ -76,12 +76,12 @@ export class AnimeService {
   }
 
   static async getEpisodeServers(animeEpisodeId: string): Promise<{data: {sub: EpisodeServer[], dub: EpisodeServer[], raw: EpisodeServer[]}} | ServiceError> {
-    const res = await fetchFromProxy('/api/v2/hianime/episode/servers', { animeEpisodeId });
+    const res = await fetchFromProxy('/api/v2/hianime/episode/servers', { animeEpisodeId: animeEpisodeId });
     return res;
   }
 
   static async getEpisodeSources(animeEpisodeId: string, server: string, category: 'sub' | 'dub' | 'raw'): Promise<EpisodeSourcesResponse | ServiceError> {
-    const res = await fetchFromProxy('/api/v2/hianime/episode/sources', { animeEpisodeId, server, category });
+    const res = await fetchFromProxy('/api/v2/hianime/episode/sources', { animeEpisodeId: animeEpisodeId, server, category });
     return res?.data || res;
   }
 }

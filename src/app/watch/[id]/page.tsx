@@ -1,21 +1,38 @@
-// app/watch/[id]/page.tsx
-"use client";
 
-import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
-import { AnimeService } from "@/lib/AnimeService";
-import { extractEpisodeId } from "@/lib/utils";
-import AdvancedMegaPlayPlayer from "@/components/player/AdvancedMegaPlayPlayer";
-import EpisodeList from "@/components/watch/episode-list";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Heart, Share2, Download, Bug, Users, Shuffle, ChevronLeft, ChevronRight, Home, Tv, Star, Expand, Focus, Zap, MonitorPlay, SkipForward, ChevronDown, ListVideo } from "lucide-react";
-import { useState, useEffect } from "react";
-import { AnimeBase, AnimeEpisode, AnimeAbout, EpisodeServer } from "@/types/anime";
-import Link from "next/link";
-import Image from "next/image";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+'use client';
+
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { AnimeService } from '@/lib/AnimeService';
+import { extractEpisodeId } from '@/lib/utils';
+import AdvancedMegaPlayPlayer from '@/components/player/AdvancedMegaPlayPlayer';
+import EpisodeList from '@/components/watch/episode-list';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Heart, Share2, Download, Bug, Users, ChevronLeft, ChevronRight, Home, Tv, Star, MonitorPlay, Zap, SkipForward, ListVideo, Film } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AnimeBase, AnimeEpisode, AnimeAbout, EpisodeServer } from '@/types/anime';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const WatchPageSkeleton = () => (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="col-span-12 lg:col-span-3">
+                <Skeleton className="h-[600px] w-full" />
+            </div>
+            <div className="col-span-12 lg:col-span-6 space-y-6">
+                <Skeleton className="aspect-video w-full" />
+                <Skeleton className="h-24 w-full" />
+            </div>
+            <div className="col-span-12 lg:col-span-3">
+                <Skeleton className="h-[600px] w-full" />
+            </div>
+        </div>
+    </div>
+);
 
 
 const AnimeDetails = ({ anime }: { anime: AnimeAbout }) => (
@@ -65,29 +82,50 @@ const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: Ani
       queryFn: () => AnimeService.getEpisodeServers(currentEpisode.episodeId),
       enabled: !!currentEpisode?.episodeId,
     });
-
+    
     const [currentServer, setCurrentServer] = useState<EpisodeServer | null>(null);
+    const [lang, setLang] = useState<'sub' | 'dub' | 'raw'>('sub');
 
     useEffect(() => {
-      if (serversResponse && 'data' in serversResponse && serversResponse.data.sub.length > 0) {
-        setCurrentServer(serversResponse.data.sub[0]);
+      if (serversResponse && 'data' in serversResponse) {
+        const serversForLang = serversResponse.data[lang];
+        if (serversForLang && serversForLang.length > 0) {
+            setCurrentServer(serversForLang[0]);
+        } else {
+            // Fallback logic
+            const defaultServer = 
+                serversResponse.data.sub?.[0] || 
+                serversResponse.data.dub?.[0] || 
+                serversResponse.data.raw?.[0];
+            if (defaultServer) {
+                setCurrentServer(defaultServer);
+                if (serversResponse.data.sub?.[0]) setLang('sub');
+                else if (serversResponse.data.dub?.[0]) setLang('dub');
+                else setLang('raw');
+            }
+        }
       }
-    }, [serversResponse]);
-
+    }, [serversResponse, lang]);
+    
+    const servers = serversResponse && 'data' in serversResponse ? [...serversResponse.data.sub, ...serversResponse.data.dub, ...serversResponse.data.raw] : [];
+    const uniqueServers = Array.from(new Map(servers.map(s => [s.serverName, s])).values());
+    
+    const episodeIdForPlayer = `${id}?ep=${currentEpisodeId}`;
 
     return (
         <div className="bg-card/60 backdrop-blur-md rounded-lg border border-border/50">
             {currentEpisodeId && currentServer ? (
                 <AdvancedMegaPlayPlayer
-                  episodeId={currentEpisodeId}
-                  initialLang="sub"
+                  episodeId={episodeIdForPlayer}
+                  server={currentServer.serverName}
+                  initialLang={lang}
                   title={anime.info.name}
                   episode={String(currentEpisode.number)}
                   onNextEpisode={onNext}
                 />
             ) : (
                 <div className="aspect-video bg-black flex items-center justify-center rounded-t-lg">
-                    <p className="text-lg font-semibold">Select an episode to begin</p>
+                   <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
                 </div>
             )}
             <div className="p-4 space-y-4">
@@ -95,16 +133,16 @@ const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: Ani
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex items-center gap-2">
-                        {serversResponse && 'data' in serversResponse && serversResponse.data.sub.map((server) => (
-                           <Button key={server.serverId} size="sm" variant={currentServer?.serverId === server.serverId ? 'default' : 'secondary'} className={currentServer?.serverId === server.serverId ? 'bg-primary hover:bg-primary/80' : ''} onClick={() => setCurrentServer(server)}>
+                        {uniqueServers.map((server) => (
+                           <Button key={server.serverId} size="sm" variant={currentServer?.serverName === server.serverName ? 'default' : 'secondary'} className={currentServer?.serverName === server.serverName ? 'bg-primary hover:bg-primary/80' : ''} onClick={() => setCurrentServer(server)}>
                                {server.serverName}
                            </Button>
                         ))}
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Badge variant="destructive" className="border-0">SUB</Badge>
+                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Button size="sm" variant={lang === 'sub' ? 'destructive' : 'ghost'} onClick={() => setLang('sub')}>SUB</Button>
                         <span>|</span>
-                        <span>DUB</span>
+                        <Button size="sm" variant={lang === 'dub' ? 'destructive' : 'ghost'} onClick={() => setLang('dub')}>DUB</Button>
                     </div>
                 </div>
 
@@ -150,23 +188,6 @@ const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, o
         </div>
     );
 }
-
-const WatchPageSkeleton = () => (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="col-span-12 lg:col-span-3">
-                <Skeleton className="h-[600px] w-full" />
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-6">
-                <Skeleton className="aspect-video w-full" />
-                <Skeleton className="h-24 w-full" />
-            </div>
-            <div className="col-span-12 lg:col-span-3">
-                <Skeleton className="h-[600px] w-full" />
-            </div>
-        </div>
-    </div>
-);
 
 
 export default function EliteWatchPage() {
