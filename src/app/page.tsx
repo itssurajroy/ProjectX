@@ -134,8 +134,8 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
             </div>
             <div className="bg-card/50 p-2 rounded-lg border border-border/50">
                 <div className="space-y-2">
-                    {animes.slice(0, 7).map(anime => (
-                        <Link href={`/watch/${anime.id}`} key={anime.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
+                    {animes.slice(0, 7).map((anime, index) => (
+                        <Link href={`/watch/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
                                 <Image src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
                             </div>
