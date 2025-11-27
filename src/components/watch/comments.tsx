@@ -27,7 +27,7 @@ export default function CommentsSection({ animeId, episodeId }: { animeId: strin
   const commentsQuery = useMemoFirebase(() => {
     if (!firestore || !animeId || !cleanEpisodeId) return null;
     return query(
-        collection(db, 'comments', animeId, 'episodes', cleanEpisodeId, 'messages'),
+        collection(firestore, 'comments', animeId, 'episodes', cleanEpisodeId, 'messages'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore, animeId, cleanEpisodeId]);
@@ -49,7 +49,7 @@ export default function CommentsSection({ animeId, episodeId }: { animeId: strin
       }, 
       (error) => {
         const permissionError = new FirestorePermissionError({
-            path: commentsQuery.path,
+            path: (commentsQuery as any).path,
             operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
@@ -67,7 +67,7 @@ export default function CommentsSection({ animeId, episodeId }: { animeId: strin
       return;
     }
     if (!text.trim()) return;
-    if (!commentsQuery) return; // Should not happen if user can type
+    if (!firestore || !animeId || !cleanEpisodeId) return; // Should not happen if user can type
 
     const newComment = {
       text,
@@ -77,12 +77,10 @@ export default function CommentsSection({ animeId, episodeId }: { animeId: strin
       avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`
     };
     
-    const collectionRef = collection(db, 'comments', animeId, 'episodes', cleanEpisodeId, 'messages');
+    const collectionRef = collection(firestore, 'comments', animeId, 'episodes', cleanEpisodeId, 'messages');
     addDocumentNonBlocking(collectionRef, newComment);
     setText('');
   };
-  
-  const db = useFirestore();
 
   return (
     <Card className="p-4 bg-card/50">
