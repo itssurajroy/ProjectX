@@ -20,7 +20,10 @@ export default function VideoPlayer({ anime, episode }: VideoPlayerProps) {
     )
   }
 
-  const iframeSrc = `https://megaplay.buzz/stream/s-2/${episode.episodeId}/${language}`;
+  // The hianime episode ID is just the `ep` query param value, not the full episodeId string from the API.
+  const episodeNumberId = episode.episodeId.split('?ep=')[1];
+
+  const iframeSrc = `https://megaplay.buzz/stream/s-2/${episodeNumberId}/${language}`;
 
   return (
     <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden group/player">
@@ -29,6 +32,8 @@ export default function VideoPlayer({ anime, episode }: VideoPlayerProps) {
             src={iframeSrc}
             allowFullScreen
             className="w-full h-full"
+            scrolling="no"
+            frameBorder="0"
         ></iframe>
     </div>
   );
