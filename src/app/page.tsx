@@ -9,7 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
-import MediaCard from "@/components/media/media-card";
+import { AnimeCard } from "@/components/AnimeCard";
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -297,7 +297,7 @@ export default function MainDashboardPage() {
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                         {filteredLatest?.slice(0, 10).map((anime) => (
-                            <MediaCard key={anime.id} media={anime} />
+                            <AnimeCard key={anime.id} anime={anime} />
                         ))}
                     </div>
                 </section>

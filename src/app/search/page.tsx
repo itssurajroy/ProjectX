@@ -1,6 +1,6 @@
 'use client';
 
-import MediaCard from "@/components/media/media-card";
+import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -86,7 +86,7 @@ function SearchPageContent() {
         ) : filteredMedia.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {filteredMedia.map((item) => (
-              <MediaCard key={item.id} media={item} />
+              <AnimeCard key={item.id} anime={item} />
             ))}
           </div>
         ) : (

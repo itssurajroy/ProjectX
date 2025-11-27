@@ -4,7 +4,7 @@ import VideoPlayer from "@/components/watch/video-player";
 import EpisodeList from "@/components/watch/episode-list";
 import CommentsSection from "@/components/watch/comments";
 import { Badge } from "@/components/ui/badge";
-import MediaCard from "@/components/media/media-card";
+import { AnimeCard } from "@/components/AnimeCard";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
 import { AnimeAboutResponse, AnimeEpisode } from "@/types/anime";
@@ -77,7 +77,7 @@ export default function WatchPage() {
         <h2 className="text-2xl font-bold mb-4">Related Shows</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {relatedAnimes.slice(0,5).map((item) => (
-            <MediaCard key={item.id} media={item} />
+            <AnimeCard key={item.id} anime={item} />
           ))}
         </div>
       </div>
