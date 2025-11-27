@@ -31,17 +31,17 @@ export default function EpisodeList({ episodes, currentEpisodeId, onEpisodeSelec
       <ScrollArea className="h-[600px]">
         <div className="p-2 space-y-2">
           {episodes.map((ep, index) => (
-            <div
+            <button
               key={ep.episodeId}
               onClick={() => onEpisodeSelect(ep)}
               className={cn(
-                "flex items-center gap-4 p-2 rounded-md cursor-pointer hover:bg-secondary",
+                "flex items-center gap-4 p-2 rounded-md cursor-pointer hover:bg-secondary w-full text-left",
                 currentEpisodeId === ep.episodeId && "bg-secondary"
               )}
             >
               <div className="relative w-32 h-20 rounded-md overflow-hidden flex-shrink-0">
                 <Image
-                  src={`https://img.anili.st/media/${ep.episodeId}`}
+                  src={`https://img.anili.st/media/${anime.info.id}`}
                   alt={ep.title}
                   fill
                   className="object-cover"
@@ -54,10 +54,10 @@ export default function EpisodeList({ episodes, currentEpisodeId, onEpisodeSelec
                  )}
               </div>
               <div className="flex-grow overflow-hidden">
-                <h3 className="font-semibold text-sm truncate">{ep.title}</h3>
-                <p className="text-xs text-muted-foreground">Episode {ep.number}</p>
+                <h3 className="font-semibold text-sm truncate">Episode {ep.number}: {ep.title}</h3>
+                {ep.isFiller && <span className="text-xs text-yellow-400">Filler</span>}
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </ScrollArea>

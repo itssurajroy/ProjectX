@@ -123,8 +123,8 @@ service cloud.firestore {
      * The path is structured as /polls/{animeId}-{episodeId}/votes/{userId}
      */
     match /polls/{pollId}/votes/{userId} {
-      allow list, get: if false; // Disallow reading individual votes to maintain anonymity
-      allow create, update: if isOwner(userId); // A user can create or change their own vote
+      allow list: if false; // Disallow listing all votes
+      allow get, create, update: if isOwner(userId); // A user can read or change their own vote
       allow delete: if false; // Users cannot delete their vote, only change it
     }
 
@@ -138,5 +138,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
