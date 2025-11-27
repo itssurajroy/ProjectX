@@ -1,4 +1,3 @@
-
 // app/watch/[id]/page.tsx
 "use client";
 
@@ -11,7 +10,7 @@ import EpisodeList from "@/components/watch/episode-list";
 import CommentsSection from "@/components/watch/comments";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, Download, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Share2, Download, Info, ChevronLeft, ChevronRight, Home, Tv, Film, Bug, Users, Shuffle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimeBase, AnimeEpisode } from "@/types/anime";
 import Link from "next/link";
@@ -52,15 +51,15 @@ export default function WatchPage() {
 
   if (loadingAbout || loadingEpisodes || (!episodeParam && episodes.length > 0)) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
-        <div className="text-xl">Loading episode...</div>
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div className="text-2xl">Loading masterpiece...</div>
       </div>
     );
   }
   
   if (!aboutResponse || !('data' in aboutResponse) || !aboutResponse.data.anime) {
      return (
-      <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
         Anime not found
       </div>
     );
@@ -89,167 +88,179 @@ export default function WatchPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground pt-16">
-      <div className="container mx-auto px-4 max-w-7xl">
-        {currentEpisodeId ? (
-          <AdvancedMegaPlayPlayer
-            episodeId={currentEpisodeId}
-            lang={language}
-            title={anime.info.name}
-            episode={String(currentEpisode.number)}
-            onNextEpisode={handleNext}
-          />
-        ) : (
-          <div className="aspect-video bg-black rounded-xl flex items-center justify-center">
-            <p className="text-gray-500 text-lg">Select an episode to start watching</p>
-          </div>
-        )}
-      </div>
+    <div className="min-h-screen bg-black text-white">
+      {/* Full Bleed Background */}
+      <div 
+        className="fixed inset-0 -z-10"
+        style={{
+          backgroundImage: `url(${anime.info.poster})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(20px) brightness(0.3)",
+        }}
+      />
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-glow">{anime.info.name}</h1>
-              <p className="text-lg text-muted-foreground mt-2">
-                Episode {currentEpisode.number}
-                {currentEpisode.title && `: ${currentEpisode.title}`}
-              </p>
+      <div className="relative">
+        {/* Player */}
+        <div className="relative">
+          {currentEpisodeId ? (
+            <AdvancedMegaPlayPlayer
+              episodeId={currentEpisodeId}
+              lang={language}
+              title={anime.info.name}
+              episode={String(currentEpisode.number)}
+              onNextEpisode={handleNext}
+            />
+          ) : (
+            <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center">
+              <p className="text-3xl font-bold">Select an episode to begin</p>
             </div>
-            <div className="flex gap-2 backdrop-blur-md bg-card rounded-lg p-1 mt-4 md:mt-0">
-                <Button
-                size="sm"
-                variant={language === "sub" ? "default" : "ghost"}
-                className={language === "sub" ? "bg-primary hover:bg-primary/90" : "hover:bg-muted"}
-                onClick={() => setLanguage("sub")}
-                >
-                SUB
-                </Button>
-                <Button
-                size="sm"
-                variant={language === "dub" ? "default" : "ghost"}
-                className={language === "dub" ? "bg-primary hover:bg-primary/90" : "hover:bg-muted"}
-                onClick={() => setLanguage("dub")}
-                >
-                DUB
-                </Button>
-            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Side – Info + Comments */}
-          <div className="lg:col-span-3 space-y-8">
-            <PollsSection animeId={id} episodeId={currentEpisode.episodeId} />
-
-            {/* Synopsis */}
-            <div
-              className="prose prose-invert max-w-none text-muted-foreground leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: anime.info.description }}
-            />
-
-             {/* Genres */}
-            <div className="flex flex-wrap gap-2">
-              {anime.moreInfo?.genres?.map((g: string) => (
-                <Badge
-                  key={g}
-                  variant="outline"
-                  className="bg-primary/10 text-primary border-primary/30 hover:bg-primary/20"
-                >
-                  {g}
-                </Badge>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
-                <Heart className="w-5 h-5 mr-2" />
-                Add to Favorites
-              </Button>
-              <Button size="lg" variant="outline" className="border-border hover:bg-muted">
-                <Share2 className="w-5 h-5 mr-2" />
-                Share
-              </Button>
-              <Button size="lg" variant="outline" className="border-border hover:bg-muted">
-                <Download className="w-5 h-5 mr-2" />
-                Download
-              </Button>
-              <Button size="lg" variant="outline" className="border-border hover:bg-muted">
-                <Info className="w-5 h-5 mr-2" />
-                Report
-              </Button>
-            </div>
-
-            {/* Comments */}
-            <div className="mt-12">
-              <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
-            </div>
+        {/* Breadcrumb */}
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Link href="/" className="hover:text-white"><Home className="w-4 h-4" /></Link>
+            <span>/</span>
+            <Link href="/tv" className="hover:text-white"><Tv className="w-4 h-4" /></Link>
+            <span>/</span>
+            <span className="text-white truncate max-w-2xl">{anime.info.name}</span>
           </div>
+        </div>
 
-          {/* Right Sidebar */}
-          <div className="space-y-6 lg:sticky top-24 self-start">
-            {/* Episode List */}
-            <div className="bg-card border border-border rounded-xl p-4 md:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Episodes</h2>
-                <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
-                    <ChevronLeft className="w-5 h-5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={handleNext}
-                    disabled={currentIndex >= episodes.length - 1}
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </Button>
+        {/* Main Grid */}
+        <div className="container mx-auto px-6 pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Left: Info + Comments */}
+            <div className="lg:col-span-3 space-y-8">
+              {/* Poster + Title Card */}
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="relative flex-shrink-0">
+                  <div className="w-48 md:w-64 rounded-lg overflow-hidden shadow-2xl border border-white/10">
+                    <Image
+                      src={anime.info.poster}
+                      alt={anime.info.name}
+                      width={256}
+                      height={360}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-t from-black to-transparent pt-8">
+                    <Badge className="bg-red-600 text-white text-lg px-4 py-2">TV Series</Badge>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-6">
+                  <div>
+                    <h1 className="text-4xl md:text-6xl font-black leading-tight">{anime.info.name}</h1>
+                    {anime.moreInfo?.japanese && (
+                      <p className="text-xl text-gray-400 mt-2">{anime.moreInfo.japanese}</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <Badge className="bg-green-600/20 text-green-400 border-green-600">SUB {episodes.length}</Badge>
+                    <Badge className="bg-blue-600/20 text-blue-400 border-blue-600">DUB {episodes.length}</Badge>
+                    <span className="text-gray-400">•</span>
+                    <span className="text-gray-300">{anime.moreInfo?.status || "Ongoing"}</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {anime.moreInfo?.genres?.map((g: string) => (
+                      <Badge key={g} variant="outline" className="border-purple-600 text-purple-400">
+                        {g}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <p className="text-gray-300 text-lg leading-relaxed max-w-4xl" dangerouslySetInnerHTML={{ __html: anime.info.description || "No synopsis available."}}/>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap gap-4">
+                    <Button size="lg" className="bg-red-600 hover:bg-red-700">
+                      <Heart className="w-5 h-5 mr-2" /> Add to List
+                    </Button>
+                    <Button size="lg" variant="outline" className="border-gray-600">
+                      <Share2 className="w-5 h-5 mr-2" /> Share
+                    </Button>
+                    <Button size="lg" variant="outline" className="border-gray-600">
+                      <Download className="w-5 h-5 mr-2" /> Download
+                    </Button>
+                    <Button size="lg" variant="outline" className="border-gray-600">
+                      <Bug className="w-5 h-5 mr-2" /> Report
+                    </Button>
+                    <Button size="lg" variant="outline" className="border-gray-600">
+                      <Users className="w-5 h-5 mr-2" /> Watch Together
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <EpisodeList
-                episodes={episodes}
-                currentEpisodeId={episodeParam || ""}
-                onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-                loading={loadingEpisodes}
-              />
+
+              {/* Comments */}
+              <div className="mt-16">
+                <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
+              </div>
             </div>
 
-            {/* Recommendations */}
-            {relatedAnimes && relatedAnimes.length > 0 && (
-              <div className="bg-card border border-border rounded-xl p-4 md:p-6">
-                <h2 className="text-xl font-bold mb-4">You Might Also Like</h2>
-                <div className="space-y-4">
-                  {relatedAnimes.slice(0, 5).map((item: AnimeBase) => (
-                    <Link
-                      key={item.id}
-                      href={`/anime/${item.id}`}
-                      className="flex gap-3 hover:bg-muted/50 rounded-lg p-2 transition-colors group"
-                    >
-                      <div className="relative w-16 h-20 rounded-md overflow-hidden flex-shrink-0">
+            {/* Right Sidebar */}
+            <div className="space-y-8">
+              {/* Episode List */}
+              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">Episodes</h2>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <EpisodeList
+                  episodes={episodes}
+                  currentEpisodeId={episodeParam || ""}
+                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
+                  loading={loadingEpisodes}
+                />
+              </div>
+
+              {/* Relations & Recommendations */}
+              {relatedAnimes?.length > 0 && (
+                <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
+                  <h2 className="text-2xl font-bold mb-6">You Might Like</h2>
+                  <div className="space-y-4">
+                    {relatedAnimes.slice(0, 8).map((item: AnimeBase) => (
+                      <Link
+                        key={item.id}
+                        href={`/watch/${item.id}`}
+                        className="flex gap-4 hover:bg-white/5 rounded-lg p-3 transition-all"
+                      >
                         <Image
                           src={item.poster}
                           alt={item.name}
-                          fill
-                          className="object-cover"
+                          width={80}
+                          height={110}
+                          className="rounded object-cover"
                         />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-sm line-clamp-2 group-hover:text-primary">{item.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {item.type}
-                          {item.episodes?.sub && ` • ${item.episodes.sub} eps`}
-                        </p>
-                      </div>
-                    </Link>
-                  ))}
+                        <div>
+                          <h3 className="font-medium line-clamp-2">{item.name}</h3>
+                          <div className="flex gap-2 mt-2 text-xs text-gray-400">
+                            <Badge variant="secondary" className="text-xs">TV</Badge>
+                            <span>{item.episodes?.sub || "?"} eps</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-    
