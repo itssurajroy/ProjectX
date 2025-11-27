@@ -2,16 +2,17 @@
 import { ScrollArea } from "../ui/scroll-area";
 import { Play } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AnimeEpisode } from "@/types/anime";
+import { AnimeAbout, AnimeEpisode } from "@/types/anime";
 import Image from 'next/image';
 
 interface EpisodeListProps {
+    anime: AnimeAbout;
     episodes: AnimeEpisode[];
     currentEpisodeId: string | undefined;
     onEpisodeSelect: (episode: AnimeEpisode) => void;
 }
 
-export default function EpisodeList({ episodes, currentEpisodeId, onEpisodeSelect }: EpisodeListProps) {
+export default function EpisodeList({ anime, episodes, currentEpisodeId, onEpisodeSelect }: EpisodeListProps) {
   if (!episodes || episodes.length === 0) {
     return (
         <div className="bg-card rounded-lg border">

@@ -80,6 +80,7 @@ export default function WatchPage() {
         </div>
         <div className="lg:col-span-1">
           <EpisodeList 
+            anime={anime}
             episodes={episodes}
             currentEpisodeId={currentEpisode?.episodeId}
             onEpisodeSelect={handleEpisodeSelect}
