@@ -60,7 +60,7 @@ export default function WatchPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pt-24">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <VideoPlayer anime={anime} episode={currentEpisode} />
@@ -82,6 +82,7 @@ export default function WatchPage() {
         <div className="lg:col-span-1">
           <EpisodeList 
             animeId={id}
+            anime={anime}
             episodes={episodes}
             currentEpisodeId={currentEpisode?.episodeId}
             onEpisodeSelect={handleEpisodeSelect}
