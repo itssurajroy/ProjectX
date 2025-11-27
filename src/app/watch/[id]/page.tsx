@@ -74,7 +74,7 @@ const AnimeDetails = ({ anime }: { anime: AnimeAbout }) => (
     </div>
 );
 
-const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: AnimeAbout, episodes: AnimeEpisode[], currentEpisodeId: string | null, onNext: () => void; }) => {
+const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: string, anime: AnimeAbout, episodes: AnimeEpisode[], currentEpisodeId: string | null, onNext: () => void; }) => {
     const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === currentEpisodeId) || episodes[0];
     
     const { data: serversResponse } = useQuery({
@@ -90,10 +90,12 @@ const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: Ani
       if (serversResponse && 'data' in serversResponse) {
         const serversForLang = serversResponse.data[lang];
         if (serversForLang && serversForLang.length > 0) {
-            setCurrentServer(serversForLang[0]);
+            const megaCloudServer = serversForLang.find(s => s.serverName.toLowerCase() === 'megacloud');
+            setCurrentServer(megaCloudServer || serversForLang[0]);
         } else {
             // Fallback logic
             const defaultServer = 
+                serversResponse.data.sub?.find(s => s.serverName.toLowerCase() === 'megacloud') ||
                 serversResponse.data.sub?.[0] || 
                 serversResponse.data.dub?.[0] || 
                 serversResponse.data.raw?.[0];
@@ -107,7 +109,7 @@ const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: Ani
       }
     }, [serversResponse, lang]);
     
-    const servers = serversResponse && 'data' in serversResponse ? [...serversResponse.data.sub, ...serversResponse.data.dub, ...serversResponse.data.raw] : [];
+    const servers = serversResponse && 'data' in serversResponse ? [...(serversResponse.data.sub || []), ...(serversResponse.data.dub || [])] : [];
     const uniqueServers = Array.from(new Map(servers.map(s => [s.serverName, s])).values());
     
     const episodeIdForPlayer = `${id}?ep=${currentEpisodeId}`;
@@ -255,18 +257,20 @@ export default function EliteWatchPage() {
         }}
       />}
 
-      <div className="relative pt-20">
+      <div className="relative pt-24 pb-8">
         {isLoading || !anime ? (
             <WatchPageSkeleton />
         ) : (
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="col-span-12 lg:col-span-3 order-2 lg:order-1">
+                    <div className="col-span-12 lg:col-span-3 order-2 lg:order-1 hidden lg:block">
                         <AnimeDetails anime={anime} />
                     </div>
                     <div className="col-span-12 lg:col-span-6 order-1 lg:order-2 space-y-6">
-                        <WatchPlayer anime={anime} episodes={episodes} currentEpisodeId={currentEpisodeId} onNext={handleNext} />
-                        {/* Comments can go here */}
+                        <WatchPlayer id={id} anime={anime} episodes={episodes} currentEpisodeId={currentEpisodeId} onNext={handleNext} />
+                        <div className="block lg:hidden">
+                            <AnimeDetails anime={anime} />
+                        </div>
                     </div>
                     <div className="col-span-12 lg:col-span-3 order-3 lg:order-3">
                        <EpisodeSidebar 
@@ -284,3 +288,5 @@ export default function EliteWatchPage() {
     </div>
   );
 }
+
+    
