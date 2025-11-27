@@ -1,5 +1,3 @@
-
-
 // app/watch/[id]/page.tsx
 "use client";
 
@@ -13,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, Share2, Download, Bug, Users, Shuffle, ChevronLeft, ChevronRight, Home, Tv, Star, Expand, Focus, Zap, MonitorPlay, SkipForward, ChevronDown, ListVideo } from "lucide-react";
 import { useState, useEffect } from "react";
-import { AnimeBase, AnimeEpisode, AnimeAbout } from "@/types/anime";
+import { AnimeBase, AnimeEpisode, AnimeAbout, EpisodeServer } from "@/types/anime";
 import Link from "next/link";
 import Image from "next/image";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -62,9 +60,24 @@ const AnimeDetails = ({ anime }: { anime: AnimeAbout }) => (
 const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: AnimeAbout, episodes: AnimeEpisode[], currentEpisodeId: string | null, onNext: () => void; }) => {
     const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === currentEpisodeId) || episodes[0];
     
+    const { data: serversResponse } = useQuery({
+      queryKey: ["episode-servers", currentEpisode?.episodeId],
+      queryFn: () => AnimeService.getEpisodeServers(currentEpisode.episodeId),
+      enabled: !!currentEpisode?.episodeId,
+    });
+
+    const [currentServer, setCurrentServer] = useState<EpisodeServer | null>(null);
+
+    useEffect(() => {
+      if (serversResponse && 'data' in serversResponse && serversResponse.data.sub.length > 0) {
+        setCurrentServer(serversResponse.data.sub[0]);
+      }
+    }, [serversResponse]);
+
+
     return (
         <div className="bg-card/60 backdrop-blur-md rounded-lg border border-border/50">
-            {currentEpisodeId ? (
+            {currentEpisodeId && currentServer ? (
                 <AdvancedMegaPlayPlayer
                   episodeId={currentEpisodeId}
                   initialLang="sub"
@@ -82,8 +95,11 @@ const WatchPlayer = ({ anime, episodes, currentEpisodeId, onNext }: { anime: Ani
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <Button size="sm" className="bg-primary hover:bg-primary/80">Vidplay</Button>
-                        <Button size="sm" variant="secondary">MegaCloud</Button>
+                        {serversResponse && 'data' in serversResponse && serversResponse.data.sub.map((server) => (
+                           <Button key={server.serverId} size="sm" variant={currentServer?.serverId === server.serverId ? 'default' : 'secondary'} className={currentServer?.serverId === server.serverId ? 'bg-primary hover:bg-primary/80' : ''} onClick={() => setCurrentServer(server)}>
+                               {server.serverName}
+                           </Button>
+                        ))}
                     </div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Badge variant="destructive" className="border-0">SUB</Badge>
@@ -136,7 +152,7 @@ const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, o
 }
 
 const WatchPageSkeleton = () => (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="col-span-12 lg:col-span-3">
                 <Skeleton className="h-[600px] w-full" />
@@ -222,7 +238,7 @@ export default function EliteWatchPage() {
         {isLoading || !anime ? (
             <WatchPageSkeleton />
         ) : (
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="col-span-12 lg:col-span-3 order-2 lg:order-1">
                         <AnimeDetails anime={anime} />
@@ -247,4 +263,3 @@ export default function EliteWatchPage() {
     </div>
   );
 }
-

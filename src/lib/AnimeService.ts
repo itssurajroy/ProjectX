@@ -85,4 +85,3 @@ export class AnimeService {
     return res?.data || res;
   }
 }
-
