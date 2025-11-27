@@ -136,7 +136,7 @@ const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, o
 
 const WatchPageSkeleton = () => (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="col-span-12 lg:col-span-3">
                 <Skeleton className="h-[600px] w-full" />
             </div>
@@ -217,12 +217,12 @@ export default function EliteWatchPage() {
         }}
       />}
 
-      <div className="relative pt-8">
+      <div className="relative pt-12">
         {isLoading || !anime ? (
             <WatchPageSkeleton />
         ) : (
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-12 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="col-span-12 lg:col-span-3 order-2 lg:order-1">
                         <AnimeDetails anime={anime} />
                     </div>
