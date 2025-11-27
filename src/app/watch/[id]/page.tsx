@@ -1,6 +1,5 @@
 'use client';
 import { notFound, useParams, useSearchParams } from "next/navigation";
-import VideoPlayer from "@/components/watch/video-player";
 import EpisodeList from "@/components/watch/episode-list";
 import CommentsSection from "@/components/watch/comments";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import { useEffect, useState } from "react";
 import PollsSection from "@/components/watch/PollsSection";
 import { useRouter } from "next/navigation";
 import { cn, extractEpisodeId } from "@/lib/utils";
+import AdvancedMegaPlayPlayer from "@/components/player/AdvancedMegaPlayPlayer";
 
 export default function WatchPage() {
   const params = useParams();
@@ -55,6 +55,7 @@ export default function WatchPage() {
   const episodes = (episodesResponse && 'data' in episodesResponse) ? episodesResponse.data.episodes : [];
   
   const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === episodeParam) || episodes[0];
+  const episodeNumberId = currentEpisode ? extractEpisodeId(currentEpisode.episodeId) : null;
 
   const handleEpisodeSelect = (episode: AnimeEpisode) => {
     const epId = extractEpisodeId(episode.episodeId);
@@ -62,16 +63,33 @@ export default function WatchPage() {
       router.push(`/watch/${id}?ep=${epId}`);
     }
   };
+  
+  const handleNextEpisode = () => {
+    if (!currentEpisode) return;
+    const currentIndex = episodes.findIndex(e => e.episodeId === currentEpisode.episodeId);
+    if (currentIndex > -1 && currentIndex < episodes.length - 1) {
+      handleEpisodeSelect(episodes[currentIndex + 1]);
+    }
+  };
+
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <VideoPlayer anime={anime} episode={currentEpisode} language={language} />
-          <div className="mt-4 flex items-center gap-2">
-            <button onClick={() => setLanguage('sub')} className={cn('px-4 py-2 rounded-md text-sm font-semibold', language === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>SUB</button>
-            <button onClick={() => setLanguage('dub')} className={cn('px-4 py-2 rounded-md text-sm font-semibold', language === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>DUB</button>
-          </div>
+          {episodeNumberId ? (
+            <AdvancedMegaPlayPlayer 
+              episodeId={episodeNumberId}
+              initialLang={language}
+              title={anime.info.name}
+              episode={String(currentEpisode.number)}
+              onNextEpisode={handleNextEpisode}
+            />
+          ) : (
+            <div className="relative aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
+              <p className="text-muted-foreground">Select an episode to begin.</p>
+            </div>
+          )}
           <div className="mt-6">
             <h1 className="text-3xl font-bold font-headline">{anime.info.name}</h1>
              {currentEpisode && <p className="text-lg text-muted-foreground mt-1">Episode {currentEpisode.number}: {currentEpisode.title}</p>}
