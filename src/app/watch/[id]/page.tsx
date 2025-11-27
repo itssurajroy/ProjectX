@@ -1,4 +1,5 @@
 
+
 // app/watch/[id]/page.tsx
 "use client";
 
@@ -171,6 +172,54 @@ export default function EliteWatchPage() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Center: Player + Comments */}
+            <div className="xl:col-span-6 space-y-8 order-1 xl:order-2">
+              <div className="relative">
+                {currentEpisodeId ? (
+                  <AdvancedMegaPlayPlayer
+                    episodeId={currentEpisodeId}
+                    lang={"sub"}
+                    title={anime.info.name}
+                    episode={String(currentEpisode.number)}
+                    onNextEpisode={handleNext}
+                  />
+                ) : (
+                  <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center rounded-xl">
+                    <p className="text-3xl font-bold">Select an episode to begin</p>
+                  </div>
+                )}
+              </div>
+               {currentEpisodeId && id && <PollsSection animeId={id} episodeId={currentEpisode?.episodeId} />}
+              {currentEpisodeId && id && (
+                <div className="mt-16">
+                  <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
+                </div>
+              )}
+            </div>
+
+            {/* Right Sidebar: Episode List */}
+            <div className="xl:col-span-3 space-y-8 order-3">
+              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">Episodes</h2>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <EpisodeList
+                  episodes={episodes}
+                  currentEpisodeId={episodeParam || ""}
+                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
+                  loading={loadingEpisodes}
+                />
+              </div>
                {relatedAnimes?.length > 0 && (
                 <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
                   <h2 className="text-2xl font-bold mb-6">You Might Like</h2>
@@ -201,57 +250,11 @@ export default function EliteWatchPage() {
                 </div>
               )}
             </div>
-
-            {/* Center: Player + Comments */}
-            <div className="xl:col-span-6 space-y-8 order-1 xl:order-2">
-              <div className="relative">
-                {currentEpisodeId ? (
-                  <AdvancedMegaPlayPlayer
-                    episodeId={currentEpisodeId}
-                    lang={"sub"}
-                    title={anime.info.name}
-                    episode={String(currentEpisode.number)}
-                    onNextEpisode={handleNext}
-                  />
-                ) : (
-                  <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center rounded-xl">
-                    <p className="text-3xl font-bold">Select an episode to begin</p>
-                  </div>
-                )}
-              </div>
-               {currentEpisodeId && animeId && <PollsSection animeId={id} episodeId={currentEpisode?.episodeId} />}
-              {currentEpisodeId && animeId && (
-                <div className="mt-16">
-                  <CommentsSection animeId={id} episodeId={currentEpisode?.episodeId} />
-                </div>
-              )}
-            </div>
-
-            {/* Right Sidebar: Episode List */}
-            <div className="xl:col-span-3 space-y-8 order-3">
-              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Episodes</h2>
-                  <div className="flex gap-2">
-                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
-                      <ChevronLeft className="w-5 h-5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-                <EpisodeList
-                  episodes={episodes}
-                  currentEpisodeId={episodeParam || ""}
-                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-                  loading={loadingEpisodes}
-                />
-              </div>
-            </div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+    
