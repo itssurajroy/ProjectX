@@ -1,8 +1,8 @@
 // components/player/AdvancedMegaPlayPlayer.tsx
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Loader2, AlertCircle, Play, Volume2, VolumeX, Maximize, Settings, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Loader2, AlertCircle, Play, Volume2, VolumeX, Maximize2, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ interface AdvancedMegaPlayPlayerProps {
   initialLang?: "sub" | "dub" | "raw";
   title?: string;
   episode?: string;
+  onNextEpisode?: () => void;
   onSourceError?: () => void;
 }
 
@@ -20,38 +21,49 @@ export default function AdvancedMegaPlayPlayer({
   initialLang = "sub",
   title = "Episode",
   episode = "",
+  onNextEpisode,
   onSourceError,
 }: AdvancedMegaPlayPlayerProps) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [lang, setLang] = useState<"sub" | "dub" | "raw">(initialLang);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const hideTimeoutRef = useRef<NodeJS.Timeout>();
+  const hideTimer = useRef<NodeJS.Timeout>();
 
   const iframeUrl = `https://megaplay.buzz/stream/s-2/${episodeId}/${lang}`;
 
-  // Auto-hide controls after 3s of inactivity
+  // Auto-hide controls after 3 seconds of inactivity
   useEffect(() => {
     const resetTimer = () => {
       setShowControls(true);
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => setShowControls(false), 3000);
     };
 
-    const handleMouseMove = () => resetTimer();
-    window.addEventListener("mousemove", handleMouseMove);
+    const handleActivity = () => resetTimer();
+    window.addEventListener("mousemove", handleActivity);
+    window.addEventListener("keydown", handleActivity);
     resetTimer();
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+      window.removeEventListener("mousemove", handleActivity);
+      window.removeEventListener("keydown", handleActivity);
+      if (hideTimer.current) clearTimeout(hideTimer.current);
     };
   }, []);
 
-  // Handle iframe load/error
+  // Reset loading/error when episode or language changes
+  useEffect(() => {
+    setIsLoading(true);
+    setHasError(false);
+  }, [episodeId, lang]);
+  
+  useEffect(() => {
+    setLang(initialLang);
+  }, [initialLang])
+
   const handleLoad = () => {
     setIsLoading(false);
     setHasError(false);
@@ -62,25 +74,12 @@ export default function AdvancedMegaPlayPlayer({
     setHasError(true);
     onSourceError?.();
   };
-  
-  useEffect(() => {
-    setIsLoading(true);
-    setHasError(false);
-  }, [episodeId, lang]);
-  
-  useEffect(() => {
-    setLang(initialLang);
-  }, [initialLang])
 
-  // Language switcher
   const changeLanguage = (newLang: "sub" | "dub" | "raw") => {
     if (newLang === lang) return;
-    setIsLoading(true);
-    setHasError(false);
     setLang(newLang);
   };
 
-  // Fullscreen toggle
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
     if (document.fullscreenElement) {
@@ -93,90 +92,106 @@ export default function AdvancedMegaPlayPlayer({
   return (
     <div
       ref={containerRef}
-      className="relative w-full bg-black group rounded-lg overflow-hidden"
+      className="relative w-full bg-black rounded-xl overflow-hidden cursor-pointer group"
       style={{ aspectRatio: "16/9" }}
-      onMouseMove={() => setShowControls(true)}
     >
-      {/* Iframe */}
+      {/* MegaPlay Iframe */}
       <iframe
-        key={`${episodeId}-${lang}`}
+        key={iframeUrl}
         ref={iframeRef}
         src={iframeUrl}
         className="absolute inset-0 w-full h-full"
         frameBorder="0"
-        scrolling="no"
         allowFullScreen
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
         onLoad={handleLoad}
         onError={handleError}
-        title={`${title} ${episode} - ${lang.toUpperCase()}`}
+        title={`Episode ${episode} - ${lang.toUpperCase()}`}
       />
 
-      {/* Loading Overlay */}
+      {/* Loading State */}
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-50">
-          <div className="text-center space-y-4">
-            <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto" />
-            <p className="text-white text-xl font-medium">Loading {lang.toUpperCase()} stream...</p>
+        <div className="absolute inset-0 bg-black/95 flex items-center justify-center z-50">
+          <div className="text-center">
+            <Loader2 className="w-16 h-16 text-red-500 animate-spin mx-auto mb-4" />
+            <p className="text-white text-lg font-medium">Loading {lang.toUpperCase()} stream...</p>
           </div>
         </div>
       )}
 
       {/* Error State */}
       {hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/90 z-50">
+        <div className="absolute inset-0 bg-black/95 flex items-center justify-center z-50">
           <div className="text-center space-y-6">
-            <AlertCircle className="w-20 h-20 text-destructive mx-auto" />
+            <AlertCircle className="w-20 h-20 text-red-500 mx-auto" />
             <div>
-              <p className="text-white text-2xl font-bold mb-2">Stream Unavailable</p>
-              <p className="text-gray-400">The video source failed to load.</p>
+              <h3 className="text-2xl font-bold text-white">Stream Failed</h3>
+              <p className="text-gray-400 mt-2">MegaPlay source is unavailable</p>
             </div>
-            <div className="space-x-4">
-              <Button onClick={() => { setIsLoading(true); setHasError(false); }} className="bg-primary hover:bg-primary/80">
+            <div className="flex gap-4 justify-center">
+              <Button
+                onClick={() => window.location.reload()}
+                className="bg-red-600 hover:bg-red-700"
+              >
                 Retry
               </Button>
-              {onSourceError &&
-                <Button variant="outline" onClick={onSourceError} className="border-white/50 text-white">
-                    Try Another Source
+              {onSourceError && (
+                <Button variant="outline" onClick={onSourceError} className="border-gray-600">
+                  Try Another Server
                 </Button>
-              }
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Custom Controls Overlay */}
+      {/* Controls Overlay - Always visible on hover or active */}
       <div
-        className={cn(
-          "absolute inset-0 pointer-events-none transition-opacity duration-300",
-          showControls || isLoading || hasError ? "opacity-100" : "opacity-0"
-        )}
+        className={`absolute inset-0 pointer-events-none transition-all duration-500 ${
+          showControls ? "opacity-100" : "opacity-0"
+        }`}
+        onMouseEnter={() => setShowControls(true)}
       >
-        {/* Top Gradient + Title */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/70 to-transparent pointer-events-auto">
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-white text-2xl font-bold">{title}</h1>
-              <p className="text-gray-300">Episode {episode}</p>
+        {/* Top Bar */}
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent pt-6 pb-20 pointer-events-auto">
+          <div className="px-6 flex items-start justify-between">
+            {/* Title */}
+            <div className="max-w-2xl">
+              <h1 className="text-2xl md:text-3xl font-bold text-white drop-shadow-lg">
+                {title}
+              </h1>
+              <p className="text-lg text-gray-200 mt-1">Episode {episode}</p>
             </div>
 
             {/* Language Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="bg-black/50 border-white/30 text-white hover:bg-white/20">
+                <Button
+                  variant="outline"
+                  className="bg-black/60 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
+                >
                   <Volume2 className="w-4 h-4 mr-2" />
                   {lang.toUpperCase()}
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-gray-900 border-white/20">
-                <DropdownMenuItem onClick={() => changeLanguage("sub")} className="text-white hover:bg-white/10">
+              <DropdownMenuContent className="bg-gray-950 border-gray-800">
+                <DropdownMenuItem
+                  onClick={() => changeLanguage("sub")}
+                  className="text-white hover:bg-red-600/30 cursor-pointer"
+                >
                   SUB
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLanguage("dub")} className="text-white hover:bg-white/10">
+                <DropdownMenuItem
+                  onClick={() => changeLanguage("dub")}
+                  className="text-white hover:bg-red-600/30 cursor-pointer"
+                >
                   DUB
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLanguage("raw")} className="text-white hover:bg-white/10">
+                <DropdownMenuItem
+                  onClick={() => changeLanguage("raw")}
+                  className="text-white hover:bg-red-600/30 cursor-pointer"
+                >
                   RAW
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -184,41 +199,45 @@ export default function AdvancedMegaPlayPlayer({
           </div>
         </div>
 
-        {/* Bottom Controls */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/90 to-transparent pointer-events-auto">
-          <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+        {/* Bottom Bar */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent pb-8 pt-20 pointer-events-auto">
+          <div className="px-6 flex items-center justify-between">
+            {/* Left: Source Info */}
             <div className="flex items-center gap-4">
-              <Button
-                size="lg"
-                variant="ghost"
-                className="text-white hover:bg-white/20"
-                onClick={() => setIsMuted(!isMuted)}
-              >
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-              </Button>
-
-              <div className="text-white">
-                <p className="text-sm opacity-80">Source: MegaPlay.buzz</p>
-                <p className="text-xs opacity-60">Protected Embed • 100% Uptime</p>
+              <div className="text-sm">
+                <p className="text-gray-300 font-medium">MegaPlay Server</p>
+                <p className="text-xs text-gray-500">Protected • High Availability</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <Button size="lg" variant="ghost" className="text-white hover:bg-white/20" onClick={toggleFullscreen}>
-                <Maximize className="w-6 h-6" />
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-3">
+              {onNextEpisode && (
+                <Button
+                  onClick={onNextEpisode}
+                  className="bg-red-600 hover:bg-red-700 text-white font-medium px-6"
+                >
+                  Next Episode →
+                </Button>
+              )}
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-white hover:bg-white/20 backdrop-blur-md"
+                onClick={toggleFullscreen}
+              >
+                <Maximize2 className="w-6 h-6" />
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Center Play Icon (when paused or idle) */}
-        {!isLoading && !hasError && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-black/50 backdrop-blur-sm rounded-full p-8 opacity-0 group-hover:opacity-100 transition-opacity">
-              <Play className="w-20 h-20 text-white fill-white" />
-            </div>
+        {/* Center Play Button (appears on hover) */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+          <div className="bg-white/10 backdrop-blur-lg rounded-full p-8 border border-white/20">
+            <Play className="w-20 h-20 text-white fill-current" />
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
