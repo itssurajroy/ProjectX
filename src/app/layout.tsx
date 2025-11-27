@@ -7,8 +7,10 @@ import Link from "next/link";
 import { Twitter, Send, MessageSquare, Heart } from "lucide-react";
 import AZList from "@/components/layout/az-list-footer";
 import ScrollToTopButton from "@/components/layout/scroll-to-top";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import BottomNav from "@/components/layout/bottom-nav";
+import Providers from "./providers";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 
@@ -31,7 +33,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
        </head>
       <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", inter.className)}>
-          <Toaster />
+        <Providers>
+          <ShadToaster />
+           <Toaster position="bottom-center" toastOptions={{
+            style: {
+              background: '#333',
+              color: '#fff',
+            }
+          }}/>
           <Navbar />
           <main className="pb-20 md:pb-0">{children}</main>
            <footer className="bg-[#100f14] text-gray-400 mt-12 border-t border-border/40">
@@ -55,8 +64,7 @@ export default function RootLayout({
               <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm mb-6">
                 <Link href="/terms" className="hover:text-primary">Terms of service</Link>
                 <Link href="/dmca" className="hover:text-primary">DMCA</Link>
-                <Link href="/contact" className="hover:text-primary">Contact</Link>
-                 <Link href="/support" className="flex items-center gap-1.5 text-pink-400 hover:text-pink-300">
+                <Link href="/contact" className="hover:text-primary">Contact</Link>                 <Link href="/support" className="flex items-center gap-1.5 text-pink-400 hover:text-pink-300">
                     <Heart className="w-4 h-4" /> Support Us
                 </Link>
               </div>
@@ -70,6 +78,7 @@ export default function RootLayout({
           </footer>
           <BottomNav />
           <ScrollToTopButton />
+        </Providers>
       </body>
     </html>
   );
