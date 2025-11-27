@@ -26,7 +26,8 @@ function SearchPageContent() {
       enabled: !!debouncedQuery,
   });
 
-  useEffect(() => {
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     const params = new URLSearchParams(window.location.search);
     if (query) {
       params.set('q', query);
@@ -34,48 +35,50 @@ function SearchPageContent() {
       params.delete('q');
     }
     router.replace(`${window.location.pathname}?${params.toString()}`);
-  }, [query, router]);
+  }
 
   const filteredMedia = searchResult && 'animes' in searchResult ? searchResult.animes : [];
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-card p-4 rounded-lg border mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          <Input 
-            placeholder="Search..." 
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="col-span-2 lg:col-span-3" 
-          />
-          <Select>
-            <SelectTrigger><SelectValue placeholder="Genre" /></SelectTrigger>
-            <SelectContent>{genres.map(g => <SelectItem key={g} value={g.toLowerCase()}>{g}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-            <SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger><SelectValue placeholder="Season" /></SelectTrigger>
-            <SelectContent>{seasons.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
-            <SelectContent>{types.map(t => <SelectItem key={t} value={t.toLowerCase()}>{t}</SelectItem>)}</SelectContent>
-          </Select>
-          <Select>
-            <SelectTrigger><SelectValue placeholder="Sort By" /></SelectTrigger>
-            <SelectContent>{sortOptions.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-          </Select>
-          <Button className="col-span-2 lg:col-span-1" disabled>
-            <SearchIcon className="h-4 w-4 mr-2" /> Search
-          </Button>
+      <form onSubmit={handleSearch}>
+        <div className="bg-card p-4 rounded-lg border mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            <Input 
+              placeholder="Search..." 
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="col-span-2 lg:col-span-3" 
+            />
+            <Select>
+              <SelectTrigger><SelectValue placeholder="Genre" /></SelectTrigger>
+              <SelectContent>{genres.map(g => <SelectItem key={g} value={g.toLowerCase()}>{g}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+              <SelectContent>{years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger><SelectValue placeholder="Season" /></SelectTrigger>
+              <SelectContent>{seasons.map(s => <SelectItem key={s} value={s.toLowerCase()}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectContent>{types.map(t => <SelectItem key={t} value={t.toLowerCase()}>{t}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select>
+              <SelectTrigger><SelectValue placeholder="Sort By" /></SelectTrigger>
+              <SelectContent>{sortOptions.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button type="submit" className="col-span-2 lg:col-span-1">
+              <SearchIcon className="h-4 w-4 mr-2" /> Search
+            </Button>
+          </div>
         </div>
-      </div>
+      </form>
 
       <div>
-        <h2 className="text-2xl font-bold mb-4">{query ? `Results for "${query}"` : 'Search for shows'}</h2>
+        <h2 className="text-2xl font-bold mb-4">{debouncedQuery ? `Results for "${debouncedQuery}"` : 'Search for shows'}</h2>
         {isLoading ? (
             <div className="flex justify-center items-center py-16">
               <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
@@ -88,7 +91,7 @@ function SearchPageContent() {
           </div>
         ) : (
           <div className="text-center py-16">
-            <h3 className="text-xl font-semibold">{query ? 'No results found' : 'Start typing to search'}</h3>
+            <h3 className="text-xl font-semibold">{debouncedQuery ? 'No results found' : 'Start typing to search'}</h3>
             <p className="text-muted-foreground">Try adjusting your search or filters.</p>
           </div>
         )}
