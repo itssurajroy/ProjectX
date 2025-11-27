@@ -1,60 +1,62 @@
 'use client';
 
 import { cn, extractEpisodeId } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
 import { AnimeEpisode } from '@/types/anime';
 import { ScrollArea } from '../ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Button } from '../ui/button';
 
 interface EpisodeListProps {
   episodes: AnimeEpisode[];
   currentEpisodeId: string | null;
-  loading: boolean;
   onEpisodeSelect: (episode: AnimeEpisode) => void;
 }
 
 export default function EpisodeList({
   episodes,
   currentEpisodeId,
-  loading,
   onEpisodeSelect
 }: EpisodeListProps) {
-  if (loading) {
-      return (
-        <div className="flex justify-center items-center h-48">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      );
-  }
   
-  return (
-    <ScrollArea className="h-96">
-      <div className="space-y-2 pr-4">
-        {episodes.map((ep) => {
-          const epId = extractEpisodeId(ep.episodeId);
-          if (!epId) return null;
+  const episodesPerPage = 20;
+  const totalPages = Math.ceil(episodes.length / episodesPerPage);
 
-          return (
-            <button
-              onClick={() => onEpisodeSelect(ep)}
-              key={ep.episodeId}
-              className={cn(
-                'block w-full text-left p-2.5 rounded-md transition-colors',
-                epId === currentEpisodeId
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted/50 hover:bg-muted'
-              )}
-            >
-              <p className="font-semibold text-sm truncate">
-                Episode {ep.number}
-                {ep.isFiller && <span className="text-xs text-orange-400 ml-2">(Filler)</span>}
-              </p>
-              <p className={cn("text-xs truncate", epId === currentEpisodeId ? 'text-primary-foreground/80' : 'text-muted-foreground/80')}>{ep.title}</p>
-            </button>
-          );
-        })}
-      </div>
-    </ScrollArea>
+  const getEpisodeRange = (page: number) => {
+    const start = page * episodesPerPage + 1;
+    const end = Math.min((page + 1) * episodesPerPage, episodes.length);
+    return `${String(start).padStart(2, '0')}-${String(end).padStart(2, '0')}`;
+  }
+
+  return (
+    <div className="space-y-3">
+        <Select defaultValue="0">
+            <SelectTrigger className="w-full bg-muted border-border/50">
+                <SelectValue placeholder="Select episode range" />
+            </SelectTrigger>
+            <SelectContent>
+                {Array.from({length: totalPages}).map((_, i) => (
+                     <SelectItem key={i} value={String(i)}>{getEpisodeRange(i)}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+        <div className="grid grid-cols-5 gap-2">
+            {episodes.map((ep) => {
+            const epId = extractEpisodeId(ep.episodeId);
+            if (!epId) return null;
+
+            return (
+                <Button
+                    onClick={() => onEpisodeSelect(ep)}
+                    key={ep.episodeId}
+                    variant={epId === currentEpisodeId ? 'default' : 'secondary'}
+                    size="sm"
+                    className="aspect-square"
+                >
+                    {ep.number}
+                </Button>
+            );
+            })}
+        </div>
+    </div>
   );
 }
-
-    
