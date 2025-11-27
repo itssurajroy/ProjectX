@@ -1,4 +1,5 @@
 
+
 // app/watch/[id]/page.tsx
 "use client";
 
@@ -217,7 +218,7 @@ export default function EliteWatchPage() {
         }}
       />}
 
-      <div className="relative pt-12">
+      <div className="relative pt-20">
         {isLoading || !anime ? (
             <WatchPageSkeleton />
         ) : (
@@ -246,3 +247,4 @@ export default function EliteWatchPage() {
     </div>
   );
 }
+
