@@ -10,14 +10,14 @@ import EpisodeList from "@/components/watch/episode-list";
 import CommentsSection from "@/components/watch/comments";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, Download, Info, ChevronLeft, ChevronRight, Home, Tv, Film, Bug, Users, Shuffle } from "lucide-react";
+import { Heart, Share2, Download, Bug, Users, Shuffle, ChevronLeft, ChevronRight, Home, Tv, Film } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimeBase, AnimeEpisode } from "@/types/anime";
 import Link from "next/link";
 import Image from "next/image";
 import PollsSection from "@/components/watch/PollsSection";
 
-export default function WatchPage() {
+export default function EliteWatchPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -101,9 +101,9 @@ export default function WatchPage() {
       />
 
       {/* Main Content */}
-      <div className="relative">
+      <div className="relative pt-8">
         {/* Player */}
-        <div className="relative">
+        <div className="container mx-auto px-6">
           {currentEpisodeId ? (
             <AdvancedMegaPlayPlayer
               episodeId={currentEpisodeId}
@@ -113,7 +113,7 @@ export default function WatchPage() {
               onNextEpisode={handleNext}
             />
           ) : (
-            <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center">
+            <div className="aspect-video bg-gradient-to-br from-purple-900/50 to-black flex items-center justify-center rounded-xl">
               <p className="text-3xl font-bold">Select an episode to begin</p>
             </div>
           )}
@@ -132,9 +132,33 @@ export default function WatchPage() {
 
         {/* Main Grid */}
         <div className="container mx-auto px-6 pb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Left: Info + Comments */}
-            <div className="lg:col-span-3 space-y-8">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+            
+            {/* Left Sidebar: Episode List */}
+            <div className="xl:col-span-3 space-y-8 order-2 xl:order-1">
+              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold">Episodes</h2>
+                  <div className="flex gap-2">
+                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <EpisodeList
+                  episodes={episodes}
+                  currentEpisodeId={episodeParam || ""}
+                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
+                  loading={loadingEpisodes}
+                />
+              </div>
+            </div>
+
+            {/* Center: Info + Comments */}
+            <div className="xl:col-span-6 space-y-8 order-1 xl:order-2">
               {/* Poster + Title Card */}
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="relative flex-shrink-0">
@@ -204,30 +228,8 @@ export default function WatchPage() {
               </div>
             </div>
 
-            {/* Right Sidebar */}
-            <div className="space-y-8">
-              {/* Episode List */}
-              <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold">Episodes</h2>
-                  <div className="flex gap-2">
-                    <Button size="icon" variant="ghost" onClick={handlePrev} disabled={currentIndex <= 0}>
-                      <ChevronLeft className="w-5 h-5" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={handleNext} disabled={currentIndex >= episodes.length - 1}>
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-                <EpisodeList
-                  episodes={episodes}
-                  currentEpisodeId={episodeParam || ""}
-                  onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-                  loading={loadingEpisodes}
-                />
-              </div>
-
-              {/* Relations & Recommendations */}
+            {/* Right Sidebar: Relations & Recommendations */}
+            <div className="xl:col-span-3 space-y-8 order-3">
               {relatedAnimes?.length > 0 && (
                 <div className="bg-gray-900/50 backdrop-blur border border-gray-800 rounded-xl p-6">
                   <h2 className="text-2xl font-bold mb-6">You Might Like</h2>
