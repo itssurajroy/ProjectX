@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -29,7 +30,7 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+        protocol: 'https' ,
         hostname: 'cdn.noitatnemucod.net',
         port: '',
         pathname: '/**',
@@ -43,6 +44,12 @@ const nextConfig: NextConfig = {
        {
         protocol: 'https',
         hostname: 'api.dicebear.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.myanimelist.net',
         port: '',
         pathname: '/**',
       }
