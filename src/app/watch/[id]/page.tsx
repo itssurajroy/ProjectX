@@ -1,333 +1,336 @@
-
 'use client';
 
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
-import { extractEpisodeId } from '@/lib/utils';
-import AdvancedMegaPlayPlayer from '@/components/player/AdvancedMegaPlayPlayer';
-import EpisodeList from '@/components/watch/episode-list';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Heart, Share2, Download, Bug, Users, ChevronLeft, ChevronRight, Home, Tv, Star, MonitorPlay, Zap, SkipForward, ListVideo, Film } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
-import { AnimeBase, AnimeEpisode, AnimeAbout, EpisodeServer } from '@/types/anime';
+import { useEffect, useState, Suspense, useMemo } from 'react';
+import { useSearchParams, useParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Loader2, ChevronLeft, ChevronRight, AlertTriangle, Star } from 'lucide-react';
+import { cn, extractEpisodeId, sanitizeFirestoreId } from '@/lib/utils';
+import { useUser, useFirestore, useAuth, useMemoFirebase } from '@/firebase';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  setDoc,
+  getDoc,
+} from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimeService } from '@/lib/AnimeService';
 import Image from 'next/image';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { EpisodeList } from '@/components/watch/episode-list';
+import { useQuery } from '@tanstack/react-query';
+import { AnimeAbout, AnimeEpisode } from '@/types/anime';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import AdvancedMegaPlayPlayer from '@/components/player/AdvancedMegaPlayPlayer';
+import CommentsSection from '@/components/watch/comments';
+import PollsSection from '@/components/watch/PollsSection';
 
-const WatchPageSkeleton = () => (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-                <Skeleton className="aspect-video w-full" />
-                <Skeleton className="h-24 w-full" />
-            </div>
-            <div className="lg:col-span-4 xl:col-span-3">
-                <Skeleton className="h-[600px] w-full" />
-            </div>
-        </div>
-    </div>
-);
-
-
-const AnimeDetails = ({ anime }: { anime: AnimeAbout }) => (
-    <div className="bg-card rounded-lg p-4 border border-border/50">
-        <Image src={anime.info.poster} alt={anime.info.name} width={300} height={450} className="rounded-lg w-full shadow-lg"/>
-        <h1 className="text-xl font-bold mt-4">{anime.info.name}</h1>
-        {anime.moreInfo.japanese && <p className="text-sm text-muted-foreground">{anime.moreInfo.japanese}</p>}
-        <div className="flex items-center gap-2 flex-wrap mt-3">
-            <Badge variant="secondary">{anime.info.stats.type}</Badge>
-            <Badge variant="secondary">{anime.moreInfo.status}</Badge>
-            {anime.moreInfo.season && <Badge variant="secondary">{anime.moreInfo.season}</Badge>}
-        </div>
-        <div className="mt-4 flex items-center gap-2">
-            <div className="flex items-center gap-1 text-amber-400">
-                <Star className="w-5 h-5 fill-current" />
-                <span className="font-bold text-lg">{anime.moreInfo.malscore}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">({anime.info.stats.rating})</p>
-        </div>
-
-        <div className="mt-4 space-y-2 text-sm">
-            <p className="line-clamp-5 text-muted-foreground" dangerouslySetInnerHTML={{ __html: anime.info.description || "No synopsis available."}}/>
-        </div>
-
-        <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-            {Object.entries({
-                Country: anime.moreInfo.country,
-                Genres: anime.moreInfo.genres?.join(', '),
-                Premiered: anime.moreInfo.premiered,
-                Duration: anime.info.stats.duration,
-                Studios: anime.moreInfo.studios,
-            }).map(([label, value]) => (
-                value && <div key={label} className="flex">
-                    <span className="font-bold text-foreground/80 w-20 flex-shrink-0">{label}:</span>
-                    <span className="truncate">{value}</span>
-                </div>
-            ))}
-        </div>
-    </div>
-);
-
-const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: string, anime: AnimeAbout, episodes: AnimeEpisode[], currentEpisodeId: string | null, onNext: () => void; }) => {
-    const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === currentEpisodeId) || episodes[0];
-    
-    const { data: serversResponse } = useQuery({
-      queryKey: ["episode-servers", currentEpisode?.episodeId],
-      queryFn: () => AnimeService.getEpisodeServers(currentEpisode.episodeId),
-      enabled: !!currentEpisode?.episodeId,
+const AnimeInfoCard = ({ animeId }: { animeId: string }) => {
+    const { data: aboutResponse, isLoading } = useQuery({
+      queryKey: ["anime-about", animeId],
+      queryFn: () => AnimeService.getAnimeAbout(animeId),
+      enabled: !!animeId,
     });
-    
-    const [currentServer, setCurrentServer] = useState<EpisodeServer | null>(null);
-    const [lang, setLang] = useState<'sub' | 'dub' | 'raw'>('sub');
-    const [iframeUrl, setIframeUrl] = useState<string | null>(null);
+  
+    const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
 
-    useEffect(() => {
-      if (serversResponse && 'data' in serversResponse) {
-        const serversForLang = serversResponse.data[lang];
-        let newServer = null;
-        if (serversForLang && serversForLang.length > 0) {
-            newServer = serversForLang.find(s => s.serverName.toLowerCase() === 'megacloud') || serversForLang[0];
-            setLang(lang);
-        } else {
-            // Fallback logic
-            const subServers = serversResponse.data.sub || [];
-            const dubServers = serversResponse.data.dub || [];
-            const rawServers = serversResponse.data.raw || [];
-            
-            const defaultSub = subServers.find(s => s.serverName.toLowerCase() === 'megacloud') || subServers[0];
-            if (defaultSub) {
-                newServer = defaultSub;
-                setLang('sub');
-            } else {
-                const defaultDub = dubServers.find(s => s.serverName.toLowerCase() === 'megacloud') || dubServers[0];
-                if (defaultDub) {
-                    newServer = defaultDub;
-                    setLang('dub');
-                } else {
-                    newServer = rawServers[0] || null;
-                    if(newServer) setLang('raw');
-                }
-            }
-        }
-        setCurrentServer(newServer);
-      }
-    }, [serversResponse, lang]);
-    
-    useEffect(() => {
-        if (currentServer && currentEpisode) {
-            if (currentServer.serverName.toLowerCase() === 'vidplay' || currentServer.serverName.toLowerCase() === 'megacloud') {
-                 setIframeUrl(`https://megaplay.buzz/stream/s-2/${currentEpisode.episodeId}`);
-            } else {
-                AnimeService.getEpisodeSources(currentEpisode.episodeId, currentServer.serverName, lang).then(res => {
-                    if (res && 'sources' in res && res.sources.length > 0) {
-                        setIframeUrl(res.sources[0].url);
-                    } else {
-                        setIframeUrl(null); // Or handle error
-                    }
-                });
-            }
-        }
-    }, [currentServer, currentEpisode, lang]);
-    
-    const servers = serversResponse && 'data' in serversResponse ? [...(serversResponse.data.sub || []), ...(serversResponse.data.dub || []), ...(serversResponse.data.raw || [])] : [];
-    const uniqueServers = Array.from(new Map(servers.map(s => [s.serverName, s])).values());
-
-    return (
-        <div className="bg-card rounded-lg border border-border/50">
-            {currentEpisodeId && currentServer && currentEpisode && iframeUrl ? (
-                <AdvancedMegaPlayPlayer
-                  iframeSrc={iframeUrl}
-                  server={currentServer.serverName}
-                  title={anime.info.name}
-                  episode={String(currentEpisode.number)}
-                  onNextEpisode={onNext}
-                />
-            ) : (
-                <div className="aspect-video bg-black flex items-center justify-center rounded-t-lg">
-                   <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+    if (isLoading || !anime) {
+        return (
+            <div className="bg-card rounded-lg p-4 border border-border/50">
+                <Skeleton className="w-full h-[300px] rounded-lg" />
+                <Skeleton className="h-6 w-3/4 mt-4" />
+                <Skeleton className="h-4 w-1/2 mt-2" />
+                <div className="flex gap-2 mt-3">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-20" />
                 </div>
-            )}
-            <div className="p-4 space-y-4">
-                <p className="text-sm text-muted-foreground">You are watching <span className="font-bold text-foreground">Episode {currentEpisode?.number}</span>. If the current server doesn't work, please try other servers.</p>
-                
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        {uniqueServers.map((server) => (
-                           <Button key={server.serverId} size="sm" variant={currentServer?.serverName === server.serverName ? 'default' : 'secondary'} className={currentServer?.serverName === server.serverName ? 'bg-primary hover:bg-primary/80' : ''} onClick={() => setCurrentServer(server)}>
-                               {server.serverName}
-                           </Button>
-                        ))}
-                    </div>
-                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Button size="sm" variant={lang === 'sub' ? 'destructive' : 'ghost'} onClick={() => setLang('sub')} disabled={!serversResponse || !('data' in serversResponse) || !serversResponse.data.sub || serversResponse.data.sub.length === 0}>SUB</Button>
-                        <span>|</span>
-                        <Button size="sm" variant={lang === 'dub' ? 'destructive' : 'ghost'} onClick={() => setLang('dub')} disabled={!serversResponse || !('data' in serversResponse) || !serversResponse.data.dub || serversResponse.data.dub.length === 0}>DUB</Button>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                    {[
-                        {icon: Zap, label: "AutoNext"},
-                        {icon: MonitorPlay, label: "AutoPlay"},
-                        {icon: SkipForward, label: "AutoSkip"},
-                        {icon: Heart, label: "Bookmark"},
-                        {icon: Bug, label: "Report"},
-                    ].map(item => (
-                        <Button key={item.label} variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-muted">
-                            <item.icon className="w-4 h-4 mr-1.5"/>{item.label}
-                        </Button>
-                    ))}
+                <div className="mt-4 space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
                 </div>
             </div>
-        </div>
-    );
+        )
+    }
+  
+    return (
+      <div className="bg-card rounded-lg p-4 border border-border/50 sticky top-20">
+          <Image src={anime.info.poster} alt={anime.info.name} width={300} height={450} className="rounded-lg w-full shadow-lg"/>
+          <h1 className="text-xl font-bold mt-4">{anime.info.name}</h1>
+          {anime.moreInfo.japanese && <p className="text-sm text-muted-foreground">{anime.moreInfo.japanese}</p>}
+          <div className="flex items-center gap-2 flex-wrap mt-3">
+              <Badge variant="secondary">{anime.info.stats.type}</Badge>
+              <Badge variant="secondary">{anime.moreInfo.status}</Badge>
+              {anime.moreInfo.season && <Badge variant="secondary">{anime.moreInfo.season}</Badge>}
+          </div>
+          <div className="mt-4 flex items-center gap-2">
+              <div className="flex items-center gap-1 text-amber-400">
+                  <Star className="w-5 h-5 fill-current" />
+                  <span className="font-bold text-lg">{anime.moreInfo.malscore}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">({anime.info.stats.rating})</p>
+          </div>
+  
+          <div className="mt-4 space-y-2 text-sm">
+              <p className="line-clamp-5 text-muted-foreground" dangerouslySetInnerHTML={{ __html: anime.info.description || "No synopsis available."}}/>
+          </div>
+  
+          <div className="mt-4 space-y-2 text-xs text-muted-foreground">
+              {Object.entries({
+                  Country: anime.moreInfo.country,
+                  Genres: anime.moreInfo.genres?.join(', '),
+                  Premiered: anime.moreInfo.premiered,
+                  Duration: anime.info.stats.duration,
+                  Studios: anime.moreInfo.studios,
+              }).map(([label, value]) => (
+                  value && <div key={label} className="flex">
+                      <span className="font-bold text-foreground/80 w-20 flex-shrink-0">{label}:</span>
+                      <span className="truncate">{value}</span>
+                  </div>
+              ))}
+          </div>
+      </div>
+  );
 };
 
-const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, onNext }: { episodes: AnimeEpisode[], currentEpisodeId: string | null, onEpisodeSelect: (ep: AnimeEpisode) => void, onPrev: () => void, onNext: () => void }) => {
-    const currentIndex = episodes.findIndex(e => extractEpisodeId(e.episodeId) === currentEpisodeId);
-    
-    return (
-        <div className="bg-card rounded-lg p-4 border border-border/50">
-            <EpisodeList
-                episodes={episodes}
-                currentEpisodeId={currentEpisodeId || ""}
-                onEpisodeSelect={onEpisodeSelect}
-            />
-        </div>
-    );
-}
-
-function WatchPageContent({ id, episodeParam }: { id: string, episodeParam: string | null }) {
+// --- MAIN PAGE ---
+function WatchPageComponent() {
+  const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useUser();
+  const firestore = useFirestore();
 
-  const { data: aboutResponse, isLoading: loadingAbout } = useQuery({
-    queryKey: ["anime-about", id],
-    queryFn: () => AnimeService.getAnimeAbout(id),
-    enabled: !!id,
-  });
-
-  const { data: episodesResponse, isLoading: loadingEpisodes } = useQuery({
-    queryKey: ["anime-episodes", id],
-    queryFn: () => AnimeService.getEpisodes(id),
-    enabled: !!id,
-  });
-
-  const episodes = episodesResponse && 'data' in episodesResponse ? episodesResponse.data.episodes : [];
+  const animeId = params.id as string;
+  const episodeParam = searchParams.get('ep');
+  const [episodes, setEpisodes] = useState<AnimeEpisode[]>([]);
+  
+  const [loading, setLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+  const [lastWatchedEp, setLastWatchedEp] = useState<string | null>(null);
+  const [language, setLanguage] = useState<'sub' | 'dub'>('sub');
 
   useEffect(() => {
-    if (!loadingEpisodes && episodes.length > 0 && !episodeParam) {
-      const firstEpisodeId = extractEpisodeId(episodes[0].episodeId);
-      if (firstEpisodeId) {
-        router.replace(`/watch/${id}?ep=${firstEpisodeId}`);
+    setIsClient(true);
+  }, []);
+
+  const { data: episodesResponse, isLoading: loadingEpisodes } = useQuery({
+    queryKey: ["anime-episodes", animeId],
+    queryFn: () => AnimeService.getEpisodes(animeId),
+    enabled: !!animeId,
+  });
+
+  useEffect(() => {
+    if (episodesResponse && 'data' in episodesResponse) {
+      setEpisodes(episodesResponse.data.episodes);
+    } else if (episodesResponse && 'error' in episodesResponse) {
+      toast.error("Failed to fetch episodes.");
+      console.error("Failed to fetch episodes:", episodesResponse.error);
+    }
+  }, [episodesResponse]);
+
+
+  const historyRef = useMemoFirebase(() => {
+    if (user && animeId && !user.isAnonymous) {
+      return doc(firestore, 'users', user.uid, 'history', animeId);
+    }
+    return null;
+  }, [user, animeId, firestore]);
+
+  // --- Track watch history ---
+  useEffect(() => {
+    if (historyRef && episodeParam) {
+      setDoc(historyRef, { 
+        episodeId: episodeParam,
+        updatedAt: serverTimestamp() 
+      }, { merge: true }).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: historyRef.path,
+            operation: 'update',
+            requestResourceData: { episodeId: episodeParam },
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+    }
+  }, [historyRef, episodeParam]);
+  
+  // --- Fetch last watched episode ---
+  useEffect(() => {
+      if (historyRef) {
+          getDoc(historyRef).then(docSnap => {
+              if (docSnap.exists()) {
+                  setLastWatchedEp(docSnap.data().episodeId);
+              }
+          });
+      }
+  }, [historyRef]);
+
+  // --- Fetch episodes and handle routing ---
+  useEffect(() => {
+    if (loadingEpisodes) return;
+    
+    if (episodes.length > 0 && !episodeParam) {
+      const targetEpId = lastWatchedEp || extractEpisodeId(episodes[0].episodeId);
+      if (targetEpId) {
+        router.replace(`/watch/${animeId}?ep=${targetEpId}`);
       }
     }
-  }, [loadingEpisodes, episodes, episodeParam, id, router]);
-
-  const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
-  const currentEpisodeId = episodeParam;
-
-  const goToEpisode = (epId: string | null) => {
-    if (epId) {
-      router.push(`/watch/${id}?ep=${epId}`);
+    setLoading(false);
+  }, [animeId, router, lastWatchedEp, episodeParam, episodes, loadingEpisodes]);
+  
+  // --- Navigate between episodes ---
+  const navigateEpisode = (dir: 'next' | 'prev') => {
+    if (!episodes.length || !episodeParam) return;
+    const currentIndex = episodes.findIndex((ep) => extractEpisodeId(ep.episodeId) === episodeParam);
+    if (currentIndex === -1) {
+        // If current episode is not in the list (e.g. invalid param), go to first episode.
+        const firstEpId = extractEpisodeId(episodes[0].episodeId);
+        if(firstEpId) router.push(`/watch/${animeId}?ep=${firstEpId}`);
+        return;
+    };
+    const newIndex = dir === 'next' ? currentIndex + 1 : currentIndex - 1;
+    if (newIndex < 0 || newIndex >= episodes.length) return;
+    const nextEpId = extractEpisodeId(episodes[newIndex].episodeId);
+    if (nextEpId) {
+        router.push(`/watch/${animeId}?ep=${nextEpId}`);
     }
   };
 
-  const currentIndex = episodes.findIndex((e) => extractEpisodeId(e.episodeId) === currentEpisodeId);
-
-  const handlePrev = () => {
-    if (currentIndex > 0) goToEpisode(extractEpisodeId(episodes[currentIndex - 1].episodeId));
+  const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === episodeParam);
+  const iframeSrc = `https://megaplay.buzz/stream/s-2/${currentEpisode?.episodeId}`;
+  
+  const handleNextEpisode = () => {
+    navigateEpisode('next');
   };
 
-  const handleNext = () => {
-    if (currentIndex < episodes.length - 1)
-      goToEpisode(extractEpisodeId(episodes[currentIndex + 1].episodeId));
-  };
-
-  const isLoading = loadingAbout || loadingEpisodes || (!episodeParam && episodes.length > 0);
-
-  if (isLoading || !anime) {
-    return <WatchPageSkeleton />;
+  if (!isClient || (loading && episodes.length === 0)) {
+     return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
+  }
+  
+  if (!loading && episodes.length === 0) {
+    return (
+        <div className="flex flex-col justify-center items-center h-screen text-center px-4">
+            <AlertTriangle className="w-16 h-16 text-destructive mb-4" />
+            <h1 className="text-2xl font-bold">No Episodes Found</h1>
+            <p className="text-muted-foreground max-w-md mt-2">
+                We couldn&apos;t find any episodes for this anime. It might be a new release or there could be a temporary issue with our provider.
+            </p>
+            <Link href={`/anime/${animeId}`} className="mt-6 bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold">
+                Back to Anime Details
+            </Link>
+        </div>
+    );
   }
 
-  return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-8 xl:col-span-9 space-y-6">
-          <WatchPlayer id={id} anime={anime} episodes={episodes} currentEpisodeId={currentEpisodeId} onNext={handleNext} />
-          
-          <div className="lg:hidden">
-             <Tabs defaultValue="episodes" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="episodes">Episodes</TabsTrigger>
-                <TabsTrigger value="details">Details</TabsTrigger>
-              </TabsList>
-              <TabsContent value="episodes">
-                <EpisodeSidebar 
-                    episodes={episodes} 
-                    currentEpisodeId={currentEpisodeId} 
-                    onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-                    onPrev={handlePrev}
-                    onNext={handleNext}
-                />
-              </TabsContent>
-              <TabsContent value="details">
-                 <AnimeDetails anime={anime} />
-              </TabsContent>
-            </Tabs>
-          </div>
 
+  return (
+    <main className="min-h-screen bg-background text-foreground px-4 sm:px-6 lg:px-8 py-6 pt-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Sidebar */}
+            <div className="lg:col-span-3 hidden lg:block">
+                <AnimeInfoCard animeId={animeId} />
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-6">
+                {/* Breadcrumbs */}
+                <div className="text-sm text-muted-foreground mb-4">
+                    <Link href="/home" className="hover:text-primary">Home</Link> &gt; 
+                    <Link href={`/anime/${animeId}`} className="hover:text-primary capitalize">{animeId.replace(/-/g, ' ')}</Link> &gt; 
+                    <span className="text-primary font-medium">Episode {currentEpisode?.number || '...'}</span>
+                </div>
+
+                {/* Player Section */}
+                <div className="mb-6">
+                   {currentEpisode ? (
+                        <AdvancedMegaPlayPlayer
+                          key={iframeSrc} // Re-renders iframe when src changes
+                          iframeSrc={iframeSrc}
+                          server="MegaPlay"
+                          title={currentEpisode.title}
+                          episode={String(currentEpisode.number)}
+                          onNextEpisode={handleNextEpisode}
+                        />
+                    ) : (
+                        <div className="aspect-video w-full rounded-lg overflow-hidden bg-black flex justify-center items-center h-full">
+                            <Loader2 className="animate-spin text-primary w-12 h-12" />
+                        </div>
+                    )}
+                </div>
+
+                 {/* Episode & Controls */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
+                    <div>
+                    <h1 className="text-xl md:text-2xl font-bold text-primary line-clamp-1">
+                        Ep. {currentEpisode?.number}: {currentEpisode?.title}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">You are watching episode {currentEpisode?.number}.</p>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                    <button
+                        onClick={() => navigateEpisode('prev')}
+                        className="flex items-center gap-1 bg-muted px-3 py-2 rounded-md hover:bg-muted/80 disabled:opacity-50"
+                        disabled={episodes.findIndex((e) => extractEpisodeId(e.episodeId) === episodeParam) === 0}
+                    >
+                        <ChevronLeft className="w-4 h-4" /> Prev
+                    </button>
+                    <button
+                        onClick={() => navigateEpisode('next')}
+                        className="flex items-center gap-1 bg-muted px-3 py-2 rounded-md hover:bg-muted/80 disabled:opacity-50"
+                        disabled={
+                           episodes.findIndex((e) => extractEpisodeId(e.episodeId) === episodeParam) >= episodes.length - 1
+                        }
+                    >
+                        Next <ChevronRight className="w-4 h-4" />
+                    </button>
+                    </div>
+                </div>
+
+                {/* Language selection */}
+                <div className="flex items-center gap-2 mb-6">
+                    <button
+                        onClick={() => setLanguage('sub')}
+                        className={cn('px-4 py-2 rounded-md font-semibold', language === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80')}
+                    >
+                        SUB
+                    </button>
+                    <button
+                        onClick={() => setLanguage('dub')}
+                        className={cn('px-4 py-2 rounded-md font-semibold', language === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80')}
+                    >
+                        DUB
+                    </button>
+                </div>
+
+
+                {/* Polls & Community Features */}
+                <PollsSection animeId={animeId} episodeId={episodeParam} />
+
+                {/* Comments Section */}
+                <CommentsSection animeId={animeId} episodeId={episodeParam || ''} />
+            </div>
+
+            {/* Right Sidebar */}
+            <div className="lg:col-span-3">
+                 <EpisodeList episodes={episodes} currentEpisodeId={episodeParam} onEpisodeSelect={(ep) => router.push(`/watch/${animeId}?ep=${extractEpisodeId(ep.episodeId)}`)} />
+            </div>
         </div>
-        <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
-          <EpisodeSidebar 
-              episodes={episodes} 
-              currentEpisodeId={currentEpisodeId} 
-              onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-              onPrev={handlePrev}
-              onNext={handleNext}
-          />
-        </div>
-      </div>
-    </div>
+    </main>
   );
 }
 
 
-export default function EliteWatchPage({params}: {params: {id: string}}) {
-  const { id } = React.use(params);
-  const searchParams = useSearchParams();
-  const episodeParam = searchParams.get("ep");
-
-  const { data: aboutResponse } = useQuery({
-    queryKey: ["anime-about", id],
-    queryFn: () => AnimeService.getAnimeAbout(id),
-    enabled: !!id,
-    staleTime: 1000 * 60 * 60, // 1 hour
-  });
-  
-  const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
-
-  return (
-    <div className="min-h-screen bg-background text-foreground pt-24">
-      {anime && (
-        <div className="fixed inset-0 -z-10">
-            <Image 
-              src={anime.info.poster} 
-              alt={anime.info.name} 
-              fill 
-              className="object-cover opacity-5 blur-xl scale-110" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
-        </div>
-      )}
-
-      <div className="relative pb-8">
-        <WatchPageContent id={id} episodeParam={episodeParam} />
-      </div>
-    </div>
-  );
+export default function WatchPage() {
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>}>
+            <WatchPageComponent />
+        </Suspense>
+    )
 }
