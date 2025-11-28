@@ -185,3 +185,5 @@ export interface SearchSuggestion {
 export interface SearchSuggestionResponse {
     suggestions: SearchSuggestion[];
 }
+
+    

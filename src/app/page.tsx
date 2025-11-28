@@ -2,7 +2,7 @@
 'use client';
 
 import { AnimeService } from '@/lib/AnimeService';
-import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse } from '@/types/anime';
+import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Play, Bookmark, Clapperboard } from 'lucide-react';
 import Image from 'next/image';
@@ -208,12 +208,11 @@ const ScheduleSidebar = () => {
 };
 
 
-const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | undefined }) => {
+const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes'] | undefined }) => {
     const [trendingPeriod, setTrendingPeriod] = useState<'today' | 'week' | 'month'>('today');
-    if (!trendingAnimes) return null;
+    if (!top10Animes) return null;
 
-    // Just use the same list for all periods for now
-    const animesToDisplay = trendingAnimes;
+    const animesToDisplay = top10Animes[trendingPeriod] || [];
 
     return (
         <div className='bg-card p-4 rounded-lg border border-border/50'>
@@ -226,7 +225,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
                 </div>
             </div>
           <div className='space-y-1'>
-            {animesToDisplay.slice(0, 10).map((anime: any, index) => (
+            {animesToDisplay.slice(0, 10).map((anime: Top10Anime, index) => (
               <Link key={anime.id} href={`/anime/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted transition-colors">
                 <div className="flex items-start gap-4 group">
                   <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
@@ -269,7 +268,7 @@ export default function MainDashboardPage() {
   }
   
   const data = apiResponse.data;
-  const { spotlightAnimes, trendingAnimes, latestEpisodeAnimes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes } = data;
+  const { spotlightAnimes, top10Animes, latestEpisodeAnimes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes } = data;
 
   const filteredLatest = latestEpisodeAnimes?.filter(anime => {
     if (filter === 'sub') return !!anime.episodes?.sub;
@@ -294,7 +293,7 @@ export default function MainDashboardPage() {
                             <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>Dub</button>
                          </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-x-4 gap-y-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
                         {filteredLatest?.slice(0, 10).map((anime) => (
                             <AnimeCard key={anime.id} anime={anime} />
                         ))}
@@ -307,7 +306,7 @@ export default function MainDashboardPage() {
                 </div>
             </div>
             <div className="lg:col-span-12 xl:col-span-3 space-y-8">
-                <TrendingSidebar trendingAnimes={trendingAnimes} />
+                <TrendingSidebar top10Animes={top10Animes} />
                 <ScheduleSidebar />
             </div>
         </div>
@@ -315,3 +314,5 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
