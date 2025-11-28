@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lexend, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "./providers";
@@ -16,7 +16,15 @@ import BottomNav from "@/components/layout/bottom-nav";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 
-const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
+const fontSans = Lexend({ 
+  subsets: ["latin"],
+  variable: '--font-primary',
+});
+
+const fontDisplay = Space_Grotesk({
+  subsets: ["latin"],
+  variable: '--font-display',
+});
 
 export const metadata: Metadata = {
   title: "ProjectX - Watch Your Favorite Shows",
@@ -35,7 +43,7 @@ export default function RootLayout({
        <head>
          <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
        </head>
-      <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", inter.className)}>
+      <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
         <FirebaseClientProvider>
             <Providers>
             <BalancerProvider>
@@ -53,7 +61,7 @@ export default function RootLayout({
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center border-b border-gray-800 pb-8 mb-8">
                     <div>
-                      <Link href="/" className="text-3xl font-bold text-glow">
+                      <Link href="/" className="text-3xl font-bold text-glow font-display">
                         <span className="text-primary">Project</span>
                         <span className="text-white">X</span>
                       </Link>
