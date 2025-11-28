@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Skeleton } from '../ui/skeleton';
 
 const NavLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => (
     <Link href={href} className={cn("flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium", className)}>
@@ -59,7 +60,7 @@ export default function Header() {
     setUserMenuOpen(false);
   };
 
-  const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
+  const { data: homeDataResult, isLoading: isHomeDataLoading } = useQuery<{data: HomeData} | { success: false; error: string }>({
     queryKey: ['homeData'],
     queryFn: AnimeService.getHomeData,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -105,7 +106,7 @@ export default function Header() {
     }
   };
 
-  const genres = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.genres.slice(0, 10) : [];
+  const genres = (homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.genres : []).slice(0, 10);
 
   const suggestions = suggestionsResult && !('success' in suggestionsResult) ? suggestionsResult.data.suggestions : [];
 
@@ -123,20 +124,22 @@ export default function Header() {
         </div>
 
         <div className="hidden lg:flex items-center gap-1.5 ml-6">
-            <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium">
-                    <LayoutGrid className="w-4 h-4" /> Genres <ChevronDown className="w-4 h-4"/>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <div className="grid grid-cols-2 gap-1 p-2">
-                        {genres.map(genre => (
-                            <DropdownMenuItem key={genre} asChild>
-                                <Link href={`/genre/${genre.toLowerCase()}`}>{genre}</Link>
-                            </DropdownMenuItem>
-                        ))}
-                    </div>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            {isHomeDataLoading ? <Skeleton className="h-8 w-24" /> : (
+              <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium">
+                      <LayoutGrid className="w-4 h-4" /> Genres <ChevronDown className="w-4 h-4"/>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                      <div className="grid grid-cols-2 gap-1 p-2">
+                          {genres.map(genre => (
+                              <DropdownMenuItem key={genre} asChild>
+                                  <Link href={`/genre/${genre.toLowerCase()}`}>{genre}</Link>
+                              </DropdownMenuItem>
+                          ))}
+                      </div>
+                  </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium">
