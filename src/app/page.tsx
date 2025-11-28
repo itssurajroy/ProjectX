@@ -2,27 +2,18 @@
 'use client';
 
 import { AnimeService } from '@/lib/AnimeService';
-import { AnimeBase, HomeData } from '@/types/anime';
+import { AnimeBase, HomeData, TrendingAnime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Play, Bookmark, Clapperboard, Search, SlidersHorizontal, ArrowRight } from 'lucide-react';
+import { Play, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { cn } from '@/lib/utils';
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
-const SpotlightSection = () => {
-    const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
-        queryKey: ['homeData'],
-        queryFn: AnimeService.getHomeData,
-    });
-
-    const trendingAnimes = homeDataResult && !('success' in homeDataResult) && homeDataResult.data.trendingAnimes ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
-    const randomAnime = trendingAnimes[0];
+const SpotlightSection = ({ trendingAnimes }: { trendingAnimes: TrendingAnime[] }) => {
+    const randomAnime = trendingAnimes?.[0];
     const backgroundPoster = randomAnime?.poster || "https://picsum.photos/seed/anime-background/1200/400";
-
 
     return (
         <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
@@ -48,22 +39,24 @@ const SpotlightSection = () => {
                         <SlidersHorizontal className="w-4 h-4" /> Filter
                     </button>
                 </div>
-                {trendingAnimes.length > 0 && (
+                {trendingAnimes && trendingAnimes.length > 0 && (
                     <>
-                        <div className="text-muted-foreground text-sm mb-4 flex items-center justify-center gap-2 flex-wrap">
+                        <div className="text-muted-foreground text-sm mb-4 flex items-center justify-center gap-2 flex-wrap max-w-3xl mx-auto">
                             <span className='text-foreground font-semibold'>Trending:</span>
-                            {trendingAnimes.map((anime, index) => (
+                            {trendingAnimes.slice(0, 5).map((anime, index) => (
                                 <Link key={anime.id} href={`/anime/${anime.id}`} className="hover:text-primary transition-colors">
                                   {anime.name}
-                                  {index < trendingAnimes.length - 1 && ','}
+                                  {index < 4 && ','}
                                 </Link>
                             ))}
                         </div>
-                        <Button asChild size="lg" className="shadow-lg shadow-primary/20 transform hover:scale-105 transition-transform">
-                            <Link href={`/anime/${randomAnime.id}`}>
-                                <Play className="w-5 h-5 mr-2" /> Watch Now
-                            </Link>
-                        </Button>
+                        {randomAnime && (
+                            <Button asChild size="lg" className="shadow-lg shadow-primary/20 transform hover:scale-105 transition-transform">
+                                <Link href={`/anime/${randomAnime.id}`}>
+                                    <Play className="w-5 h-5 mr-2" /> Watch Now
+                                </Link>
+                            </Button>
+                        )}
                     </>
                 )}
             </div>
@@ -89,7 +82,7 @@ const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, animes: 
             <ScrollArea className="w-full whitespace-nowrap rounded-lg">
                  <div className="flex space-x-4 pb-4">
                     {animes.slice(0, 10).map((anime) => (
-                         <div key={anime.id} className="w-40 sm:w-44">
+                         <div key={anime.id} className="w-40 sm:w-44 flex-shrink-0">
                              <AnimeCard anime={anime} />
                          </div>
                     ))}
@@ -111,7 +104,7 @@ export default function MainDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-16">
-      <SpotlightSection />
+      <SpotlightSection trendingAnimes={homeData?.trendingAnimes || []} />
       
       <main className="px-4 sm:px-6 lg:px-8 mt-12 mb-12 space-y-12">
         {isLoading ? (
