@@ -41,10 +41,10 @@ const PromotionalVideosSection = ({ videos }: { videos: PromotionalVideo[] }) =>
     return (
         <section>
             <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Video /> Promotional Videos</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {videos.map((video, index) => (
                     <a key={index} href={video.source} target="_blank" rel="noopener noreferrer" className="group">
-                        <div className="relative aspect-video rounded-lg overflow-hidden">
+                        <div className="relative aspect-video rounded-lg overflow-hidden shadow-lg">
                             <Image src={video.thumbnail || ''} alt={video.title || `Promo Video ${index + 1}`} fill className="object-cover transition-transform duration-300 group-hover:scale-110" />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Play className="w-12 h-12 text-white" />
@@ -62,7 +62,7 @@ const PromotionalVideosSection = ({ videos }: { videos: PromotionalVideo[] }) =>
 const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
     <div className="bg-card/50 rounded-lg overflow-hidden flex border border-border/50">
         {/* Character */}
-        <div className="w-1/2 flex items-center gap-3 p-3">
+        <div className="w-1/2 flex items-center gap-3 p-2">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
                 <Image src={cv.character.poster} alt={cv.character.name} fill className="object-cover rounded-md" />
             </div>
@@ -74,13 +74,13 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 
         {/* Voice Actor */}
         {cv.voiceActor && (
-            <div className="w-1/2 flex items-center gap-3 p-3 bg-card/40 justify-end text-right">
+            <div className="w-1/2 flex items-center gap-3 p-2 bg-card/40 justify-end text-right">
                 <div className="overflow-hidden">
                     <p className="font-bold text-sm truncate">{cv.voiceActor.name}</p>
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
                 </div>
-                <div className="relative aspect-square w-12 flex-shrink-0">
-                    <Image src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill className="rounded-full object-cover" />
+                <div className="relative aspect-[2/3] w-12 flex-shrink-0">
+                    <Image src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill className="object-cover rounded-md" />
                 </div>
             </div>
         )}
@@ -97,22 +97,13 @@ const SeasonsSection = ({ seasons, currentAnimeId }: { seasons: AnimeSeason[], c
             <ScrollArea className="w-full whitespace-nowrap rounded-lg">
                 <div className="flex space-x-4 pb-4">
                     {seasons.map((season) => (
-                        <Link href={`/anime/${season.id}`} key={season.id} className="block group">
-                            <div className={cn(
-                                "relative w-40 h-24 rounded-lg overflow-hidden border-2 border-transparent transition-all duration-300 group-hover:border-primary/80",
-                                season.id === currentAnimeId && "border-primary"
-                            )}>
-                                <Image 
-                                    src={season.poster} 
-                                    alt={season.name} 
-                                    fill 
-                                    className="object-cover transition-transform duration-300 group-hover:scale-110 blur-[2px]"
-                                />
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                    <span className="text-white font-semibold text-center text-sm px-2">{season.title}</span>
-                                </div>
-                            </div>
-                        </Link>
+                         <div key={season.id} className="w-40 flex-shrink-0">
+                            <AnimeCard anime={{
+                                id: season.id,
+                                name: season.title,
+                                poster: season.poster,
+                            }} />
+                        </div>
                     ))}
                 </div>
                 <ScrollBar orientation="horizontal" />
@@ -173,13 +164,15 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
         setWatchlistStatus(null);
         return;
     }
-    getDoc(watchlistDocRef).then(docSnap => {
-      if (docSnap.exists()) {
-        setWatchlistStatus(docSnap.data()?.status || 'Watching');
-      } else {
-        setWatchlistStatus(null);
-      }
+    const unsub = onSnapshot(watchlistDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            setWatchlistStatus(docSnap.data()?.status || 'Watching');
+        } else {
+            setWatchlistStatus(null);
+        }
     });
+
+    return () => unsub();
   }, [watchlistDocRef]);
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div></div>;
@@ -317,10 +310,6 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
                     </div>
                 )}
               </div>
-              
-              <p className="text-muted-foreground text-xs mt-4 max-w-3xl mx-auto lg:mx-0">
-                <Link href="/" className="text-primary hover:underline">ProjectX</Link> is the best site to watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> SUB online, or you can even watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> DUB in HD quality. You can also find various anime on <Link href="/" className="text-primary hover:underline">ProjectX</Link> website.
-              </p>
             </div>
           </div>
         </div>
@@ -400,3 +389,5 @@ export default function AnimeDetailsPage({ params }: { params: { id: string } })
   const { id } = React.use(params);
   return <AnimeDetailsPageClient id={id} />;
 }
+
+    
