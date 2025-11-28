@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
 import { QtipAnime } from "@/types/anime";
 import { Badge } from "./ui/badge";
-import { Star, Clapperboard, Calendar, Clock } from "lucide-react";
+import { Star, Clapperboard } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 
 interface AnimeTooltipProps {
@@ -30,20 +30,18 @@ const TooltipSkeleton = () => (
 
 
 export function AnimeTooltip({ animeId }: AnimeTooltipProps) {
-  const { data: qtipResult, isLoading, error, isError } = useQuery<{ data: { anime: QtipAnime } } | { success: false, error: string, status?: number }>({
+  const { data: qtipResult, isLoading, isError } = useQuery<{ data: { anime: QtipAnime } } | { success: false; error: string; status?: number }>({
     queryKey: ['qtip', animeId],
     queryFn: () => AnimeService.getAnimeQtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
-    retry: false, // Don't retry on 404s
+    retry: false,
   });
 
   if (isLoading) {
     return <TooltipSkeleton />;
   }
 
-  const isApiError = isError || (qtipResult && 'success' in qtipResult && !qtipResult.success);
-
-  if (isApiError) {
+  if (isError || !qtipResult || !qtipResult.success) {
     const status = qtipResult && 'status' in qtipResult ? qtipResult.status : null;
     if (status === 404) {
       return <div className="p-2 text-xs text-muted-foreground">No details available for this item.</div>;
