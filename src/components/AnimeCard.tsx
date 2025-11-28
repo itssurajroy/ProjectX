@@ -11,8 +11,8 @@ type AnimeCardProps = {
 
 export function AnimeCard({ anime }: AnimeCardProps) {
   return (
-    <Link href={`/watch/${anime.id}`} className="group block space-y-2 h-full flex flex-col">
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-secondary flex-grow">
+    <Link href={`/watch/${anime.id}`} className="group block space-y-2">
+      <div className="relative w-[300px] h-[450px] overflow-hidden rounded-md bg-secondary">
         <Image
           src={anime.poster}
           alt={anime.name}
@@ -30,7 +30,7 @@ export function AnimeCard({ anime }: AnimeCardProps) {
             <Badge variant="destructive">{`Ep ${anime.episodes.sub}`}</Badge>
         </div>}
       </div>
-      <h3 className="font-medium text-sm truncate group-hover:text-primary">{anime.name}</h3>
+      <h3 className="font-medium text-sm truncate group-hover:text-primary max-w-[300px]">{anime.name}</h3>
     </Link>
   )
 }
