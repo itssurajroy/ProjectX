@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { env } from '@/lib/env';
+
+const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime';
 
 export async function GET(
   request: NextRequest,
@@ -8,7 +9,7 @@ export async function GET(
 ) {
   const apiPath = params.path.join('/');
   const searchParams = request.nextUrl.search;
-  const targetUrl = `${env.NEXT_PUBLIC_HIANIME_API_BASE}/${apiPath}${searchParams}`;
+  const targetUrl = `${API_BASE_URL}/${apiPath}${searchParams}`;
 
   try {
     const response = await fetch(targetUrl, {

@@ -2,110 +2,19 @@
 'use client';
 
 import { AnimeService } from '@/lib/AnimeService';
-import { AnimeBase, HomeData, TrendingAnime } from '@/types/anime';
+import { HomeData } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, SlidersHorizontal, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { AnimeCard } from "@/components/AnimeCard";
-import { Button } from '@/components/ui/button';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import Spotlight from '@/components/home/Spotlight';
+import HomeTabs from '@/components/home/HomeTabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const SpotlightSection = ({ trendingAnimes, isLoading }: { trendingAnimes: TrendingAnime[], isLoading: boolean }) => {
-    const randomAnime = trendingAnimes?.[0];
-    const backgroundPoster = randomAnime?.poster || "https://picsum.photos/seed/anime-background/1200/400";
-
-    if (isLoading) {
-      return (
-        <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
-          <Skeleton className="absolute inset-0" />
-          <div className="relative z-10 text-center px-4">
-            <Skeleton className="h-12 w-96 max-w-2xl mx-auto mb-4" />
-            <Skeleton className="h-6 w-80 max-w-3xl mx-auto mb-4" />
-            <Skeleton className="h-12 w-32" />
-          </div>
-        </div>
-      )
-    }
-
-    return (
-        <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
-            <div className="absolute inset-0">
-                <Image
-                    src={backgroundPoster}
-                    alt="Anime collage"
-                    fill
-                    className="object-cover opacity-20 blur-sm"
-                    data-ai-hint="anime background"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
-            </div>
-            <div className="relative z-10 text-center px-4 animate-banner-fade-in">
-                <div className="relative max-w-2xl mx-auto mb-4">
-                     <input 
-                        type="text" 
-                        placeholder="Search anime..."
-                        className="w-full bg-background/50 backdrop-blur-sm border border-border rounded-full py-3 pl-6 pr-24 focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg"
-                    />
-                    <button className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-card/80 text-card-foreground px-4 py-2 rounded-full font-semibold hover:bg-card/90 transition-colors">
-                        <SlidersHorizontal className="w-4 h-4" /> Filter
-                    </button>
-                </div>
-                {trendingAnimes && trendingAnimes.length > 0 && (
-                    <>
-                        <div className="text-muted-foreground text-sm mb-4 flex items-center justify-center gap-2 flex-wrap max-w-3xl mx-auto">
-                            <span className='text-foreground font-semibold'>Trending:</span>
-                            {trendingAnimes.slice(0, 5).map((anime, index) => (
-                                <Link key={anime.id} href={`/anime/${anime.id}`} className="hover:text-primary transition-colors">
-                                  {anime.name}
-                                  {index < 4 && ','}
-                                </Link>
-                            ))}
-                        </div>
-                        {randomAnime && (
-                            <Button asChild size="lg" className="shadow-lg shadow-primary/20 transform hover:scale-105 transition-transform">
-                                <Link href={`/anime/${randomAnime.id}`}>
-                                    <Play className="w-5 h-5 mr-2" /> Watch Now
-                                </Link>
-                            </Button>
-                        )}
-                    </>
-                )}
-            </div>
-        </div>
-    );
-}
-
-const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, animes: AnimeBase[], viewMoreLink?: string }) => {
-    if (!animes || animes.length === 0) return null;
-
-    return (
-        <section>
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold border-l-4 border-primary pl-3">{title}</h2>
-                {viewMoreLink && (
-                    <Button variant="link" asChild>
-                        <Link href={viewMoreLink} className="flex items-center gap-1">
-                            View More <ArrowRight className="w-4 h-4"/>
-                        </Link>
-                    </Button>
-                )}
-            </div>
-            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-                 <div className="flex space-x-4 pb-4">
-                    {animes.slice(0, 10).map((anime) => (
-                         <div key={anime.id} className="w-40 sm:w-44 flex-shrink-0">
-                             <AnimeCard anime={anime} />
-                         </div>
-                    ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-        </section>
-    );
-};
+const SpotlightSkeleton = () => (
+  <div className="relative w-full h-[50vh] md:h-[70vh] -mt-16">
+    <Skeleton className="absolute inset-0" />
+    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+    <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+  </div>
+);
 
 
 export default function MainDashboardPage() {
@@ -118,25 +27,19 @@ export default function MainDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-16">
-      <SpotlightSection trendingAnimes={homeData?.trendingAnimes || []} isLoading={isLoading} />
+      {isLoading || !homeData ? (
+        <SpotlightSkeleton />
+      ) : (
+        <Spotlight animes={homeData.spotlightAnimes} />
+      )}
       
-      <main className="px-4 sm:px-6 lg:px-8 mt-12 mb-12 space-y-12">
-        {isLoading ? (
+      <main className="px-4 sm:px-6 lg:px-8 mt-[-6rem] md:mt-[-10rem] relative z-10 mb-12 space-y-12">
+        {isLoading || !homeData ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
           </div>
-        ) : homeData ? (
-          <>
-            <AnimeSection title="Trending" animes={homeData.trendingAnimes} viewMoreLink="/category/trending" />
-            <AnimeSection title="Latest Episodes" animes={homeData.latestEpisodeAnimes} viewMoreLink="/category/recently-updated" />
-            <AnimeSection title="Top Upcoming" animes={homeData.topUpcomingAnimes} viewMoreLink="/category/upcoming" />
-            <AnimeSection title="Most Popular" animes={homeData.mostPopularAnimes} viewMoreLink="/category/popular" />
-          </>
         ) : (
-          <div className="text-center py-16">
-            <h3 className="text-xl font-semibold">Could not load anime data</h3>
-            <p className="text-muted-foreground">Please try refreshing the page.</p>
-          </div>
+          <HomeTabs homeData={homeData} />
         )}
       </main>
     </div>

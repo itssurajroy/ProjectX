@@ -1,5 +1,4 @@
 
-
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 import { Endpoints } from "./endpoints";
 
@@ -12,7 +11,6 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
     }
 
     const fullPath = path.startsWith('/') ? path.substring(1) : path;
-    // The base URL is now the local proxy, and the path from the Endpoints object.
     const url = `/api/${fullPath}?${params.toString()}`;
     
     try {
