@@ -1,9 +1,9 @@
 
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
-import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase } from '@/types/anime';
+import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users, ChevronDown, Check, Trash2 } from 'lucide-react';
+import { Play, Clapperboard, Users, ChevronDown, Check, Trash2, Tv } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
@@ -14,6 +14,7 @@ import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/no
 
 import { AnimeCard } from '@/components/AnimeCard';
 import { cn } from '@/lib/utils';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 type WatchlistStatus = 'Watching' | 'Plan to Watch' | 'Completed' | 'On-Hold';
 
@@ -64,6 +65,40 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 );
 
 
+const SeasonsSection = ({ seasons, currentAnimeId }: { seasons: AnimeSeason[], currentAnimeId: string }) => {
+    if (!seasons || seasons.length <= 1) return null;
+
+    return (
+        <section>
+            <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Tv /> More Seasons</h2>
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+                <div className="flex space-x-4 pb-4">
+                    {seasons.map((season) => (
+                        <Link href={`/anime/${season.id}`} key={season.id} className="block group">
+                            <div className={cn(
+                                "relative w-40 h-24 rounded-lg overflow-hidden border-2 border-transparent transition-all duration-300 group-hover:border-primary/80",
+                                season.id === currentAnimeId && "border-primary"
+                            )}>
+                                <Image 
+                                    src={season.poster} 
+                                    alt={season.name} 
+                                    fill 
+                                    className="object-cover transition-transform duration-300 group-hover:scale-110 blur-[2px]"
+                                />
+                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                    <span className="text-white font-semibold text-center text-sm px-2">{season.title}</span>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+        </section>
+    );
+};
+
+
 function AnimeDetailsPageClient({ id }: { id: string }) {
   const { user } = useUser();
   const firestore = useFirestore();
@@ -88,6 +123,7 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
   
   const animeResult = apiResponse && !('success' in apiResponse) ? apiResponse.data : null;
   const anime = animeResult?.anime;
+  const seasons = animeResult?.seasons;
   const animeInfo: AnimeInfo | undefined = anime?.info;
   const moreInfo = anime?.moreInfo;
   const recommendedAnimes = animeResult?.recommendedAnimes;
@@ -292,6 +328,8 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
             </div>
 
           <div className="lg:col-span-6 space-y-12">
+              {seasons && <SeasonsSection seasons={seasons} currentAnimeId={id} />}
+              
               {characters.length > 0 && (
                 <section>
                    <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
