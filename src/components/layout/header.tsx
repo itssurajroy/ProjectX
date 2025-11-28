@@ -25,7 +25,6 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '../ui/skeleton';
-import { SidebarTrigger } from '../ui/sidebar';
 import { genres } from '@/lib/data';
 
 const NavLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => {
@@ -105,8 +104,7 @@ export default function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-2">
-            <SidebarTrigger className="md:hidden" />
-            <Link href="/home" className="text-2xl font-bold text-glow hidden sm:block">
+            <Link href="/home" className="text-2xl font-bold text-glow">
                 <span className="text-primary">Project</span>
                 <span className="text-white">X</span>
             </Link>
