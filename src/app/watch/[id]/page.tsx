@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
@@ -17,18 +16,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const WatchPageSkeleton = () => (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="col-span-12 lg:col-span-3">
-                <Skeleton className="h-[600px] w-full" />
-            </div>
-            <div className="col-span-12 lg:col-span-6 space-y-6">
+            <div className="lg:col-span-8 xl:col-span-9 space-y-6">
                 <Skeleton className="aspect-video w-full" />
                 <Skeleton className="h-24 w-full" />
             </div>
-            <div className="col-span-12 lg:col-span-3">
+            <div className="lg:col-span-4 xl:col-span-3">
                 <Skeleton className="h-[600px] w-full" />
             </div>
         </div>
@@ -102,8 +99,8 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
                 serversResponse.data.raw?.[0];
             if (defaultServer) {
                 setCurrentServer(defaultServer);
-                if (serversResponse.data.sub?.[0]) setLang('sub');
-                else if (serversResponse.data.dub?.[0]) setLang('dub');
+                if (serversResponse.data.sub?.find(s => s.serverId === defaultServer.serverId)) setLang('sub');
+                else if (serversResponse.data.dub?.find(s => s.serverId === defaultServer.serverId)) setLang('dub');
                 else setLang('raw');
             }
         }
@@ -113,11 +110,10 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
     const servers = serversResponse && 'data' in serversResponse ? [...(serversResponse.data.sub || []), ...(serversResponse.data.dub || [])] : [];
     const uniqueServers = Array.from(new Map(servers.map(s => [s.serverName, s])).values());
     
-    const episodeIdForPlayer = `${id}?ep=${currentEpisodeId}`;
 
     return (
         <div className="bg-card/60 backdrop-blur-md rounded-lg border border-border/50">
-            {currentEpisodeId && currentServer ? (
+            {currentEpisodeId && currentServer && currentEpisode ? (
                 <AdvancedMegaPlayPlayer
                   episodeId={currentEpisode.episodeId}
                   server={currentServer.serverName}
@@ -143,9 +139,9 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
                         ))}
                     </div>
                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Button size="sm" variant={lang === 'sub' ? 'destructive' : 'ghost'} onClick={() => setLang('sub')}>SUB</Button>
+                        <Button size="sm" variant={lang === 'sub' ? 'destructive' : 'ghost'} onClick={() => setLang('sub')} disabled={!serversResponse || !('data' in serversResponse) || !serversResponse.data.sub || serversResponse.data.sub.length === 0}>SUB</Button>
                         <span>|</span>
-                        <Button size="sm" variant={lang === 'dub' ? 'destructive' : 'ghost'} onClick={() => setLang('dub')}>DUB</Button>
+                        <Button size="sm" variant={lang === 'dub' ? 'destructive' : 'ghost'} onClick={() => setLang('dub')} disabled={!serversResponse || !('data' in serversResponse) || !serversResponse.data.dub || serversResponse.data.dub.length === 0}>DUB</Button>
                     </div>
                 </div>
 
@@ -172,17 +168,6 @@ const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, o
     
     return (
         <div className="bg-card/60 backdrop-blur-md rounded-lg p-4 border border-border/50">
-            <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Episodes</h2>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary w-8 h-8" onClick={onPrev} disabled={currentIndex <= 0}>
-                        <ChevronLeft className="w-5 h-5" />
-                    </Button>
-                     <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary w-8 h-8" onClick={onNext} disabled={currentIndex >= episodes.length - 1}>
-                        <ChevronRight className="w-5 h-5" />
-                    </Button>
-                </div>
-            </div>
             <EpisodeList
                 episodes={episodes}
                 currentEpisodeId={currentEpisodeId || ""}
@@ -192,13 +177,8 @@ const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, o
     );
 }
 
-
-export default function EliteWatchPage() {
-  const params = useParams();
+function WatchPageContent({ id, episodeParam }: { id: string, episodeParam: string | null }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const id = params.id as string;
-  const episodeParam = searchParams.get("ep");
 
   const { data: aboutResponse, isLoading: loadingAbout } = useQuery({
     queryKey: ["anime-about", id],
@@ -211,7 +191,7 @@ export default function EliteWatchPage() {
     queryFn: () => AnimeService.getEpisodes(id),
     enabled: !!id,
   });
-  
+
   const episodes = episodesResponse && 'data' in episodesResponse ? episodesResponse.data.episodes : [];
 
   useEffect(() => {
@@ -222,16 +202,16 @@ export default function EliteWatchPage() {
       }
     }
   }, [loadingEpisodes, episodes, episodeParam, id, router]);
-  
+
   const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
   const currentEpisodeId = episodeParam;
 
   const goToEpisode = (epId: string | null) => {
     if (epId) {
-        router.push(`/watch/${id}?ep=${epId}`);
+      router.push(`/watch/${id}?ep=${epId}`);
     }
   };
-  
+
   const currentIndex = episodes.findIndex((e) => extractEpisodeId(e.episodeId) === currentEpisodeId);
 
   const handlePrev = () => {
@@ -244,6 +224,68 @@ export default function EliteWatchPage() {
   };
 
   const isLoading = loadingAbout || loadingEpisodes || (!episodeParam && episodes.length > 0);
+
+  if (isLoading || !anime) {
+    return <WatchPageSkeleton />;
+  }
+
+  return (
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+          <WatchPlayer id={id} anime={anime} episodes={episodes} currentEpisodeId={currentEpisodeId} onNext={handleNext} />
+          
+          <div className="lg:hidden">
+             <Tabs defaultValue="episodes" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="episodes">Episodes</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
+              </TabsList>
+              <TabsContent value="episodes">
+                <EpisodeSidebar 
+                    episodes={episodes} 
+                    currentEpisodeId={currentEpisodeId} 
+                    onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
+                    onPrev={handlePrev}
+                    onNext={handleNext}
+                />
+              </TabsContent>
+              <TabsContent value="details">
+                 <AnimeDetails anime={anime} />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+        </div>
+        <div className="hidden lg:block lg:col-span-4 xl:col-span-3">
+          <EpisodeSidebar 
+              episodes={episodes} 
+              currentEpisodeId={currentEpisodeId} 
+              onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
+              onPrev={handlePrev}
+              onNext={handleNext}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+export default function EliteWatchPage() {
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const id = params.id as string;
+  const episodeParam = searchParams.get("ep");
+
+  const { data: aboutResponse } = useQuery({
+    queryKey: ["anime-about", id],
+    queryFn: () => AnimeService.getAnimeAbout(id),
+    enabled: !!id,
+    staleTime: 1000 * 60 * 60, // 1 hour
+  });
+  
+  const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -259,33 +301,10 @@ export default function EliteWatchPage() {
       />}
 
       <div className="relative pt-24 pb-8">
-        {isLoading || !anime ? (
-            <WatchPageSkeleton />
-        ) : (
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="col-span-12 lg:col-span-3 order-2 lg:order-1 hidden lg:block">
-                        <AnimeDetails anime={anime} />
-                    </div>
-                    <div className="col-span-12 lg:col-span-6 order-1 lg:order-2 space-y-6">
-                        <WatchPlayer id={id} anime={anime} episodes={episodes} currentEpisodeId={currentEpisodeId} onNext={handleNext} />
-                        <div className="block lg:hidden">
-                            <AnimeDetails anime={anime} />
-                        </div>
-                    </div>
-                    <div className="col-span-12 lg:col-span-3 order-3 lg:order-3">
-                       <EpisodeSidebar 
-                          episodes={episodes} 
-                          currentEpisodeId={currentEpisodeId} 
-                          onEpisodeSelect={(ep) => goToEpisode(extractEpisodeId(ep.episodeId))}
-                          onPrev={handlePrev}
-                          onNext={handleNext}
-                       />
-                    </div>
-                </div>
-            </div>
-        )}
+        <WatchPageContent id={id} episodeParam={episodeParam} />
       </div>
     </div>
   );
 }
+
+    
