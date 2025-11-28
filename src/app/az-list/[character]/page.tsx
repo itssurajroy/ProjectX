@@ -101,7 +101,7 @@ const AdvancedFilter = () => {
                     {statuses.map(s => <option key={s}>{s}</option>)}
                 </select>
                  <select className="bg-muted rounded-md px-3 py-2.5 border-none focus:ring-2 focus:ring-primary focus:outline-none text-sm xl:col-span-2">
-                    {sortOptions.map(s => <option key={s}>{s}</option>)}
+                    {sortOptions.map(s => <option key={s.value}>{s.label}</option>)}
                 </select>
 
                 <button className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-primary/80 transition-colors flex items-center justify-center gap-2 xl:col-span-1">
@@ -204,7 +204,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
   const { animes, currentPage, totalPages, hasNextPage } = azData;
   
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-12 min-h-[60vh]">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 pt-24 min-h-[60vh]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">AZ-LIST</h1>
         <p className="text-sm text-muted-foreground">{azData.totalAnimes?.toLocaleString() || '...'} anime</p>
@@ -214,7 +214,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
       
       {animes && animes.length > 0 ? (
         <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-6 gap-y-10">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
             {animes.map((anime: any) => (
                 <AnimeCard key={anime.id} anime={anime} />
             ))}

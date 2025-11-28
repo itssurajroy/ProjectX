@@ -43,7 +43,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] group">
+    <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
                 <Image
@@ -277,7 +277,7 @@ export default function MainDashboardPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground pt-16">
       <SpotlightSection spotlights={spotlightAnimes} />
       
       <main className="px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
@@ -293,7 +293,7 @@ export default function MainDashboardPage() {
                             <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>Dub</button>
                          </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-8">
                         {filteredLatest?.slice(0, 10).map((anime) => (
                             <AnimeCard key={anime.id} anime={anime} />
                         ))}
