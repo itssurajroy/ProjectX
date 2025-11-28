@@ -174,7 +174,7 @@ const ScheduleSidebar = () => {
     return (
         <section className='bg-card p-4 rounded-lg border border-border/50'>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold flex items-center gap-2"><Calendar className="w-5 h-5"/>Schedule 🗓️</h2>
+                <h2 className="text-lg font-bold flex items-center gap-2">Schedule 🗓️</h2>
             </div>
             <div className="flex justify-between items-center bg-muted/50 p-1 rounded-lg mb-4 flex-wrap">
                 {days.map(day => (
@@ -315,6 +315,8 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
 
     
 
