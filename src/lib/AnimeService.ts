@@ -2,6 +2,7 @@
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 import { env } from '@/lib/env';
+import { Endpoints } from "./endpoints";
 
 type ServiceError = { success: false; error: string; status?: number };
 
@@ -12,6 +13,7 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
     }
 
     const fullPath = path.startsWith('/') ? path : `/${path}`;
+    // The base URL now comes from the environment variable, and the path from the Endpoints object.
     const url = `${env.NEXT_PUBLIC_HIANIME_API_BASE}${fullPath}?${params.toString()}`;
     
     try {
@@ -37,49 +39,47 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
 
 export class AnimeService {
   static async getHomeData(): Promise<{ data: HomeData } | ServiceError> {
-    return await fetchFromApi('/anime/home');
+    return await fetchFromApi(Endpoints.home);
   }
 
   static async searchAnime(query: string, page: number = 1): Promise<{data: SearchResult} | ServiceError> {
-     return await fetchFromApi('/anime/search', { q: query, page });
+     return await fetchFromApi(Endpoints.search, { q: query, page });
   }
   
   static async getSearchSuggestions(query: string): Promise<{data: SearchSuggestionResponse} | ServiceError> {
     if (!query) return { data: { suggestions: [] } };
-    return await fetchFromApi('/anime/search/suggestion', { q: query });
+    return await fetchFromApi(Endpoints.searchSuggestion, { q: query });
   }
 
   static async getAnimeAbout(id: string): Promise<{ data: AnimeAboutResponse } | ServiceError> {
-     return await fetchFromApi(`/anime/info`, { id });
+     return await fetchFromApi(Endpoints.anime(id));
   }
   
   static async getAnimeQtip(id: string): Promise<{ data: { anime: QtipAnime } } | ServiceError> {
-    return await fetchFromApi(`/anime/qtip/${id}`);
+    return await fetchFromApi(Endpoints.qtip(id));
   }
 
   static async getEpisodes(animeId: string): Promise<{data: {episodes: AnimeEpisode[]}} | ServiceError> {
-     return await fetchFromApi(`/anime/episodes`, { id: animeId });
+     return await fetchFromApi(Endpoints.episodes(animeId));
   }
   
   static async getGenre(genre: string, page: number = 1) {
-    return await fetchFromApi(`/anime/genre/${genre}`, { page });
+    return await fetchFromApi(Endpoints.genre(genre), { page });
   }
 
   static async getSchedule(date: string): Promise<{data: ScheduleResponse} | ServiceError> {
-    return await fetchFromApi('/anime/schedule', { date });
+    return await fetchFromApi(Endpoints.schedule, { date });
   }
 
   static async getAZList(sortOption: string, page: number = 1): Promise<{data: SearchResult } | ServiceError> {
-    return await fetchFromApi(`/anime/az-list/${sortOption}`, { page });
+    return await fetchFromApi(Endpoints.azList(sortOption), { page });
   }
 
   static async getEpisodeServers(animeEpisodeId: string): Promise<{data: {sub: EpisodeServer[], dub: EpisodeServer[], raw: EpisodeServer[]}} | ServiceError> {
-    const res = await fetchFromApi('/anime/servers', { episodeId: animeEpisodeId });
-    return res;
+    return await fetchFromApi(Endpoints.episodeServers, { animeEpisodeId });
   }
 
   static async getEpisodeSources(animeEpisodeId: string, server: string, category: 'sub' | 'dub' | 'raw'): Promise<EpisodeSourcesResponse | ServiceError> {
-    const res = await fetchFromApi('/anime/sources', { episodeId: animeEpisodeId, server, category });
-    return res?.data || res;
+    return await fetchFromApi(Endpoints.episodeSources, { animeEpisodeId, server, category });
   }
 }
