@@ -163,11 +163,13 @@ const ScheduleSidebar = () => {
         queryFn: () => AnimeService.getSchedule(selectedDate.toISOString().split('T')[0]),
     });
 
-    const days = Array.from({ length: 7 }).map((_, i) => {
-        const date = new Date();
-        date.setDate(new Date().getDate() - 3 + i);
-        return date;
-    });
+    const handleDateChange = (days: number) => {
+        setSelectedDate(prevDate => {
+            const newDate = new Date(prevDate);
+            newDate.setDate(newDate.getDate() + days);
+            return newDate;
+        });
+    }
 
     const scheduledAnimes = scheduleResult && !('success' in scheduleResult) && scheduleResult.data ? scheduleResult.data.scheduledAnimes : [];
     
@@ -177,12 +179,15 @@ const ScheduleSidebar = () => {
                 <h2 className="text-lg font-bold flex items-center gap-2">Schedule 🗓️</h2>
             </div>
             <div className="flex justify-between items-center bg-card p-1 rounded-lg mb-4 flex-wrap">
-                {days.map(day => (
-                    <button key={day.toISOString()} onClick={() => setSelectedDate(day)} className={cn("text-center text-xs p-2 rounded-md flex-1 min-w-[40px] transition-colors", day.toDateString() === selectedDate.toDateString() ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>
-                        <p className="font-bold">{day.toLocaleString('en-US', { weekday: 'short' }).toUpperCase()}</p>
-                        <p>{day.getDate()}</p>
-                    </button>
-                ))}
+                <button onClick={() => handleDateChange(-1)} className="p-2 rounded-md hover:bg-muted">
+                    <ChevronLeft className="w-5 h-5"/>
+                </button>
+                <div className="text-center text-sm font-semibold">
+                    {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </div>
+                <button onClick={() => handleDateChange(1)} className="p-2 rounded-md hover:bg-muted">
+                    <ChevronRight className="w-5 h-5"/>
+                </button>
             </div>
             <div className="space-y-1 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-1">
                 {isLoading ? (
