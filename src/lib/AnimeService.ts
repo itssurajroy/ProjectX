@@ -12,7 +12,7 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
     }
 
     const fullPath = path.startsWith('/') ? path : `/${path}`;
-    const url = `${env.HIANIME_API_BASE}${fullPath}?${params.toString()}`;
+    const url = `${env.NEXT_PUBLIC_HIANIME_API_BASE}${fullPath}?${params.toString()}`;
     
     try {
         const res = await fetch(url, {
