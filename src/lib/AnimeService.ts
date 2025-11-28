@@ -20,8 +20,11 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
         });
         
         if (!res.ok) {
-            const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-            console.error(`API error for ${path}:`, res.status, errorBody);
+            // Don't log 404s as they are expected for some tooltips
+            if (res.status !== 404) {
+                const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
+                console.error(`API error for ${path}:`, res.status, errorBody);
+            }
             return { success: false, error: `API returned status ${res.status}`, status: res.status };
         }
 

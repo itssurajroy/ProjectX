@@ -30,18 +30,25 @@ const TooltipSkeleton = () => (
 
 
 export function AnimeTooltip({ animeId }: AnimeTooltipProps) {
-  const { data: qtipResult, isLoading, error } = useQuery<{ data: { anime: QtipAnime } } | { success: false, error: string }>({
+  const { data: qtipResult, isLoading, error, isError } = useQuery<{ data: { anime: QtipAnime } } | { success: false, error: string, status?: number }>({
     queryKey: ['qtip', animeId],
     queryFn: () => AnimeService.getAnimeQtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: false, // Don't retry on 404s
   });
 
   if (isLoading) {
     return <TooltipSkeleton />;
   }
 
-  if (error || !qtipResult || (qtipResult && 'success' in qtipResult && !qtipResult.success)) {
-    return <div className="p-2 text-sm text-destructive">Could not load details.</div>;
+  const isApiError = isError || (qtipResult && 'success' in qtipResult && !qtipResult.success);
+
+  if (isApiError) {
+    const status = qtipResult && 'status' in qtipResult ? qtipResult.status : null;
+    if (status === 404) {
+      return <div className="p-2 text-xs text-muted-foreground">No details available for this item.</div>;
+    }
+    return <div className="p-2 text-sm text-destructive">Could not load details for {animeId}.</div>;
   }
   
   const anime = qtipResult.data.anime;
@@ -80,3 +87,4 @@ export function AnimeTooltip({ animeId }: AnimeTooltipProps) {
     </div>
   );
 }
+
