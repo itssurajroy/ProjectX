@@ -1,5 +1,4 @@
 
-
 const API_BASE_PATH = 'api/v2/hianime';
 
 export const Endpoints = {
