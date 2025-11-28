@@ -11,8 +11,8 @@ type AnimeCardProps = {
 
 export function AnimeCard({ anime }: AnimeCardProps) {
   return (
-    <Link href={`/watch/${anime.id}`} className="group block space-y-2">
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-secondary">
+    <Link href={`/watch/${anime.id}`} className="group block space-y-2 h-full flex flex-col">
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-secondary flex-grow">
         <Image
           src={anime.poster}
           alt={anime.name}
