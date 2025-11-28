@@ -306,8 +306,8 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
              {recommendedAnimes && recommendedAnimes.length > 0 && (
                 <section>
                     <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {recommendedAnimes?.slice(0,12).map((rec: AnimeBase) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {recommendedAnimes?.slice(0,10).map((rec: AnimeBase) => (
                         <AnimeCard key={rec.id} anime={rec} />
                     ))}
                     </div>

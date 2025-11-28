@@ -21,7 +21,7 @@ export function AnimeCard({ anime }: AnimeCardProps) {
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link href={`/watch/${anime.id}`} className="group block space-y-2 h-full flex flex-col">
+          <Link href={`/anime/${anime.id}`} className="group block space-y-2 h-full flex flex-col">
             <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-secondary">
               <Image
                 src={anime.poster}

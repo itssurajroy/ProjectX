@@ -79,7 +79,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
                   <Link href={`/watch/${spotlight.id}`} className="bg-primary text-primary-foreground px-4 md:px-6 py-3 rounded-lg font-bold text-sm md:text-base flex items-center gap-2 hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
                       <Play className="w-5 h-5" /> Watch Now
                   </Link>
-                  <Link href={`/watch/${spotlight.id}`} className="border border-white/50 text-white px-4 py-3 rounded-lg font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-colors">
+                  <Link href={`/anime/${spotlight.id}`} className="border border-white/50 text-white px-4 py-3 rounded-lg font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-colors">
                       <Bookmark className="w-5 h-5"/>
                   </Link>
               </div>
@@ -135,7 +135,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
             <div className="bg-card p-2 rounded-lg border border-border/50">
                 <div className="space-y-2">
                     {animes.slice(0, 7).map((anime, index) => (
-                        <Link href={`/watch/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
+                        <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
                                 <Image src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
                             </div>
@@ -191,7 +191,7 @@ const ScheduleSidebar = () => {
                     </div>
                 ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
                     return (
-                        <Link key={anime.id} href={`/watch/${anime.id}`} className="flex justify-between items-center group p-2 rounded-md hover:bg-muted border-b border-border/50 last:border-b-0">
+                        <Link key={anime.id} href={`/anime/${anime.id}`} className="flex justify-between items-center group p-2 rounded-md hover:bg-muted border-b border-border/50 last:border-b-0">
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <span className="text-sm font-bold text-primary w-10 text-center">{anime.time}</span>
                                 <p className="truncate font-semibold text-sm group-hover:text-primary transition-colors">{anime.name}</p>
@@ -227,7 +227,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
             </div>
           <div className='space-y-1'>
             {animesToDisplay.slice(0, 10).map((anime: any, index) => (
-              <Link key={anime.id} href={`/watch/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted transition-colors">
+              <Link key={anime.id} href={`/anime/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted transition-colors">
                 <div className="flex items-start gap-4 group">
                   <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
                   <div className="relative w-14 h-20 flex-shrink-0">
@@ -294,8 +294,8 @@ export default function MainDashboardPage() {
                             <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>Dub</button>
                          </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6">
-                        {filteredLatest?.slice(0, 12).map((anime) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-x-4 gap-y-6">
+                        {filteredLatest?.slice(0, 10).map((anime) => (
                             <AnimeCard key={anime.id} anime={anime} />
                         ))}
                     </div>
@@ -315,9 +315,3 @@ export default function MainDashboardPage() {
     </div>
   );
 }
-
-    
-
-    
-
-    
