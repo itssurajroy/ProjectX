@@ -1,23 +1,35 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, Twitter, Send } from "lucide-react";
+import { Search, ChevronDown, Twitter, Send, Tv, Film } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Balancer from "react-wrap-balancer";
+import AZList from "@/components/layout/az-list-footer";
+import { AnimeBase, HomeData } from "@/types/anime";
+import { useQuery } from "@tanstack/react-query";
+import { AnimeService } from "@/lib/AnimeService";
 
 const socialLinks = [
-    { name: "Discord", count: "82.6k", icon: Send, color: "bg-[#5865F2]" },
-    { name: "Telegram", count: "14.5k", icon: Send, color: "bg-[#2AABEE]" },
-    { name: "Twitter", count: "11.6k", icon: Twitter, color: "bg-[#1DA1F2]" },
-    { name: "Reddit", count: "12.7k", icon: null, color: "bg-[#FF4500]" },
+    { name: "Discord", count: "82.6k", icon: Send, color: "bg-[#5865F2]", href: "#" },
+    { name: "Telegram", count: "14.5k", icon: Send, color: "bg-[#2AABEE]", href: "#" },
+    { name: "Twitter", count: "11.6k", icon: Twitter, color: "bg-[#1DA1F2]", href: "#" },
+    { name: "Reddit", count: "12.7k", icon: Film, color: "bg-[#FF4500]", href: "#" },
 ];
 
 export default function LandingPage() {
     const [query, setQuery] = useState('');
     const router = useRouter();
+
+    const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
+        queryKey: ['homeData'],
+        queryFn: AnimeService.getHomeData,
+    });
+    
+    const trendingAnimes = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,21 +38,13 @@ export default function LandingPage() {
         }
     }
 
-    const trendingKeywords = [
-        "One Piece",
-        "My Gift Lvl",
-        "Gachiakuta",
-        "My Hero Academia",
-        "My Status As",
-    ];
-
     return (
         <div className="flex flex-col min-h-screen">
             <main className="flex-grow">
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <img src="https://picsum.photos/seed/anime-collage/1920/1080" alt="Anime Collage" className="object-cover w-full h-full opacity-20 blur-sm" />
+                        <img src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage" alt="Anime Collage" className="object-cover w-full h-full opacity-10 blur-sm" />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
                     <div className="relative z-10 container mx-auto px-4">
@@ -70,9 +74,9 @@ export default function LandingPage() {
                         </form>
                         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                             <span>Trending:</span>
-                            {trendingKeywords.map((keyword, i) => (
-                                <Link key={i} href={`/search?q=${keyword}`} className="hover:text-primary hover:underline">
-                                    {keyword}
+                            {trendingAnimes.map((anime: AnimeBase) => (
+                                <Link key={anime.id} href={`/anime/${anime.id}`} className="hover:text-primary hover:underline">
+                                    {anime.name}
                                 </Link>
                             ))}
                         </div>
@@ -89,7 +93,7 @@ export default function LandingPage() {
                 <section className="container mx-auto px-4 -mt-12 mb-16 relative z-10">
                     <div className="flex flex-wrap items-center justify-center gap-4">
                         {socialLinks.map(link => (
-                            <a key={link.name} href="#" target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 px-4 py-2 rounded-lg text-white font-semibold text-sm ${link.color} transition-transform hover:scale-105`}>
+                            <a key={link.name} href={link.href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 px-4 py-2 rounded-lg text-white font-semibold text-sm ${link.color} transition-transform hover:scale-105`}>
                                 {link.icon && <link.icon className="w-5 h-5"/>}
                                 <span>{link.name}</span>
                                 <span className="text-white/70">{link.count}</span>
@@ -101,14 +105,18 @@ export default function LandingPage() {
 
                 {/* SEO Content Section */}
                 <section className="container mx-auto px-4 py-16">
-                    <div className="max-w-4xl mx-auto text-left space-y-8 text-muted-foreground">
-                        <h2 className="text-3xl font-bold text-center text-foreground mb-10">The Best Site to Watch Anime Online for Free</h2>
+                    <div className="max-w-4xl mx-auto text-left space-y-8 text-muted-foreground text-sm">
+                        <h2 className="text-2xl font-bold text-center text-foreground mb-10">The Best Site to Watch Anime Online for Free</h2>
                         <div className="space-y-2">
-                            <h3 className="text-xl font-semibold text-primary">1. What is ProjectX?</h3>
+                            <h3 className="text-xl font-semibold text-primary">What is ProjectX?</h3>
                             <p>ProjectX is a free anime streaming site where you can watch anime in HD quality with both subbed and dubbed options, all without the hassle of registration or payment. And the best part? There are absolutely no ads! We're dedicated to making it the safest and most enjoyable place for anime lovers to watch anime for free.</p>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="text-xl font-semibold text-primary">2. What makes ProjectX the best site to watch anime free online?</h3>
+                            <h3 className="text-xl font-semibold text-primary">Is ProjectX safe?</h3>
+                            <p>Yes. We are a new website, but we have a team of dedicated people who are committed to providing the best and safest anime streaming experience for our users. We do not have any ads on our website, and we do not require any registration to watch anime. You can come and watch your favorite anime without any worries.</p>
+                        </div>
+                         <div className="space-y-2">
+                            <h3 className="text-xl font-semibold text-primary">What makes ProjectX the best site to watch anime free online?</h3>
                             <p>Before creating ProjectX, we thoroughly explored numerous other free anime sites and learned from their strengths and weaknesses. We kept only the best features and eliminated all the drawbacks, combining them into our platform. That's why we're so confident in claiming to be the best site for anime streaming. Experience it yourself and see the difference!</p>
                             <ul className="list-disc list-inside space-y-2 pl-4">
                                 <li><strong>Safety:</strong> No ads, no redirects, and absolutely no viruses. Your safety and enjoyment are our top priorities.</li>
@@ -120,9 +128,7 @@ export default function LandingPage() {
                             </ul>
                         </div>
                          <div className="space-y-2">
-                            <h3 className="text-xl font-semibold text-primary">3. How does ProjectX compare to other sites?</h3>
-                            <p>We are a new website, so our library is growing every day. With access to multiple private trackers, we are confident that we will surpass legacy sites in the near future. We have a more modern layout and better UI/UX, making navigation on our site easy and convenient. Additionally, we offer many advanced features to enhance user experience such as bookmark saving, watch history, synchronization with AniList, auto-next-episode, autoplay, and many more features waiting for you to explore.</p>
-                            <p className="mt-4">If you're searching for a reliable and safe site for anime streaming, give ProjectX a try. If you enjoy your time with us, please spread the word and don't forget to bookmark our site! Your support means the world to us.</p>
+                            <p>If you're searching for a reliable and safe site for anime streaming, give ProjectX a try. If you enjoy your time with us, please spread the word and don't forget to bookmark our site! Your support means the world to us.</p>
                             <p>Thank you!</p>
                         </div>
                     </div>
