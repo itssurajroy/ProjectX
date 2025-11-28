@@ -12,7 +12,7 @@ import Splash from "@/components/Splash";
 import { Balancer as BalancerProvider } from 'react-wrap-balancer'
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { Sidebar, SidebarProvider } from "@/components/ui/sidebar";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -54,8 +54,12 @@ export default function RootLayout({
                   color: '#fff',
                 }
               }}/>
-              <Navbar />
-              <main className="pb-20 md:pb-0">{children}</main>
+              {/* The Sidebar component needs to be a direct child for the peer styles to work */}
+              <Sidebar />
+              <div className="md:peer-data-[state=expanded]:peer-data-[variant=inset]:ml-[16rem] peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[3rem]">
+                <Navbar />
+                <main className="pb-20 md:pb-0">{children}</main>
+              </div>
               <ScrollToTopButton />
               </SidebarProvider>
               </BalancerProvider>

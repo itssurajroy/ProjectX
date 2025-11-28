@@ -1,8 +1,9 @@
+
 'use client';
 import { useAuth } from '@/firebase';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp } from 'lucide-react';
+import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -18,9 +19,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '../ui/skeleton';
 import { SidebarTrigger } from '../ui/sidebar';
+import { genres } from '@/lib/data';
 
 const NavLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => {
     const pathname = usePathname();
@@ -31,6 +37,12 @@ const NavLink = ({ href, children, className }: { href: string, children: React.
         </Link>
     );
 };
+
+const SocialLink = ({ href, icon: Icon, name }: { href: string, icon: React.ElementType, name: string }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center bg-card/80 rounded-full hover:bg-muted transition-colors" title={name}>
+        <Icon className="w-4 h-4" />
+    </a>
+)
 
 
 export default function Header() {
@@ -89,7 +101,7 @@ export default function Header() {
   const suggestions = suggestionsResult && !('success' in suggestionsResult) ? suggestionsResult.data.suggestions : [];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center bg-background/80 backdrop-blur-sm border-b border-border">
+    <header className="sticky top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-2">
@@ -102,9 +114,24 @@ export default function Header() {
         
         <nav className="hidden lg:flex items-center gap-1">
             <NavLink href="/home"><Home className="w-4 h-4"/> Home</NavLink>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10")}>
+                  <LayoutGrid className="w-4 h-4"/> Genres <ChevronDown className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="grid grid-cols-4 w-[600px] bg-card/95 backdrop-blur-sm">
+                {genres.map(genre => (
+                  <DropdownMenuItem key={genre} asChild>
+                    <Link href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`}>{genre}</Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <NavLink href="/movies"><Film className="w-4 h-4"/> Movies</NavLink>
             <NavLink href="/tv"><Tv className="w-4 h-4"/> TV Series</NavLink>
-            <NavLink href="/most-popular"><Star className="w-4 h-4"/> Most Popular</NavLink>
             <NavLink href="/top-airing"><TrendingUp className="w-4 h-4"/> Top Airing</NavLink>
         </nav>
 
@@ -117,7 +144,7 @@ export default function Header() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setShowSuggestions(true)}
                       placeholder="Search anime..."
-                      className="bg-card w-full rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
+                      className="bg-card/80 w-full rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
                   />
                   <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
                       <Search className="w-4 h-4 text-gray-400 hover:text-white" />
@@ -126,7 +153,7 @@ export default function Header() {
                {showSuggestions && searchQuery.length > 2 && (
                  <div className="absolute top-full mt-2 w-full bg-card rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto border border-border">
                     {suggestions && suggestions.length > 0 ? suggestions.map(anime => (
-                      <Link key={anime.id} href={`/watch/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
+                      <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
                            <Image src={anime.poster} alt={anime.name} fill className="rounded-md object-cover" />
                         </div>
@@ -144,9 +171,47 @@ export default function Header() {
                )}
             </div>
             
-            <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
+            <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card/80 hover:bg-muted" title="Random Anime">
                 <Shuffle className="w-4 h-4" />
             </Link>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card/80 hover:bg-muted" title="Language & Theme">
+                  <Languages className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Languages className="mr-2 h-4 w-4" />
+                    <span>Language</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem>English</DropdownMenuItem>
+                      <DropdownMenuItem>Japanese</DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+                 <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Sun className="mr-2 h-4 w-4" />
+                    <span>Theme</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuPortal>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem>Light</DropdownMenuItem>
+                      <DropdownMenuItem>Dark</DropdownMenuItem>
+                      <DropdownMenuItem>System</DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuPortal>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <SocialLink href="https://discord.com" icon={Send} name="Discord" />
+            <SocialLink href="https://x.com" icon={Twitter} name="Twitter" />
 
             {isClient && (
                   <>
@@ -155,7 +220,7 @@ export default function Header() {
                       ) : user && !user.isAnonymous ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <button className="w-9 h-9 rounded-full overflow-hidden">
+                                <button className="w-9 h-9 rounded-full overflow-hidden border-2 border-transparent hover:border-primary">
                                     <Image src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt="User Avatar" width={36} height={36} />
                                 </button>
                             </DropdownMenuTrigger>
@@ -165,16 +230,16 @@ export default function Header() {
                                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                                </DropdownMenuLabel>
                                <DropdownMenuSeparator />
-                               <DropdownMenuItem asChild><Link href="/profile"><User className="mr-2"/>Profile</Link></DropdownMenuItem>
-                               <DropdownMenuItem asChild><Link href="/watchlist"><ListVideo className="mr-2"/>Watchlist</Link></DropdownMenuItem>
-                               <DropdownMenuItem onSelect={handleSignOut} className="text-destructive">
-                                 <LogOut className="mr-2" /> Sign Out
+                               <DropdownMenuItem asChild><Link href="/profile" className='cursor-pointer'><User className="mr-2 h-4 w-4"/>Profile</Link></DropdownMenuItem>
+                               <DropdownMenuItem asChild><Link href="/watchlist" className='cursor-pointer'><Book className="mr-2 h-4 w-4"/>Watchlist</Link></DropdownMenuItem>
+                               <DropdownMenuItem onSelect={handleSignOut} className="text-destructive cursor-pointer">
+                                 <LogOut className="mr-2 h-4 w-4" /> Sign Out
                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
 
                       ) : (
-                         <button onClick={handleSignIn} className="hidden sm:flex items-center gap-2 p-2 px-3 bg-card rounded-lg font-semibold text-sm hover:bg-muted/80 transition-colors">
+                         <button onClick={handleSignIn} className="hidden sm:flex items-center gap-2 p-2 px-3 bg-card/80 rounded-lg font-semibold text-sm hover:bg-muted transition-colors">
                             <User className="w-4 h-4 text-primary" /> Sign In
                         </button>
                       )}
