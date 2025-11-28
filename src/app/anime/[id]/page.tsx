@@ -333,6 +333,5 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
 }
 
 export default function AnimeDetailsPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-  return <AnimeDetailsPageClient id={id} />;
+  return <AnimeDetailsPageClient id={params.id} />;
 }
