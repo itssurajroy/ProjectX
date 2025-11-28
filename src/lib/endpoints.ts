@@ -1,10 +1,10 @@
 
 
-const API_BASE_PATH = '';
+const API_BASE_PATH = 'api/v2/hianime';
 
 export const Endpoints = {
     home: `${API_BASE_PATH}/home`,
-    azList: (sortOption: string) => `${API_BASE_PATH}/az-list/${sortOption}`,
+    azList: (sortOption: string) => `${API_BASE_PATH}/azlist/${sortOption}`,
     qtip: (animeId: string) => `${API_BASE_PATH}/qtip/${animeId}`,
     anime: (animeId: string) => `${API_BASE_PATH}/anime/${animeId}`,
     search: `${API_BASE_PATH}/search`,

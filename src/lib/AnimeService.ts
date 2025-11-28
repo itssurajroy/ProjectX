@@ -11,9 +11,9 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
         params.append(key, String(queryParams[key]));
     }
 
-    const fullPath = path.startsWith('/') ? path : `/${path}`;
+    const fullPath = path.startsWith('/') ? path.substring(1) : path;
     // The base URL is now the local proxy, and the path from the Endpoints object.
-    const url = `${fullPath}?${params.toString()}`;
+    const url = `/api/${fullPath}?${params.toString()}`;
     
     try {
         const res = await fetch(url, {
@@ -75,10 +75,10 @@ export class AnimeService {
   }
 
   static async getEpisodeServers(animeEpisodeId: string): Promise<{data: {sub: EpisodeServer[], dub: EpisodeServer[], raw: EpisodeServer[]}} | ServiceError> {
-    return await fetchFromApi(Endpoints.episodeServers, { animeEpisodeId });
+    return await fetchFromApi(Endpoints.episodeServers, { episodeId: animeEpisodeId });
   }
 
   static async getEpisodeSources(animeEpisodeId: string, server: string, category: 'sub' | 'dub' | 'raw'): Promise<EpisodeSourcesResponse | ServiceError> {
-    return await fetchFromApi(Endpoints.episodeSources, { animeEpisodeId, server, category });
+    return await fetchFromApi(Endpoints.episodeSources, { episodeId: animeEpisodeId, server, category });
   }
 }
