@@ -87,4 +87,3 @@ export function AnimeTooltip({ animeId }: AnimeTooltipProps) {
     </div>
   );
 }
-
