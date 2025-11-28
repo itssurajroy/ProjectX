@@ -24,6 +24,7 @@ import {
   ListTodo,
   ScrollText,
   Badge,
+  Tags,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
@@ -39,6 +40,7 @@ const adminNavItems = [
   { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
   { href: '/admin/requests', label: 'Requests', icon: ListTodo, badge: 5 },
   { href: '/admin/cache', label: 'Cache', icon: Trash2 },
+  { href: '/admin/seo', label: 'SEO', icon: Tags },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
   { href: '/admin/logs', label: 'Logs', icon: ScrollText },
 ];
