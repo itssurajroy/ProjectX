@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users, ChevronDown, Check, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { doc, setDoc, deleteDoc, getDoc, DocumentData, serverTimestamp } from 'firebase/firestore';
 
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
@@ -333,5 +333,6 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
 }
 
 export default function AnimeDetailsPage({ params }: { params: { id: string } }) {
-  return <AnimeDetailsPageClient id={params.id} />;
+  const { id } = React.use(params);
+  return <AnimeDetailsPageClient id={id} />;
 }

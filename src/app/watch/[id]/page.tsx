@@ -10,7 +10,7 @@ import EpisodeList from '@/components/watch/episode-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Share2, Download, Bug, Users, ChevronLeft, ChevronRight, Home, Tv, Star, MonitorPlay, Zap, SkipForward, ListVideo, Film } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimeBase, AnimeEpisode, AnimeAbout, EpisodeServer } from '@/types/anime';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -296,10 +296,9 @@ function WatchPageContent({ id, episodeParam }: { id: string, episodeParam: stri
 }
 
 
-export default function EliteWatchPage() {
-  const params = useParams();
+export default function EliteWatchPage({params}: {params: {id: string}}) {
+  const { id } = React.use(params);
   const searchParams = useSearchParams();
-  const id = params.id as string;
   const episodeParam = searchParams.get("ep");
 
   const { data: aboutResponse } = useQuery({
