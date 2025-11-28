@@ -43,7 +43,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
+    <div className="relative w-full h-[60vh] md:h-[80vh] group pt-16 md:pt-0 md:-mt-16">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
                 <Image
@@ -281,7 +281,7 @@ export default function MainDashboardPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SpotlightSection spotlights={spotlightAnimes} />
       
-      <main className="px-4 sm:px-6 lg:px-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
+      <main className="px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
         <PollSection />
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

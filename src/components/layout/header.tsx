@@ -205,7 +205,7 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu */}
-      <div className={cn("fixed top-16 left-0 h-[calc(100%-4rem)] w-full max-w-xs bg-background/95 backdrop-blur-lg z-40 transform transition-transform md:hidden", mobileMenuOpen ? "translate-x-0" : "-translate-x-full")}>
+      <div className={cn("fixed top-16 left-0 h-[calc(100%-4rem)] w-full max-w-xs bg-background z-40 transform transition-transform md:hidden", mobileMenuOpen ? "translate-x-0" : "-translate-x-full")}>
          <div className="p-4">
              <form onSubmit={handleSearch} className="relative mb-4">
                 <input 
