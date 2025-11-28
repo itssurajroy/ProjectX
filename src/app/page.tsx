@@ -20,12 +20,14 @@ const SpotlightSection = () => {
 
     const trendingAnimes = homeDataResult && !('success' in homeDataResult) && homeDataResult.data.trendingAnimes ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
     const randomAnime = trendingAnimes[0];
+    const backgroundPoster = randomAnime?.poster || "https://picsum.photos/seed/anime-background/1200/400";
+
 
     return (
         <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
             <div className="absolute inset-0">
                 <Image
-                    src="https://picsum.photos/seed/anime-background/1200/400"
+                    src={backgroundPoster}
                     alt="Anime collage"
                     fill
                     className="object-cover opacity-20 blur-sm"
