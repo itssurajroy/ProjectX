@@ -7,7 +7,7 @@ import { Play, Clapperboard, Users, ChevronDown, Check, Trash2, Tv, Video } from
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import { doc, setDoc, deleteDoc, getDoc, DocumentData, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDoc, DocumentData, serverTimestamp, onSnapshot } from 'firebase/firestore';
 
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
