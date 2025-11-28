@@ -4,7 +4,7 @@
 import { AnimeService } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Play, TrendingUp, Heart, Calendar, Bookmark, Clapperboard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, TrendingUp, Calendar, Bookmark, Clapperboard } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -43,7 +43,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] group pt-16 md:pt-0">
+    <div className="relative w-full h-[60vh] md:h-[80vh] group pt-16">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
                 <Image
@@ -108,7 +108,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
 const PollSection = () => (
     <div className="bg-card p-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border/50">
         <div className="flex items-center gap-3">
-            <Heart className="w-8 h-8 text-primary" />
+            
             <div>
                 <h3 className="font-bold">💖 Love this site?</h3>
                 <p className="text-xs text-muted-foreground">Share it with others to let them know!</p>
@@ -282,7 +282,6 @@ export default function MainDashboardPage() {
       <SpotlightSection spotlights={spotlightAnimes} />
       
       <main className="px-4 sm:px-6 lg:px-8 mt-8 space-y-8">
-        <PollSection />
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-12 xl:col-span-9 space-y-12">
@@ -316,3 +315,5 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
