@@ -170,7 +170,7 @@ export default function AdvancedMegaPlayPlayer({
       >
         {/* Center Play Button (appears on hover) */}
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="bg-white/10 backdrop-blur-lg rounded-full p-8 border border-white/20">
+          <div className="bg-white/10 rounded-full p-8 border border-white/20">
             <Play className="w-20 h-20 text-white fill-current" />
           </div>
         </div>

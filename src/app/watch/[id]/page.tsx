@@ -34,7 +34,7 @@ const WatchPageSkeleton = () => (
 
 
 const AnimeDetails = ({ anime }: { anime: AnimeAbout }) => (
-    <div className="bg-card/60 backdrop-blur-md rounded-lg p-4 border border-border/50">
+    <div className="bg-card rounded-lg p-4 border border-border/50">
         <Image src={anime.info.poster} alt={anime.info.name} width={300} height={450} className="rounded-lg w-full shadow-lg"/>
         <h1 className="text-xl font-bold mt-4">{anime.info.name}</h1>
         {anime.moreInfo.japanese && <p className="text-sm text-muted-foreground">{anime.moreInfo.japanese}</p>}
@@ -109,10 +109,9 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
     
     const servers = serversResponse && 'data' in serversResponse ? [...(serversResponse.data.sub || []), ...(serversResponse.data.dub || [])] : [];
     const uniqueServers = Array.from(new Map(servers.map(s => [s.serverName, s])).values());
-    
 
     return (
-        <div className="bg-card/60 backdrop-blur-md rounded-lg border border-border/50">
+        <div className="bg-card rounded-lg border border-border/50">
             {currentEpisodeId && currentServer && currentEpisode ? (
                 <AdvancedMegaPlayPlayer
                   episodeId={currentEpisode.episodeId}
@@ -153,7 +152,7 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
                         {icon: Heart, label: "Bookmark"},
                         {icon: Bug, label: "Report"},
                     ].map(item => (
-                        <Button key={item.label} variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-muted/50">
+                        <Button key={item.label} variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-muted">
                             <item.icon className="w-4 h-4 mr-1.5"/>{item.label}
                         </Button>
                     ))}
@@ -167,7 +166,7 @@ const EpisodeSidebar = ({ episodes, currentEpisodeId, onEpisodeSelect, onPrev, o
     const currentIndex = episodes.findIndex(e => extractEpisodeId(e.episodeId) === currentEpisodeId);
     
     return (
-        <div className="bg-card/60 backdrop-blur-md rounded-lg p-4 border border-border/50">
+        <div className="bg-card rounded-lg p-4 border border-border/50">
             <EpisodeList
                 episodes={episodes}
                 currentEpisodeId={currentEpisodeId || ""}
@@ -290,15 +289,16 @@ export default function EliteWatchPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {anime && <div 
-        className="fixed inset-0 -z-10"
-        style={{
-          backgroundImage: `url(${anime.info.poster})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(20px) brightness(0.3) saturate(0.8)",
-          opacity: 0.8
-        }}
-      />}
+        className="fixed inset-0 -z-10 bg-background"
+      >
+        <Image 
+          src={anime.info.poster} 
+          alt={anime.info.name} 
+          fill 
+          className="object-cover opacity-10 blur-xl" 
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+      </div>}
 
       <div className="relative pt-24 pb-8">
         <WatchPageContent id={id} episodeParam={episodeParam} />
@@ -306,5 +306,3 @@ export default function EliteWatchPage() {
     </div>
   );
 }
-
-    

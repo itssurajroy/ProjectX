@@ -43,7 +43,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] group pt-16 md:pt-0 md:-mt-16">
+    <div className="relative w-full h-[60vh] md:h-[80vh] group pt-16 md:pt-0">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
                 <Image
@@ -53,7 +53,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
                     fill
                     className={cn(
                         'object-cover transition-opacity duration-1000',
-                        index === currentIndex ? 'opacity-30' : 'opacity-0'
+                        index === currentIndex ? 'opacity-20' : 'opacity-0'
                     )}
                     priority
                 />
@@ -106,7 +106,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
 };
 
 const PollSection = () => (
-    <div className="bg-card/50 p-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border/50">
+    <div className="bg-card p-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border/50">
         <div className="flex items-center gap-3">
             <Heart className="w-8 h-8 text-primary" />
             <div>
@@ -115,10 +115,10 @@ const PollSection = () => (
             </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">💖 40k</button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">🤯 4.4k</button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">😢 6.5k</button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">😂 5.8k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">💖 40k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">🤯 4.4k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">😢 6.5k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">😂 5.8k</button>
             <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-red-500/20 text-red-300 hover:border-red-500/50 border-2 border-transparent">😠 18.3k</button>
         </div>
     </div>
@@ -132,10 +132,10 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">{title}</h2>
             </div>
-            <div className="bg-card/50 p-2 rounded-lg border border-border/50">
+            <div className="bg-card p-2 rounded-lg border border-border/50">
                 <div className="space-y-2">
                     {animes.slice(0, 7).map((anime, index) => (
-                        <Link href={`/watch/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
+                        <Link href={`/watch/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
                                 <Image src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
                             </div>
@@ -172,11 +172,11 @@ const ScheduleSidebar = () => {
     const scheduledAnimes = scheduleResult && !('success' in scheduleResult) && scheduleResult.data ? scheduleResult.data.scheduledAnimes : [];
     
     return (
-        <section className='bg-card/50 p-4 rounded-lg border border-border/50'>
+        <section className='bg-card p-4 rounded-lg border border-border/50'>
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold flex items-center gap-2"><Calendar className="w-5 h-5"/>Schedule 🗓️</h2>
             </div>
-            <div className="flex justify-between items-center bg-card p-1 rounded-lg mb-4 flex-wrap">
+            <div className="flex justify-between items-center bg-muted/50 p-1 rounded-lg mb-4 flex-wrap">
                 {days.map(day => (
                     <button key={day.toISOString()} onClick={() => setSelectedDate(day)} className={cn("text-center text-xs p-2 rounded-md flex-1 min-w-[40px] transition-colors", day.toDateString() === selectedDate.toDateString() ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>
                         <p className="font-bold">{day.toLocaleString('en-US', { weekday: 'short' }).toUpperCase()}</p>
@@ -191,7 +191,7 @@ const ScheduleSidebar = () => {
                     </div>
                 ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
                     return (
-                        <Link key={anime.id} href={`/watch/${anime.id}`} className="flex justify-between items-center group p-2 rounded-md hover:bg-muted/50 border-b border-border/50 last:border-b-0">
+                        <Link key={anime.id} href={`/watch/${anime.id}`} className="flex justify-between items-center group p-2 rounded-md hover:bg-muted border-b border-border/50 last:border-b-0">
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <span className="text-sm font-bold text-primary w-10 text-center">{anime.time}</span>
                                 <p className="truncate font-semibold text-sm group-hover:text-primary transition-colors">{anime.name}</p>
@@ -216,10 +216,10 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
     const animesToDisplay = trendingAnimes;
 
     return (
-        <div className='bg-card/50 p-4 rounded-lg border border-border/50'>
+        <div className='bg-card p-4 rounded-lg border border-border/50'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                 <h2 className="text-lg font-bold flex items-center gap-2"><TrendingUp className="w-5 h-5"/>Top Trending 📈</h2>
-                <div className="flex items-center text-sm bg-card p-1 rounded-md">
+                <div className="flex items-center text-sm bg-muted/50 p-1 rounded-md">
                     <button onClick={() => setTrendingPeriod('today')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'today' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Today</button>
                     <button onClick={() => setTrendingPeriod('week')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'week' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Week</button>
                     <button onClick={() => setTrendingPeriod('month')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'month' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Month</button>
@@ -227,7 +227,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
             </div>
           <div className='space-y-1'>
             {animesToDisplay.slice(0, 10).map((anime: any, index) => (
-              <Link key={anime.id} href={`/watch/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
+              <Link key={anime.id} href={`/watch/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted transition-colors">
                 <div className="flex items-start gap-4 group">
                   <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
                   <div className="relative w-14 h-20 flex-shrink-0">
@@ -290,9 +290,9 @@ export default function MainDashboardPage() {
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                         <h2 className="text-xl md:text-2xl font-bold">Latest Updates 🚀</h2>
                          <div className='flex items-center gap-2'>
-                            <button onClick={() => setFilter('all')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>All</button>
-                            <button onClick={() => setFilter('sub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>Sub</button>
-                            <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>Dub</button>
+                            <button onClick={() => setFilter('all')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>All</button>
+                            <button onClick={() => setFilter('sub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>Sub</button>
+                            <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>Dub</button>
                          </div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">

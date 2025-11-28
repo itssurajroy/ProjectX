@@ -105,7 +105,7 @@ export default function Header() {
   const suggestions = suggestionsResult && !('success' in suggestionsResult) ? suggestionsResult.data.suggestions : [];
 
   return (
-    <nav className="flex items-center bg-background/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 border-b border-border h-16">
+    <nav className="flex items-center bg-background fixed top-0 left-0 right-0 z-50 border-b border-border h-16">
       <div className="w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <div className="flex items-center gap-2 md:gap-4">
           <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -133,7 +133,7 @@ export default function Header() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSuggestions(true)}
                   placeholder="Search anime... 🧐"
-                  className="bg-card/50 w-full rounded-full px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
+                  className="bg-card w-full rounded-full px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
               />
               <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
                   <Search className="w-5 h-5 text-gray-400 hover:text-white" />
@@ -180,7 +180,7 @@ export default function Header() {
                         <Image src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt="User Avatar" width={36} height={36} className="rounded-full" />
                     </button>
                   ) : (
-                     <button onClick={handleSignIn} className="flex items-center gap-2 p-2 px-4 bg-card/50 rounded-lg font-semibold text-sm hover:bg-muted/80 transition-colors">
+                     <button onClick={handleSignIn} className="flex items-center gap-2 p-2 px-4 bg-card rounded-lg font-semibold text-sm hover:bg-muted/80 transition-colors">
                         <User className="w-4 h-4 text-primary" /> Sign In
                     </button>
                   )}
@@ -213,7 +213,7 @@ export default function Header() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search anime..."
-                    className="bg-card/50 w-full rounded-full px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
+                    className="bg-card w-full rounded-full px-5 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
                 />
                 <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
                     <Search className="w-5 h-5 text-gray-400 hover:text-white" />
@@ -221,7 +221,7 @@ export default function Header() {
             </form>
             <div className="flex flex-col space-y-2">
                 {navLinks.map(link => (
-                    <Link key={link.href + link.label} href={link.href} className="flex items-center gap-3 p-3 text-gray-300 hover:bg-muted/50 rounded-md transition-colors" onClick={(e) => { link.onClick?.(e as any); setMobileMenuOpen(false); }}>
+                    <Link key={link.href + link.label} href={link.href} className="flex items-center gap-3 p-3 text-gray-300 hover:bg-muted rounded-md transition-colors" onClick={(e) => { link.onClick?.(e as any); setMobileMenuOpen(false); }}>
                         <link.icon className="w-5 h-5" /> {link.label}
                     </Link>
                 ))}
