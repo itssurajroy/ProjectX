@@ -72,7 +72,7 @@ export default function LandingPage() {
                                 </Button>
                             </div>
                         </form>
-                        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground max-w-xl mx-auto">
                             <span>Trending:</span>
                             {trendingAnimes.map((anime: AnimeBase) => (
                                 <Link key={anime.id} href={`/anime/${anime.id}`} className="hover:text-primary hover:underline">
