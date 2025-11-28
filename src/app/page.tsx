@@ -10,10 +10,24 @@ import Link from 'next/link';
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const SpotlightSection = ({ trendingAnimes }: { trendingAnimes: TrendingAnime[] }) => {
+const SpotlightSection = ({ trendingAnimes, isLoading }: { trendingAnimes: TrendingAnime[], isLoading: boolean }) => {
     const randomAnime = trendingAnimes?.[0];
     const backgroundPoster = randomAnime?.poster || "https://picsum.photos/seed/anime-background/1200/400";
+
+    if (isLoading) {
+      return (
+        <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
+          <Skeleton className="absolute inset-0" />
+          <div className="relative z-10 text-center px-4">
+            <Skeleton className="h-12 w-96 max-w-2xl mx-auto mb-4" />
+            <Skeleton className="h-6 w-80 max-w-3xl mx-auto mb-4" />
+            <Skeleton className="h-12 w-32" />
+          </div>
+        </div>
+      )
+    }
 
     return (
         <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
@@ -104,7 +118,7 @@ export default function MainDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground pt-16">
-      <SpotlightSection trendingAnimes={homeData?.trendingAnimes || []} />
+      <SpotlightSection trendingAnimes={homeData?.trendingAnimes || []} isLoading={isLoading} />
       
       <main className="px-4 sm:px-6 lg:px-8 mt-12 mb-12 space-y-12">
         {isLoading ? (
