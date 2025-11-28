@@ -83,40 +83,65 @@ const WatchPlayer = ({ id, anime, episodes, currentEpisodeId, onNext }: { id: st
     
     const [currentServer, setCurrentServer] = useState<EpisodeServer | null>(null);
     const [lang, setLang] = useState<'sub' | 'dub' | 'raw'>('sub');
+    const [iframeUrl, setIframeUrl] = useState<string | null>(null);
 
     useEffect(() => {
       if (serversResponse && 'data' in serversResponse) {
         const serversForLang = serversResponse.data[lang];
+        let newServer = null;
         if (serversForLang && serversForLang.length > 0) {
-            const megaCloudServer = serversForLang.find(s => s.serverName.toLowerCase() === 'megacloud');
-            setCurrentServer(megaCloudServer || serversForLang[0]);
+            newServer = serversForLang.find(s => s.serverName.toLowerCase() === 'megacloud') || serversForLang[0];
+            setLang(lang);
         } else {
             // Fallback logic
-            const defaultServer = 
-                serversResponse.data.sub?.find(s => s.serverName.toLowerCase() === 'megacloud') ||
-                serversResponse.data.sub?.[0] || 
-                serversResponse.data.dub?.[0] || 
-                serversResponse.data.raw?.[0];
-            if (defaultServer) {
-                setCurrentServer(defaultServer);
-                if (serversResponse.data.sub?.find(s => s.serverId === defaultServer.serverId)) setLang('sub');
-                else if (serversResponse.data.dub?.find(s => s.serverId === defaultServer.serverId)) setLang('dub');
-                else setLang('raw');
+            const subServers = serversResponse.data.sub || [];
+            const dubServers = serversResponse.data.dub || [];
+            const rawServers = serversResponse.data.raw || [];
+            
+            const defaultSub = subServers.find(s => s.serverName.toLowerCase() === 'megacloud') || subServers[0];
+            if (defaultSub) {
+                newServer = defaultSub;
+                setLang('sub');
+            } else {
+                const defaultDub = dubServers.find(s => s.serverName.toLowerCase() === 'megacloud') || dubServers[0];
+                if (defaultDub) {
+                    newServer = defaultDub;
+                    setLang('dub');
+                } else {
+                    newServer = rawServers[0] || null;
+                    if(newServer) setLang('raw');
+                }
             }
         }
+        setCurrentServer(newServer);
       }
     }, [serversResponse, lang]);
     
-    const servers = serversResponse && 'data' in serversResponse ? [...(serversResponse.data.sub || []), ...(serversResponse.data.dub || [])] : [];
+    useEffect(() => {
+        if (currentServer && currentEpisode) {
+            if (currentServer.serverName.toLowerCase() === 'vidplay' || currentServer.serverName.toLowerCase() === 'megacloud') {
+                 setIframeUrl(`https://megaplay.buzz/stream/s-2/${currentEpisode.episodeId}`);
+            } else {
+                AnimeService.getEpisodeSources(currentEpisode.episodeId, currentServer.serverName, lang).then(res => {
+                    if (res && 'sources' in res && res.sources.length > 0) {
+                        setIframeUrl(res.sources[0].url);
+                    } else {
+                        setIframeUrl(null); // Or handle error
+                    }
+                });
+            }
+        }
+    }, [currentServer, currentEpisode, lang]);
+    
+    const servers = serversResponse && 'data' in serversResponse ? [...(serversResponse.data.sub || []), ...(serversResponse.data.dub || []), ...(serversResponse.data.raw || [])] : [];
     const uniqueServers = Array.from(new Map(servers.map(s => [s.serverName, s])).values());
 
     return (
         <div className="bg-card rounded-lg border border-border/50">
-            {currentEpisodeId && currentServer && currentEpisode ? (
+            {currentEpisodeId && currentServer && currentEpisode && iframeUrl ? (
                 <AdvancedMegaPlayPlayer
-                  episodeId={currentEpisode.episodeId}
+                  iframeSrc={iframeUrl}
                   server={currentServer.serverName}
-                  initialLang={lang}
                   title={anime.info.name}
                   episode={String(currentEpisode.number)}
                   onNextEpisode={onNext}
@@ -295,7 +320,7 @@ export default function EliteWatchPage() {
           src={anime.info.poster} 
           alt={anime.info.name} 
           fill 
-          className="object-cover opacity-10 blur-xl scale-110" 
+          className="object-cover opacity-5 blur-xl scale-110" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />

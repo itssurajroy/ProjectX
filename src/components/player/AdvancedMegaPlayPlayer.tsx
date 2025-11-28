@@ -2,13 +2,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Loader2, AlertCircle, Play, Maximize2 } from "lucide-react";
+import { Loader2, AlertCircle, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AdvancedMegaPlayPlayerProps {
-  episodeId: string;
+  iframeSrc: string;
   server: string;
-  initialLang?: "sub" | "dub" | "raw";
   title?: string;
   episode?: string;
   onNextEpisode?: () => void;
@@ -16,9 +15,8 @@ interface AdvancedMegaPlayPlayerProps {
 }
 
 export default function AdvancedMegaPlayPlayer({
-  episodeId,
+  iframeSrc,
   server,
-  initialLang = "sub",
   title = "Episode",
   episode = "",
   onSourceError,
@@ -30,36 +28,10 @@ export default function AdvancedMegaPlayPlayer({
   const [showControls, setShowControls] = useState(true);
   const hideTimer = useRef<NodeJS.Timeout>();
 
-  const [iframeUrl, setIframeUrl] = useState('');
-
   useEffect(() => {
-    async function fetchSource() {
-        setIsLoading(true);
-        setHasError(false);
-        try {
-            // Vidplay and MegaCloud use a different URL structure
-            if (server.toLowerCase() === 'vidplay' || server.toLowerCase() === 'megacloud') {
-                 setIframeUrl(`https://megaplay.buzz/stream/s-2/${episodeId}`);
-            } else {
-                // For other servers, we might need to fetch the source URL
-                const response = await fetch(`/api/v2/hianime/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${initialLang}`);
-                const data = await response.json();
-                if (data.success && data.data?.sources?.[0]?.url) {
-                    setIframeUrl(data.data.sources[0].url);
-                } else {
-                    throw new Error("Could not fetch streaming source.");
-                }
-            }
-        } catch (error) {
-            console.error("Error fetching source:", error);
-            handleError();
-        }
-    }
-
-    if (episodeId && server) {
-      fetchSource();
-    }
-  }, [episodeId, server, initialLang]);
+    setIsLoading(true);
+    setHasError(false);
+  }, [iframeSrc]);
 
 
   // Auto-hide controls after 3 seconds of inactivity
@@ -93,34 +65,25 @@ export default function AdvancedMegaPlayPlayer({
     onSourceError?.();
   };
 
-  const toggleFullscreen = () => {
-    if (!containerRef.current) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      containerRef.current.requestFullscreen();
-    }
-  };
-
   return (
     <div
       ref={containerRef}
       className="relative w-full bg-black rounded-xl overflow-hidden cursor-pointer group"
       style={{ aspectRatio: "16/9" }}
     >
-      {/* MegaPlay Iframe */}
-      {iframeUrl && (
+      {/* Iframe */}
+      {iframeSrc && (
           <iframe
-            key={iframeUrl}
+            key={iframeSrc}
             ref={iframeRef}
-            src={iframeUrl}
+            src={iframeSrc}
             className="absolute inset-0 w-full h-full"
             frameBorder="0"
             allowFullScreen
             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
             onLoad={handleLoad}
             onError={handleError}
-            title={`Episode ${episode} - ${initialLang.toUpperCase()}`}
+            title={`${title} - Episode ${episode}`}
           />
       )}
 
@@ -130,7 +93,7 @@ export default function AdvancedMegaPlayPlayer({
         <div className="absolute inset-0 bg-black/95 flex items-center justify-center z-50">
           <div className="text-center">
             <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto mb-4" />
-            <p className="text-white text-lg font-medium">Loading {initialLang.toUpperCase()} stream from {server}...</p>
+            <p className="text-white text-lg font-medium">Loading stream from {server}...</p>
           </div>
         </div>
       )}
@@ -178,3 +141,5 @@ export default function AdvancedMegaPlayPlayer({
     </div>
   );
 }
+
+    
