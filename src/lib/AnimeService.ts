@@ -1,5 +1,5 @@
 
-import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
+import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse } from "@/types/anime";
 import { Endpoints } from "./endpoints";
 
 type ServiceError = { success: false; error: string; status?: number };
@@ -55,9 +55,6 @@ export class AnimeService {
      return await fetchFromApi(Endpoints.anime(id));
   }
   
-  static async getAnimeQtip(id: string): Promise<{ data: { anime: QtipAnime } } | ServiceError> {
-    return await fetchFromApi(Endpoints.qtip(id));
-  }
 
   static async getEpisodes(animeId: string): Promise<{data: {episodes: AnimeEpisode[]}} | ServiceError> {
      return await fetchFromApi(Endpoints.episodes(animeId));

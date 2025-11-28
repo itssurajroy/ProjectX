@@ -156,24 +156,6 @@ export interface ScheduleResponse {
     }[];
 }
 
-export interface QtipAnime {
-    id: string;
-    name: string;
-    malscore: string;
-    quality: string;
-    episodes: {
-        sub: number;
-        dub: number;
-    };
-    type: string;
-    description: string;
-    jname: string;
-    synonyms: string;
-    aired: string;
-    status: string;
-    genres: string[];
-}
-
 export interface SearchSuggestion {
     id: string;
     name: string;
