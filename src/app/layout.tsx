@@ -12,6 +12,7 @@ import BottomNav from "@/components/layout/bottom-nav";
 import Providers from "./providers";
 import { Toaster } from "react-hot-toast";
 import { FirebaseClientProvider } from "@/firebase";
+import Splash from "@/components/Splash";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", inter.className)}>
         <FirebaseClientProvider>
           <Providers>
+            <Splash />
             <ShadToaster />
             <Toaster position="bottom-center" toastOptions={{
               style: {

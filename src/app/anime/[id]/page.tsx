@@ -1,9 +1,9 @@
 
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
-import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, AnimeSeason } from '@/types/anime';
+import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, AnimeSeason, PromotionalVideo } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users, ChevronDown, Check, Trash2, Tv } from 'lucide-react';
+import { Play, Clapperboard, Users, ChevronDown, Check, Trash2, Tv, Video } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
@@ -34,6 +34,29 @@ const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
         </div>
     </Link>
 );
+
+const PromotionalVideosSection = ({ videos }: { videos: PromotionalVideo[] }) => {
+    if (!videos || videos.length === 0) return null;
+
+    return (
+        <section>
+            <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Video /> Promotional Videos</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {videos.map((video, index) => (
+                    <a key={index} href={video.source} target="_blank" rel="noopener noreferrer" className="group">
+                        <div className="relative aspect-video rounded-lg overflow-hidden">
+                            <Image src={video.thumbnail || ''} alt={video.title || `Promo Video ${index + 1}`} fill className="object-cover transition-transform duration-300 group-hover:scale-110" />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Play className="w-12 h-12 text-white" />
+                            </div>
+                        </div>
+                        <p className="text-sm font-medium mt-2 truncate text-muted-foreground group-hover:text-primary">{video.title || `Promo Video ${index + 1}`}</p>
+                    </a>
+                ))}
+            </div>
+        </section>
+    );
+};
 
 
 const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
@@ -129,6 +152,7 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
   const recommendedAnimes = animeResult?.recommendedAnimes;
   const relatedAnimes = animeResult?.relatedAnimes;
   const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
+  const promotionalVideos: PromotionalVideo[] = animeInfo?.promotionalVideos ?? [];
 
 
   const { data: episodesResult } = useQuery<any | { success: false, error: string }>({
@@ -333,13 +357,15 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
               {characters.length > 0 && (
                 <section>
                    <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {characters.slice(0, 10).map(cv => (
                             <CharacterCard key={cv.character.id} cv={cv} />
                         ))}
                     </div>
                 </section>
               )}
+
+              {promotionalVideos.length > 0 && <PromotionalVideosSection videos={promotionalVideos} />}
 
              {recommendedAnimes && recommendedAnimes.length > 0 && (
                 <section>
