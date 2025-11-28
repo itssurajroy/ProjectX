@@ -23,11 +23,11 @@ const SpotlightSection = () => {
         <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
             <div className="absolute inset-0">
                 <Image
-                    src="https://picsum.photos/seed/anime-collage/1200/400"
+                    src="https://picsum.photos/seed/anime/1200/400"
                     alt="Anime collage"
                     fill
                     className="object-cover opacity-20 blur-sm"
-                    data-ai-hint="anime collage"
+                    data-ai-hint="anime"
                     priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
