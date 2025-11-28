@@ -19,15 +19,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Safe episode ID extractor
 const extractEpisodeNumber = (episodeId: string): string => {
   if (!episodeId) return '1';
-  const match = episodeId.match(/(\d+)$/);
   // The API uses a complex ID, sometimes the number is in the middle.
   // A more robust way might be needed if format changes, but this covers the known cases.
+  const match = episodeId.match(/(\d+)$/);
   const secondMatch = episodeId.match(/ep=(\d+)/);
   if (secondMatch) return secondMatch[1];
   return match ? match[1] : '1';
 };
 
-function WatchPageComponent() {
+export default function WatchPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -244,14 +244,20 @@ function WatchPageComponent() {
                  <p className="text-muted-foreground text-sm">NOTE: This is a placeholder UI. The video source may not change when toggling language options.</p>
                 <Button
                   variant={language === 'sub' ? 'default' : 'outline'}
-                  className={language === 'sub' ? 'bg-primary hover:bg-primary/80' : 'bg-transparent border-border hover:bg-muted'}
+                  className={cn(
+                    'bg-transparent border-border hover:bg-muted',
+                    language === 'sub' && 'bg-primary hover:bg-primary/80'
+                  )}
                   onClick={() => setLanguage('sub')}
                 >
                   Subbed
                 </Button>
                 <Button
                   variant={language === 'dub' ? 'default' : 'outline'}
-                  className={language === 'dub' ? 'bg-primary hover:bg-primary/80' : 'bg-transparent border-border hover:bg-muted'}
+                  className={cn(
+                    'bg-transparent border-border hover:bg-muted',
+                    language === 'dub' && 'bg-primary hover:bg-primary/80'
+                  )}
                   onClick={() => setLanguage('dub')}
                 >
                   Dubbed
