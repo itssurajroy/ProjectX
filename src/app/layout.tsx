@@ -13,7 +13,6 @@ import { Balancer as BalancerProvider } from 'react-wrap-balancer'
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import Footer from "@/components/layout/footer";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -57,7 +56,6 @@ export default function RootLayout({
               }}/>
               <Navbar />
               <main className="pb-20 md:pb-0">{children}</main>
-              <Footer />
               <ScrollToTopButton />
               </SidebarProvider>
               </BalancerProvider>
