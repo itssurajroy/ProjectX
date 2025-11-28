@@ -4,7 +4,7 @@
 import { AnimeService } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Play, TrendingUp, Calendar, Bookmark, Clapperboard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Calendar, Bookmark, Clapperboard } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -218,7 +218,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
     return (
         <div className='bg-card p-4 rounded-lg border border-border/50'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                <h2 className="text-lg font-bold flex items-center gap-2"><TrendingUp className="w-5 h-5"/>Top Trending 📈</h2>
+                <h2 className="text-lg font-bold flex items-center gap-2">Top Trending  </h2>
                 <div className="flex items-center text-sm bg-muted/50 p-1 rounded-md">
                     <button onClick={() => setTrendingPeriod('today')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'today' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Today</button>
                     <button onClick={() => setTrendingPeriod('week')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'week' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Week</button>
@@ -315,5 +315,7 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
 
     
