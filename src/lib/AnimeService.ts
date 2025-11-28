@@ -1,7 +1,6 @@
 
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
-import { env } from '@/lib/env';
 import { Endpoints } from "./endpoints";
 
 type ServiceError = { success: false; error: string; status?: number };
@@ -13,8 +12,8 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
     }
 
     const fullPath = path.startsWith('/') ? path : `/${path}`;
-    // The base URL now comes from the environment variable, and the path from the Endpoints object.
-    const url = `${env.NEXT_PUBLIC_HIANIME_API_BASE}${fullPath}?${params.toString()}`;
+    // The base URL is now the local proxy, and the path from the Endpoints object.
+    const url = `${fullPath}?${params.toString()}`;
     
     try {
         const res = await fetch(url, {
