@@ -13,8 +13,8 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 262 88% 66%; /* Electric Indigo */
-    --primary-foreground: 262 47% 98%;
+    --primary: 210 90% 55%; /* Bright Blue */
+    --primary-foreground: 210 40% 98%;
  
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -30,7 +30,7 @@
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262 88% 66%;
+    --ring: 210 90% 55%;
  
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
@@ -50,8 +50,8 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 262 88% 66%; /* Electric Indigo */
-    --primary-foreground: 262 47% 98%;
+    --primary: 210 90% 55%; /* Bright Blue */
+    --primary-foreground: 210 40% 98%;
  
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -67,7 +67,7 @@
  
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262 88% 66%;
+    --ring: 210 90% 55%;
   }
 }
  
