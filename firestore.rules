@@ -1,25 +1,23 @@
+
 /**
  * Core Philosophy: This ruleset implements a mixed security model. User data is strictly private and
  * owner-controlled. Media metadata is public to read. Comments and Polls are publicly readable but
  * writes are controlled to prevent abuse. Anonymous users are supported for read-only access.
+ * Admin functionality is strictly controlled.
  *
  * Data Structure:
  * - /users/{userId}: Contains private user information. Access is restricted to the document owner.
  * - /media/{mediaId}: A public, top-level collection for all media metadata. Writable only by admins.
  * - /comments/{animeId}/episodes/{episodeId}/messages/{messageId}: Comments for a specific episode.
- *   Users can create their own, but not edit or delete.
- * - /polls/{pollId}/votes/{userId}: User votes for a specific poll (e.g., an episode rating).
- *   Users can create or update their own vote, but not read others' votes directly.
- * - /roles_admin/{userId}: A restricted collection where the existence of a document signifies a user's
- *   administrator status. This collection is not client-writable.
- *
- * Key Security Decisions:
- * - User Isolation: The top-level /users collection is not listable. Each user's document is accessible only by them.
- * - Public Read, Controlled Write: Core content like media, comments, and poll results (via aggregate) are publicly readable.
- *   Creating or modifying content requires authentication and adherence to ownership or admin role checks.
- * - Real-time Features: Rules are structured to support real-time comments and polls. Writes are cheap, reads are protected.
- * - No Direct Vote Reading: To prevent users from seeing who voted for what, reading individual documents in the 'votes'
- *   subcollection is disallowed. Clients get aggregated results from the application logic.
+ * - /roles_admin/{userId}: Signifies admin status.
+ * - /roles_moderator/{userId}: Signifies moderator status.
+ * - /overrides/{animeId}: Admin-only content overrides.
+ * - /skiptimes/{animeId}/{episodeNumber}: Admin/Mod managed skip times.
+ * - /reports/{reportId}: User-submitted reports. Writable by users, readable/manageable by admin/mods.
+ * - /announcements/{announcementId}: Site-wide announcements. Writable by admins.
+ * - /settings/site: Global site settings. Writable by admins.
+ * - /requests/{requestId}: User-submitted anime requests.
+ * - /logs/{logId}: Admin activity logs. Write-only for server-side functions, readable by admins.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -29,45 +27,34 @@ service cloud.firestore {
     // Helper Functions
     //-------------------------------------------------------------------------
 
-    /**
-     * Checks if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user's UID matches the given userId.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /**
-     * Checks for ownership on an existing document. Used for update/delete.
-     */
     function isExistingOwner(userId) {
       return isOwner(userId) && resource != null;
     }
 
-    /**
-     * Checks if a user has an admin role.
-     */
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
+    
+    function isModerator() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_moderator/$(request.auth.uid));
+    }
 
-    /**
-     * Validates that a new user document is being created with an ID that
-     * matches the authenticated user's UID.
-     */
+    function isAdminOrModerator() {
+        return isAdmin() || isModerator();
+    }
+
     function isValidNewUser(userId) {
       return isOwner(userId) && request.resource.data.firebaseUid == userId;
     }
     
-    /**
-     * Validates the schema for a new comment.
-     */
     function isValidNewComment() {
       let data = request.resource.data;
       return isSignedIn()
@@ -79,62 +66,81 @@ service cloud.firestore {
 
 
     //-------------------------------------------------------------------------
-    // Collection Rules
+    // User & Public Collections
     //-------------------------------------------------------------------------
 
-    /**
-     * @description Stores private user data like watchlists and history.
-     */
     match /users/{userId} {
-      allow get, delete: if isOwner(userId);
-      allow list: if false;
+      allow get, delete: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isValidNewUser(userId);
-      allow update: if isExistingOwner(userId);
+      allow update: if isExistingOwner(userId) || isAdmin();
 
-      // Users can manage their own history documents
       match /history/{animeId} {
          allow get, create, update, delete: if isOwner(userId);
       }
-       // Users can manage their own bookmarks (watchlist)
       match /bookmarks/{animeId} {
          allow get, create, update, delete: if isOwner(userId);
       }
     }
 
-    /**
-     * @description Stores the public catalog of media items.
-     */
     match /media/{mediaId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if false; // All writes are through overrides now
     }
     
-    /**
-     * @description Stores comments for a specific episode.
-     */
     match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
-        allow list, get: if true; // All users can read comments
-        allow create: if isValidNewComment(); // Only signed-in users can create valid comments
-        allow update, delete: if false; // Comments are immutable
+        allow list, get: if true;
+        allow create: if isValidNewComment();
+        allow update, delete: if isAdminOrModerator();
     }
+    
+    //-------------------------------------------------------------------------
+    // Admin & Moderator Collections
+    //-------------------------------------------------------------------------
 
-    /**
-     * @description Stores poll votes for episodes.
-     * The path is structured as /polls/{animeId}-{episodeId}/votes/{userId}
-     */
-    match /polls/{pollId}/votes/{userId} {
-      allow list: if false; // Disallow listing all votes
-      allow get, create, update: if isOwner(userId); // A user can read or change their own vote
-      allow delete: if false; // Users cannot delete their vote, only change it
-    }
-
-
-    /**
-     * @description Defines user roles. Read-only from client.
-     */
     match /roles_admin/{userId} {
       allow get: if isAdmin();
       allow list, create, update, delete: if false;
+    }
+
+    match /roles_moderator/{userId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /overrides/{animeId} {
+        allow get, list, create, update, delete: if isAdmin();
+    }
+
+    match /skiptimes/{animeId}/{episodeNumber} {
+        allow get, list, create, update, delete: if isAdminOrModerator();
+    }
+
+    match /reports/{reportId} {
+        allow create: if isSignedIn(); // Any signed-in user can create a report
+        allow get, list, update, delete: if isAdminOrModerator();
+    }
+
+    match /announcements/{announcementId} {
+        allow get, list: if true;
+        allow create, update, delete: if isAdmin();
+    }
+
+    match /settings/site {
+        allow get: if true;
+        allow create, update: if isAdmin();
+        allow delete: if false;
+    }
+
+    match /requests/{requestId} {
+        allow create: if isSignedIn();
+        allow get, list, update, delete: if isAdminOrModerator();
+    }
+
+    match /logs/{logId} {
+        allow get, list: if isAdminOrModerator();
+        allow create, update, delete: if false; // Only backend can write logs
     }
   }
 }
