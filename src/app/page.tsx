@@ -2,15 +2,16 @@
 'use client';
 
 import { AnimeService } from '@/lib/AnimeService';
-import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
+import { AnimeBase, HomeData } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Play, Bookmark, Clapperboard, Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Bookmark, Clapperboard, Search, SlidersHorizontal, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const SpotlightSection = () => {
     const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
@@ -70,57 +71,66 @@ const SpotlightSection = () => {
     );
 }
 
-const SiteInfoSection = () => (
-    <div className="max-w-4xl mx-auto space-y-8 text-muted-foreground">
-        <div className="text-center">
-            <h1 className="text-3xl font-bold text-foreground mb-4">The Best Site to Watch Anime Online for Free</h1>
-            <p>
-                Anime is not just about stories drawn with pen strokes; it's a gateway to worlds full of emotions and creativity. From intense battles to unforgettable romantic moments, anime has become an essential part of entertainment for millions of people. With its growing popularity, the number of free anime streaming platforms continues to rise.
-            </p>
-            <p className="mt-2">
-                However, not every site can truly satisfy fans. Some stand out as guiding lights in the vast ocean. That's why ProjectX was created — a global home for anime enthusiasts, with the mission to become one of the top free anime streaming sites!
-            </p>
-        </div>
+const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, animes: AnimeBase[], viewMoreLink?: string }) => {
+    if (!animes || animes.length === 0) return null;
 
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-xl font-semibold text-primary mb-2">1. What is ProjectX?</h2>
-                <p>
-                    ProjectX is a free anime streaming site where you can watch anime in HD quality with both subbed and dubbed options, all without the hassle of registration or payment. And the best part? There are absolutely no ads! We're dedicated to making it the safest and most enjoyable place for anime lovers to watch anime for free.
-                </p>
+    return (
+        <section>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold border-l-4 border-primary pl-3">{title}</h2>
+                {viewMoreLink && (
+                    <Button variant="link" asChild>
+                        <Link href={viewMoreLink} className="flex items-center gap-1">
+                            View More <ArrowRight className="w-4 h-4"/>
+                        </Link>
+                    </Button>
+                )}
             </div>
-            <div>
-                <h2 className="text-xl font-semibold text-primary mb-2">2. What makes ProjectX the best site to watch anime free online?</h2>
-                <p>Before creating ProjectX, we thoroughly explored numerous other free anime sites and learned from their strengths and weaknesses. We kept only the best features and eliminated all the drawbacks, combining them into our platform. That's why we're so confident in claiming to be the best site for anime streaming. Experience it yourself and see the difference!</p>
-                <ul className="list-disc list-inside space-y-2 mt-4">
-                    <li><strong className="text-foreground">Safety:</strong> No ads, no redirects, and absolutely no viruses. Your safety and enjoyment are our top priorities.</li>
-                    <li><strong className="text-foreground">Content Library:</strong> We offer an extensive collection of anime, spanning from 1980s classics to the latest releases.</li>
-                    <li><strong className="text-foreground">Quality/Resolution:</strong> All anime on ProjectX is available in the best possible resolution. Stream at 360p when your connection is slow or enjoy stunning 720p or 1080p.</li>
-                    <li><strong className="text-foreground">Streaming Experience:</strong> Faster loading speeds and a completely buffer-free experience.</li>
-                    <li><strong className="text-foreground">User Interface:</strong> Our user-friendly UI and UX design make navigation a breeze for everyone.</li>
-                </ul>
-            </div>
-            <div>
-                <h2 className="text-xl font-semibold text-primary mb-2">3. How does ProjectX compare to 9Anime, Aniwave, and GogoAnime?</h2>
-                <p>
-                    We are a new website, so our library is constantly growing. With access to multiple private trackers, we are confident that we will surpass others. We have a more modern layout and better UI/UX, making navigation on our site easy and convenient.
-                </p>
-            </div>
-            <p className="text-center pt-4">
-                If you're searching for a reliable and safe site for anime streaming, give ProjectX a try. If you enjoy your time with us, please spread the word and don't forget to bookmark our site! Your support means the world to us. Thank you!
-            </p>
-        </div>
-    </div>
-);
+            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+                 <div className="flex space-x-4 pb-4">
+                    {animes.slice(0, 10).map((anime) => (
+                         <div key={anime.id} className="w-40 sm:w-44">
+                             <AnimeCard anime={anime} />
+                         </div>
+                    ))}
+                </div>
+                <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+        </section>
+    );
+};
 
 
 export default function MainDashboardPage() {
+  const { data: homeDataResult, isLoading } = useQuery<{data: HomeData} | { success: false; error: string }>({
+      queryKey: ['homeData'],
+      queryFn: AnimeService.getHomeData,
+  });
+
+  const homeData = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data : null;
+
   return (
     <div className="min-h-screen bg-background text-foreground pt-16">
       <SpotlightSection />
       
-      <main className="px-4 sm:px-6 lg:px-8 mt-12 mb-12 space-y-8">
-        <SiteInfoSection />
+      <main className="px-4 sm:px-6 lg:px-8 mt-12 mb-12 space-y-12">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : homeData ? (
+          <>
+            <AnimeSection title="Trending" animes={homeData.trendingAnimes} viewMoreLink="/category/trending" />
+            <AnimeSection title="Latest Episodes" animes={homeData.latestEpisodeAnimes} viewMoreLink="/category/recently-updated" />
+            <AnimeSection title="Top Upcoming" animes={homeData.topUpcomingAnimes} viewMoreLink="/category/upcoming" />
+            <AnimeSection title="Most Popular" animes={homeData.mostPopularAnimes} viewMoreLink="/category/popular" />
+          </>
+        ) : (
+          <div className="text-center py-16">
+            <h3 className="text-xl font-semibold">Could not load anime data</h3>
+            <p className="text-muted-foreground">Please try refreshing the page.</p>
+          </div>
+        )}
       </main>
     </div>
   );
