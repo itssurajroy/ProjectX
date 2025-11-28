@@ -1,336 +1,278 @@
 'use client';
 
-import { useEffect, useState, Suspense, useMemo } from 'react';
-import { useSearchParams, useParams, useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { Loader2, ChevronLeft, ChevronRight, AlertTriangle, Star } from 'lucide-react';
-import { cn, extractEpisodeId, sanitizeFirestoreId } from '@/lib/utils';
-import { useUser, useFirestore, useAuth, useMemoFirebase } from '@/firebase';
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-  onSnapshot,
-  query,
-  orderBy,
-  doc,
-  setDoc,
-  getDoc,
-} from 'firebase/firestore';
-import toast from 'react-hot-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AnimeService } from '@/lib/AnimeService';
+import { useEffect, useState, useMemo, Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import EpisodeList from '@/components/watch/episode-list';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeAbout, AnimeEpisode } from '@/types/anime';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { ChevronLeft, ChevronRight, Star, Share2, Bookmark, Lightbulb, Expand, SkipForward, SkipBack, Volume2, Settings, AlertCircle } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import toast from 'react-hot-toast';
+import { cn } from '@/lib/utils';
+import { AnimeService } from '@/lib/AnimeService';
 import AdvancedMegaPlayPlayer from '@/components/player/AdvancedMegaPlayPlayer';
+import EpisodeList from '@/components/watch/episode-list';
 import CommentsSection from '@/components/watch/comments';
-import PollsSection from '@/components/watch/PollsSection';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const AnimeInfoCard = ({ animeId }: { animeId: string }) => {
-    const { data: aboutResponse, isLoading } = useQuery({
-      queryKey: ["anime-about", animeId],
-      queryFn: () => AnimeService.getAnimeAbout(animeId),
-      enabled: !!animeId,
-    });
-  
-    const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
-
-    if (isLoading || !anime) {
-        return (
-            <div className="bg-card rounded-lg p-4 border border-border/50">
-                <Skeleton className="w-full h-[300px] rounded-lg" />
-                <Skeleton className="h-6 w-3/4 mt-4" />
-                <Skeleton className="h-4 w-1/2 mt-2" />
-                <div className="flex gap-2 mt-3">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-20" />
-                </div>
-                <div className="mt-4 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                </div>
-            </div>
-        )
-    }
-  
-    return (
-      <div className="bg-card rounded-lg p-4 border border-border/50 sticky top-20">
-          <Image src={anime.info.poster} alt={anime.info.name} width={300} height={450} className="rounded-lg w-full shadow-lg"/>
-          <h1 className="text-xl font-bold mt-4">{anime.info.name}</h1>
-          {anime.moreInfo.japanese && <p className="text-sm text-muted-foreground">{anime.moreInfo.japanese}</p>}
-          <div className="flex items-center gap-2 flex-wrap mt-3">
-              <Badge variant="secondary">{anime.info.stats.type}</Badge>
-              <Badge variant="secondary">{anime.moreInfo.status}</Badge>
-              {anime.moreInfo.season && <Badge variant="secondary">{anime.moreInfo.season}</Badge>}
-          </div>
-          <div className="mt-4 flex items-center gap-2">
-              <div className="flex items-center gap-1 text-amber-400">
-                  <Star className="w-5 h-5 fill-current" />
-                  <span className="font-bold text-lg">{anime.moreInfo.malscore}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">({anime.info.stats.rating})</p>
-          </div>
-  
-          <div className="mt-4 space-y-2 text-sm">
-              <p className="line-clamp-5 text-muted-foreground" dangerouslySetInnerHTML={{ __html: anime.info.description || "No synopsis available."}}/>
-          </div>
-  
-          <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-              {Object.entries({
-                  Country: anime.moreInfo.country,
-                  Genres: anime.moreInfo.genres?.join(', '),
-                  Premiered: anime.moreInfo.premiered,
-                  Duration: anime.info.stats.duration,
-                  Studios: anime.moreInfo.studios,
-              }).map(([label, value]) => (
-                  value && <div key={label} className="flex">
-                      <span className="font-bold text-foreground/80 w-20 flex-shrink-0">{label}:</span>
-                      <span className="truncate">{value}</span>
-                  </div>
-              ))}
-          </div>
-      </div>
-  );
+// Safe episode ID extractor
+const extractEpisodeNumber = (episodeId: string): string => {
+  if (!episodeId) return '1';
+  const match = episodeId.match(/(\d+)$/);
+  // The API uses a complex ID, sometimes the number is in the middle.
+  // A more robust way might be needed if format changes, but this covers the known cases.
+  const secondMatch = episodeId.match(/ep=(\d+)/);
+  if (secondMatch) return secondMatch[1];
+  return match ? match[1] : '1';
 };
 
-// --- MAIN PAGE ---
 function WatchPageComponent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useUser();
-  const firestore = useFirestore();
-
   const animeId = params.id as string;
-  const episodeParam = searchParams.get('ep');
-  const [episodes, setEpisodes] = useState<AnimeEpisode[]>([]);
-  
+  const episodeParam = searchParams.get('ep') || '1';
+
+  const [about, setAbout] = useState<any>(null);
+  const [episodes, setEpisodes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isClient, setIsClient] = useState(false);
-  const [lastWatchedEp, setLastWatchedEp] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [language, setLanguage] = useState<'sub' | 'dub'>('sub');
 
+  // Fetch anime info + episodes
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const { data: episodesResponse, isLoading: loadingEpisodes } = useQuery({
-    queryKey: ["anime-episodes", animeId],
-    queryFn: () => AnimeService.getEpisodes(animeId),
-    enabled: !!animeId,
-  });
+        const [aboutRes, episodesRes] = await Promise.all([
+          AnimeService.getAnimeAbout(animeId),
+          AnimeService.getEpisodes(animeId)
+        ]);
 
-  useEffect(() => {
-    if (episodesResponse && 'data' in episodesResponse) {
-      setEpisodes(episodesResponse.data.episodes);
-    } else if (episodesResponse && 'error' in episodesResponse) {
-      toast.error("Failed to fetch episodes.");
-      console.error("Failed to fetch episodes:", episodesResponse.error);
-    }
-  }, [episodesResponse]);
+        if (aboutRes && 'data' in aboutRes && aboutRes.data?.anime) setAbout(aboutRes.data.anime);
+        else throw new Error("Could not fetch anime details.");
 
+        if (episodesRes && 'data' in episodesRes && episodesRes.data?.episodes) setEpisodes(episodesRes.data.episodes);
+        else throw new Error("Could not fetch episode list.");
 
-  const historyRef = useMemoFirebase(() => {
-    if (user && animeId && !user.isAnonymous) {
-      return doc(firestore, 'users', user.uid, 'history', animeId);
-    }
-    return null;
-  }, [user, animeId, firestore]);
-
-  // --- Track watch history ---
-  useEffect(() => {
-    if (historyRef && episodeParam) {
-      setDoc(historyRef, { 
-        episodeId: episodeParam,
-        updatedAt: serverTimestamp() 
-      }, { merge: true }).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: historyRef.path,
-            operation: 'update',
-            requestResourceData: { episodeId: episodeParam },
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-    }
-  }, [historyRef, episodeParam]);
-  
-  // --- Fetch last watched episode ---
-  useEffect(() => {
-      if (historyRef) {
-          getDoc(historyRef).then(docSnap => {
-              if (docSnap.exists()) {
-                  setLastWatchedEp(docSnap.data().episodeId);
-              }
-          });
+      } catch (err: any) {
+        console.error('Failed to load watch page:', err);
+        setError(err.message || 'Failed to load this anime. Please try again later.');
+        toast.error('Failed to load anime');
+      } finally {
+        setLoading(false);
       }
-  }, [historyRef]);
-
-  // --- Fetch episodes and handle routing ---
-  useEffect(() => {
-    if (loadingEpisodes) return;
-    
-    if (episodes.length > 0 && !episodeParam) {
-      const targetEpId = lastWatchedEp || extractEpisodeId(episodes[0].episodeId);
-      if (targetEpId) {
-        router.replace(`/watch/${animeId}?ep=${targetEpId}`);
-      }
-    }
-    setLoading(false);
-  }, [animeId, router, lastWatchedEp, episodeParam, episodes, loadingEpisodes]);
-  
-  // --- Navigate between episodes ---
-  const navigateEpisode = (dir: 'next' | 'prev') => {
-    if (!episodes.length || !episodeParam) return;
-    const currentIndex = episodes.findIndex((ep) => extractEpisodeId(ep.episodeId) === episodeParam);
-    if (currentIndex === -1) {
-        // If current episode is not in the list (e.g. invalid param), go to first episode.
-        const firstEpId = extractEpisodeId(episodes[0].episodeId);
-        if(firstEpId) router.push(`/watch/${animeId}?ep=${firstEpId}`);
-        return;
     };
-    const newIndex = dir === 'next' ? currentIndex + 1 : currentIndex - 1;
-    if (newIndex < 0 || newIndex >= episodes.length) return;
-    const nextEpId = extractEpisodeId(episodes[newIndex].episodeId);
-    if (nextEpId) {
-        router.push(`/watch/${animeId}?ep=${nextEpId}`);
+
+    if (animeId) fetchData();
+  }, [animeId]);
+
+  // Current episode
+  const currentEpisode = useMemo(() => {
+    return episodes.find(ep => extractEpisodeNumber(ep.episodeId) === episodeParam) || episodes[0];
+  }, [episodes, episodeParam]);
+
+  const currentIndex = useMemo(() => episodes.findIndex(ep => ep === currentEpisode), [episodes, currentEpisode]);
+  const hasNext = currentIndex < episodes.length - 1;
+  const hasPrev = currentIndex > 0;
+
+  const navigateEpisode = (direction: 'prev' | 'next') => {
+    if (!hasNext && direction === 'next') return;
+    if (!hasPrev && direction === 'prev') return;
+
+    const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    const newEp = episodes[newIndex];
+    if (newEp) {
+      router.push(`/watch/${animeId}?ep=${extractEpisodeNumber(newEp.episodeId)}`);
     }
   };
 
-  const currentEpisode = episodes.find(e => extractEpisodeId(e.episodeId) === episodeParam);
-  const iframeSrc = `https://megaplay.buzz/stream/s-2/${currentEpisode?.episodeId}`;
-  
-  const handleNextEpisode = () => {
-    navigateEpisode('next');
-  };
+  // Countdown to next episode
+  const nextEpisodeTime = about?.moreInfo?.nextAiringEpisode?.airingTime
+    ? new Date(about.moreInfo.nextAiringEpisode.airingTime * 1000)
+    : null;
 
-  if (!isClient || (loading && episodes.length === 0)) {
-     return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
-  }
-  
-  if (!loading && episodes.length === 0) {
+  if (loading) {
     return (
-        <div className="flex flex-col justify-center items-center h-screen text-center px-4">
-            <AlertTriangle className="w-16 h-16 text-destructive mb-4" />
-            <h1 className="text-2xl font-bold">No Episodes Found</h1>
-            <p className="text-muted-foreground max-w-md mt-2">
-                We couldn&apos;t find any episodes for this anime. It might be a new release or there could be a temporary issue with our provider.
-            </p>
-            <Link href={`/anime/${animeId}`} className="mt-6 bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold">
-                Back to Anime Details
-            </Link>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-16 h-16 border-4 border-primary border-t-transparent rounded-full mb-4" />
+          <p className="text-gray-400">Loading Project X Player...</p>
         </div>
+      </div>
     );
   }
 
+  if (error || !about || episodes.length === 0) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Anime Not Available</h1>
+          <p className="text-gray-400 mb-6">{error || "This anime is currently unavailable."}</p>
+          <Link href="/home">
+            <Button className="bg-destructive hover:bg-destructive/80">Back to Home</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-background text-foreground px-4 sm:px-6 lg:px-8 py-6 pt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Left Sidebar */}
-            <div className="lg:col-span-3 hidden lg:block">
-                <AnimeInfoCard animeId={animeId} />
+    <>
+      {/* Full Bleed Background */}
+      <div className="fixed inset-0 -z-10">
+        <Image
+          src={about.moreInfo?.background || about.info.poster}
+          alt=""
+          fill
+          className="object-cover brightness-50 blur-xl scale-110"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/70" />
+      </div>
+
+      <div className="min-h-screen text-white pb-20 pt-16">
+        {/* Hero Section */}
+        <div className="relative h-[60vh] md:h-[70vh] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+          
+          <div className="container mx-auto px-6 h-full flex items-end pb-10">
+            <div className="flex flex-col lg:flex-row gap-10 items-end max-w-7xl">
+              {/* Poster */}
+              <div className="relative -mb-32 z-10 hidden lg:block">
+                <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-black">
+                  <Image
+                    src={about.info.poster}
+                    alt={about.info.name}
+                    width={350}
+                    height={500}
+                    className="w-[300px]"
+                  />
+                </div>
+              </div>
+
+              {/* Info */}
+              <div className="space-y-6">
+                <h1 className="text-4xl md:text-6xl font-black leading-tight">
+                  {about.info.name}
+                </h1>
+                {about.moreInfo.japanese && (
+                  <p className="text-xl text-gray-300 italic">{about.moreInfo.japanese}</p>
+                )}
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className={cn("w-6 h-6", i < 4 ? "fill-yellow-400 text-yellow-400" : "text-gray-600")} />
+                    ))}
+                  </div>
+                  <span className="text-lg">How'd you rate this anime?</span>
+                </div>
+
+                <div className="flex flex-wrap gap-3">
+                  {about.moreInfo.genres?.slice(0,5).map((g: string) => (
+                    <Badge key={g} variant="destructive" className="bg-primary/20 text-primary text-base px-4 py-1.5 border border-primary/40">
+                      {g}
+                    </Badge>
+                  ))}
+                </div>
+
+                <p className="text-base text-gray-300 max-w-3xl line-clamp-3">
+                  {about.info.description?.replace(/<[^>]*>/g, '')}
+                </p>
+              </div>
             </div>
-
-            {/* Main Content */}
-            <div className="lg:col-span-6">
-                {/* Breadcrumbs */}
-                <div className="text-sm text-muted-foreground mb-4">
-                    <Link href="/home" className="hover:text-primary">Home</Link> &gt; 
-                    <Link href={`/anime/${animeId}`} className="hover:text-primary capitalize">{animeId.replace(/-/g, ' ')}</Link> &gt; 
-                    <span className="text-primary font-medium">Episode {currentEpisode?.number || '...'}</span>
-                </div>
-
-                {/* Player Section */}
-                <div className="mb-6">
-                   {currentEpisode ? (
-                        <AdvancedMegaPlayPlayer
-                          key={iframeSrc} // Re-renders iframe when src changes
-                          iframeSrc={iframeSrc}
-                          server="MegaPlay"
-                          title={currentEpisode.title}
-                          episode={String(currentEpisode.number)}
-                          onNextEpisode={handleNextEpisode}
-                        />
-                    ) : (
-                        <div className="aspect-video w-full rounded-lg overflow-hidden bg-black flex justify-center items-center h-full">
-                            <Loader2 className="animate-spin text-primary w-12 h-12" />
-                        </div>
-                    )}
-                </div>
-
-                 {/* Episode & Controls */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 mb-6">
-                    <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-primary line-clamp-1">
-                        Ep. {currentEpisode?.number}: {currentEpisode?.title}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">You are watching episode {currentEpisode?.number}.</p>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                    <button
-                        onClick={() => navigateEpisode('prev')}
-                        className="flex items-center gap-1 bg-muted px-3 py-2 rounded-md hover:bg-muted/80 disabled:opacity-50"
-                        disabled={episodes.findIndex((e) => extractEpisodeId(e.episodeId) === episodeParam) === 0}
-                    >
-                        <ChevronLeft className="w-4 h-4" /> Prev
-                    </button>
-                    <button
-                        onClick={() => navigateEpisode('next')}
-                        className="flex items-center gap-1 bg-muted px-3 py-2 rounded-md hover:bg-muted/80 disabled:opacity-50"
-                        disabled={
-                           episodes.findIndex((e) => extractEpisodeId(e.episodeId) === episodeParam) >= episodes.length - 1
-                        }
-                    >
-                        Next <ChevronRight className="w-4 h-4" />
-                    </button>
-                    </div>
-                </div>
-
-                {/* Language selection */}
-                <div className="flex items-center gap-2 mb-6">
-                    <button
-                        onClick={() => setLanguage('sub')}
-                        className={cn('px-4 py-2 rounded-md font-semibold', language === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80')}
-                    >
-                        SUB
-                    </button>
-                    <button
-                        onClick={() => setLanguage('dub')}
-                        className={cn('px-4 py-2 rounded-md font-semibold', language === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80')}
-                    >
-                        DUB
-                    </button>
-                </div>
-
-
-                {/* Polls & Community Features */}
-                <PollsSection animeId={animeId} episodeId={episodeParam} />
-
-                {/* Comments Section */}
-                <CommentsSection animeId={animeId} episodeId={episodeParam || ''} />
-            </div>
-
-            {/* Right Sidebar */}
-            <div className="lg:col-span-3">
-                 <EpisodeList episodes={episodes} currentEpisodeId={episodeParam} onEpisodeSelect={(ep) => router.push(`/watch/${animeId}?ep=${extractEpisodeId(ep.episodeId)}`)} />
-            </div>
+          </div>
         </div>
-    </main>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-6 mt-12 lg:-mt-20 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Player */}
+            <div className="lg:col-span-8 space-y-6">
+              <AdvancedMegaPlayPlayer
+                iframeSrc={`https://megaplay.buzz/stream/s-2/${currentEpisode?.episodeId}`}
+                title={currentEpisode?.title || `Episode ${episodeParam}`}
+                episode={episodeParam}
+                onNextEpisode={() => navigateEpisode('next')}
+              />
+
+              {/* Episode Title + Controls */}
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold">
+                    Episode {episodeParam}: {currentEpisode?.title || 'Loading...'}
+                  </h2>
+                  <p className="text-gray-400">
+                    You are watching Episode {episodeParam} •{' '}
+                    {nextEpisodeTime && (
+                      <span className="text-green-400">
+                        Next episode in {formatDistanceToNow(nextEpisodeTime, { addSuffix: true })}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigateEpisode('prev')}
+                    disabled={!hasPrev}
+                    className="border-gray-700 bg-card/50 hover:bg-gray-800"
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-1"/> Prev
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => navigateEpisode('next')}
+                    disabled={!hasNext}
+                    className="border-gray-700 bg-card/50 hover:bg-gray-800"
+                  >
+                    Next <ChevronRight className="w-5 h-5 ml-1"/>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Language Toggle */}
+              <div className="flex gap-3 p-4 bg-card/30 rounded-lg">
+                 <p className="text-muted-foreground text-sm">NOTE: This is a placeholder UI. The video source may not change when toggling language options.</p>
+                <Button
+                  variant={language === 'sub' ? 'default' : 'outline'}
+                  className={language === 'sub' ? 'bg-primary hover:bg-primary/80' : 'bg-transparent border-border hover:bg-muted'}
+                  onClick={() => setLanguage('sub')}
+                >
+                  Subbed
+                </Button>
+                <Button
+                  variant={language === 'dub' ? 'default' : 'outline'}
+                  className={language === 'dub' ? 'bg-primary hover:bg-primary/80' : 'bg-transparent border-border hover:bg-muted'}
+                  onClick={() => setLanguage('dub')}
+                >
+                  Dubbed
+                </Button>
+              </div>
+
+              {/* Comments */}
+              <CommentsSection animeId={animeId} episodeId={episodeParam} />
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-4">
+              <EpisodeList
+                episodes={episodes}
+                currentEpisodeId={episodeParam}
+                onEpisodeSelect={(epId) => router.push(`/watch/${animeId}?ep=${extractEpisodeNumber(epId)}`)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
-}
-
-
-export default function WatchPage() {
-    return (
-        <Suspense fallback={<div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>}>
-            <WatchPageComponent />
-        </Suspense>
-    )
 }
