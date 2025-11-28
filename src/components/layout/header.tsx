@@ -1,9 +1,8 @@
-
 'use client';
 import { useAuth } from '@/firebase';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut } from 'lucide-react';
+import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +11,20 @@ import { HomeData, SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 import { useUser } from '@/firebase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+const NavLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => (
+    <Link href={href} className={cn("flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium", className)}>
+        {children}
+    </Link>
+);
 
 export default function Header() {
   const auth = useAuth();
@@ -92,15 +105,7 @@ export default function Header() {
     }
   };
 
-  const navLinks = [
-    { href: '/', icon: Home, label: 'Home' },
-    { href: '/genres', icon: LayoutGrid, label: 'Genres' },
-    { href: '/seasonal', icon: Calendar, label: 'Seasonal' },
-    { href: '/recommendations', icon: Wand2, label: 'For You' },
-    { href: '#', icon: Shuffle, label: 'Random', onClick: handleRandomClick },
-    { href: '/news', icon: Rss, label: 'News' },
-    { href: '/community', icon: MessagesSquare, label: 'Community' },
-  ];
+  const genres = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.genres.slice(0, 10) : [];
 
   const suggestions = suggestionsResult && !('success' in suggestionsResult) ? suggestionsResult.data.suggestions : [];
 
@@ -117,12 +122,37 @@ export default function Header() {
           </Link>
         </div>
 
-        <div className="hidden lg:flex items-center gap-4 ml-6 text-sm font-medium">
-          {navLinks.slice(0,4).map(link => (
-              <Link key={link.href + link.label} href={link.href} className="flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1">
-                <link.icon className="w-4 h-4" /> {link.label}
-              </Link>
-          ))}
+        <div className="hidden lg:flex items-center gap-1.5 ml-6">
+            <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium">
+                    <LayoutGrid className="w-4 h-4" /> Genres <ChevronDown className="w-4 h-4"/>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <div className="grid grid-cols-2 gap-1 p-2">
+                        {genres.map(genre => (
+                            <DropdownMenuItem key={genre} asChild>
+                                <Link href={`/genre/${genre.toLowerCase()}`}>{genre}</Link>
+                            </DropdownMenuItem>
+                        ))}
+                    </div>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1.5 text-gray-300 hover:text-primary transition-colors px-2 py-1 text-sm font-medium">
+                    Types <ChevronDown className="w-4 h-4"/>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuItem asChild><Link href="/category/tv"><Tv className="w-4 h-4 mr-2"/>TV</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/category/movie"><Film className="w-4 h-4 mr-2"/>Movie</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/category/special"><Star className="w-4 h-4 mr-2"/>Special</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/category/ova"><Book className="w-4 h-4 mr-2"/>OVA</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/category/ona"><Rss className="w-4 h-4 mr-2"/>ONA</Link></DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <NavLink href="/category/recently-updated">New Releases</NavLink>
+            <NavLink href="/category/top-airing">Ongoing</NavLink>
+            <NavLink href="/category/recently-added">Recent</NavLink>
         </div>
 
         <div ref={searchContainerRef} className="flex-1 max-w-sm lg:max-w-md mx-4 hidden sm:block relative">
@@ -161,15 +191,6 @@ export default function Header() {
            )}
         </div>
         
-        <div className="hidden lg:flex items-center gap-4 text-sm font-medium">
-          {navLinks.slice(4).map(link => (
-               <Link key={link.href + link.label} href={link.href} onClick={link.onClick} className="flex flex-col items-center gap-1 text-gray-400 hover:text-primary transition-colors px-2 py-1">
-                  <link.icon className="w-5 h-5"/>
-                  <span className="text-xs">{link.label}</span>
-              </Link>
-          ))}
-        </div>
-
         <div className="flex items-center gap-2 md:gap-4 relative" ref={userMenuRef}>
           {isClient && (
               <>
@@ -220,11 +241,10 @@ export default function Header() {
                 </button>
             </form>
             <div className="flex flex-col space-y-2">
-                {navLinks.map(link => (
-                    <Link key={link.href + link.label} href={link.href} className="flex items-center gap-3 p-3 text-gray-300 hover:bg-muted rounded-md transition-colors" onClick={(e) => { link.onClick?.(e as any); setMobileMenuOpen(false); }}>
-                        <link.icon className="w-5 h-5" /> {link.label}
-                    </Link>
-                ))}
+                <NavLink href="/category/recently-updated">New Releases</NavLink>
+                <NavLink href="/category/top-airing">Ongoing</NavLink>
+                <NavLink href="/category/recently-added">Recent</NavLink>
+                <NavLink href="/genres">Genres</NavLink>
             </div>
          </div>
       </div>
