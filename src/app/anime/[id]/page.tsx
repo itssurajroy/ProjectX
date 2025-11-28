@@ -221,7 +221,7 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
                         <button 
                             onClick={() => user && setIsDropdownOpen(!isDropdownOpen)} 
                             disabled={!user} 
-                            className="flex items-center justify-center gap-2 bg-card/50 backdrop-blur-sm text-card-foreground px-6 py-3 rounded-lg font-semibold hover:bg-card/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-border w-full sm:w-auto"
+                            className="flex items-center justify-center gap-2 bg-card text-card-foreground px-6 py-3 rounded-lg font-semibold hover:bg-card/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-border w-full sm:w-auto"
                         >
                            {watchlistStatus ? <><Check className="text-primary"/> {watchlistStatus}</> : <>+ Add to List</>}
                            <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -267,7 +267,7 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
 
       <main className="px-4 sm:px-6 lg:px-8 -mt-10 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-3 bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start">
+          <div className="lg:col-span-3 bg-card p-4 rounded-lg border border-border self-start">
                 <div className="space-y-3 text-sm">
                     {Object.entries(moreInfo).map(([key, value]) => {
                        if (!value || (Array.isArray(value) && value.length === 0)) return null;
@@ -306,8 +306,8 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
              {recommendedAnimes && recommendedAnimes.length > 0 && (
                 <section>
                     <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {recommendedAnimes?.slice(0,8).map((rec: AnimeBase) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    {recommendedAnimes?.slice(0,12).map((rec: AnimeBase) => (
                         <AnimeCard key={rec.id} anime={rec} />
                     ))}
                     </div>
@@ -316,7 +316,7 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
           </div>
           <div className="lg:col-span-3 space-y-6">
             {relatedAnimes && relatedAnimes.length > 0 && (
-                <div className='bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border'>
+                <div className='bg-card p-4 rounded-lg border border-border'>
                     <h2 className="text-xl font-bold mb-4 border-l-4 border-primary pl-3">🔀 Related Anime</h2>
                     <div className="flex flex-col gap-2">
                     {relatedAnimes?.slice(0, 7).map((rec: AnimeBase) => (

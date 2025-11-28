@@ -4,7 +4,7 @@
 import { AnimeService } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, Play, Calendar, Bookmark, Clapperboard } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Bookmark, Clapperboard } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -43,7 +43,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] group pt-16">
+    <div className="relative w-full h-[60vh] md:h-[80vh] group">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
                 <Image
@@ -110,7 +110,7 @@ const PollSection = () => (
         <div className="flex items-center gap-3">
             
             <div>
-                <h3 className="font-bold">💖 Love this site?</h3>
+                <h3 className="font-bold">Love this site?</h3>
                 <p className="text-xs text-muted-foreground">Share it with others to let them know!</p>
             </div>
         </div>
@@ -174,7 +174,7 @@ const ScheduleSidebar = () => {
     return (
         <section className='bg-card p-4 rounded-lg border border-border/50'>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold flex items-center gap-2">Schedule 🗓️</h2>
+                <h2 className="text-lg font-bold flex items-center gap-2">Schedule</h2>
             </div>
             <div className="flex justify-between items-center bg-muted/50 p-1 rounded-lg mb-4 flex-wrap">
                 {days.map(day => (
@@ -218,7 +218,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
     return (
         <div className='bg-card p-4 rounded-lg border border-border/50'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                <h2 className="text-lg font-bold flex items-center gap-2">Top Trending  </h2>
+                <h2 className="text-lg font-bold flex items-center gap-2">Top Trending</h2>
                 <div className="flex items-center text-sm bg-muted/50 p-1 rounded-md">
                     <button onClick={() => setTrendingPeriod('today')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'today' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Today</button>
                     <button onClick={() => setTrendingPeriod('week')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'week' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Week</button>
@@ -294,8 +294,8 @@ export default function MainDashboardPage() {
                             <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted')}>Dub</button>
                          </div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-                        {filteredLatest?.slice(0, 10).map((anime) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-6">
+                        {filteredLatest?.slice(0, 12).map((anime) => (
                             <AnimeCard key={anime.id} anime={anime} />
                         ))}
                     </div>
