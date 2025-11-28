@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AnimeService } from '@/lib/AnimeService';
@@ -17,17 +18,18 @@ const SpotlightSection = () => {
         queryFn: AnimeService.getHomeData,
     });
 
-    const randomAnime = homeDataResult && !('success' in homeDataResult) && homeDataResult.data.trendingAnimes?.[0];
+    const trendingAnimes = homeDataResult && !('success' in homeDataResult) && homeDataResult.data.trendingAnimes ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
+    const randomAnime = trendingAnimes[0];
 
     return (
         <div className="relative w-full h-[50vh] md:h-[60vh] flex items-center justify-center -mt-16">
             <div className="absolute inset-0">
                 <Image
-                    src="https://picsum.photos/seed/anime/1200/400"
+                    src="https://picsum.photos/seed/anime-background/1200/400"
                     alt="Anime collage"
                     fill
                     className="object-cover opacity-20 blur-sm"
-                    data-ai-hint="anime"
+                    data-ai-hint="anime background"
                     priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
@@ -43,11 +45,17 @@ const SpotlightSection = () => {
                         <SlidersHorizontal className="w-4 h-4" /> Filter
                     </button>
                 </div>
-                {randomAnime && (
+                {trendingAnimes.length > 0 && (
                     <>
-                        <p className="text-muted-foreground text-sm mb-4">
-                            Trending: <Link href={`/anime/${randomAnime.id}`} className="text-foreground hover:text-primary">{randomAnime.name}</Link>
-                        </p>
+                        <div className="text-muted-foreground text-sm mb-4 flex items-center justify-center gap-2 flex-wrap">
+                            <span className='text-foreground font-semibold'>Trending:</span>
+                            {trendingAnimes.map((anime, index) => (
+                                <Link key={anime.id} href={`/anime/${anime.id}`} className="hover:text-primary transition-colors">
+                                  {anime.name}
+                                  {index < trendingAnimes.length - 1 && ','}
+                                </Link>
+                            ))}
+                        </div>
                         <Button asChild size="lg" className="shadow-lg shadow-primary/20 transform hover:scale-105 transition-transform">
                             <Link href={`/anime/${randomAnime.id}`}>
                                 <Play className="w-5 h-5 mr-2" /> Watch Now
