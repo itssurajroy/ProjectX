@@ -2,8 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { RefreshCw, Trash2, Search, Database } from "lucide-react";
+import { RefreshCw, Trash2, Database } from "lucide-react";
 
 const cacheStats = [
   { label: 'Cache Hits', value: '1.2M' },

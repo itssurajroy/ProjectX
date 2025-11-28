@@ -1,42 +1,15 @@
 
-/**
- * Core Philosophy: This ruleset implements a mixed security model. User data is strictly private and
- * owner-controlled. Media metadata is public to read. Comments and Polls are publicly readable but
- * writes are controlled to prevent abuse. Anonymous users are supported for read-only access.
- * Admin functionality is strictly controlled.
- *
- * Data Structure:
- * - /users/{userId}: Contains private user information. Access is restricted to the document owner.
- * - /media/{mediaId}: A public, top-level collection for all media metadata. Writable only by admins.
- * - /comments/{animeId}/episodes/{episodeId}/messages/{messageId}: Comments for a specific episode.
- * - /roles_admin/{userId}: Signifies admin status.
- * - /roles_moderator/{userId}: Signifies moderator status.
- * - /overrides/{animeId}: Admin-only content overrides.
- * - /skiptimes/{animeId}/{episodeNumber}: Admin/Mod managed skip times.
- * - /reports/{reportId}: User-submitted reports. Writable by users, readable/manageable by admin/mods.
- * - /announcements/{announcementId}: Site-wide announcements. Writable by admins.
- * - /settings/site: Global site settings. Writable by admins.
- * - /requests/{requestId}: User-submitted anime requests.
- * - /logs/{logId}: Admin activity logs. Write-only for server-side functions, readable by admins.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    //-------------------------------------------------------------------------
-    // Helper Functions
-    //-------------------------------------------------------------------------
-
+    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
     }
 
     function isAdmin() {
@@ -51,53 +24,31 @@ service cloud.firestore {
         return isAdmin() || isModerator();
     }
 
-    function isValidNewUser(userId) {
-      return isOwner(userId) && request.resource.data.firebaseUid == userId;
-    }
-    
-    function isValidNewComment() {
-      let data = request.resource.data;
-      return isSignedIn()
-        && data.userId == request.auth.uid
-        && data.text is string && data.text.size() > 0 && data.text.size() < 1000
-        && data.username is string
-        && data.avatar is string;
-    }
-
-
-    //-------------------------------------------------------------------------
-    // User & Public Collections
-    //-------------------------------------------------------------------------
-
+    // User data is private
     match /users/{userId} {
-      allow get, delete: if isOwner(userId) || isAdmin();
+      allow read, write: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create: if isValidNewUser(userId);
-      allow update: if isExistingOwner(userId) || isAdmin();
 
-      match /history/{animeId} {
-         allow get, create, update, delete: if isOwner(userId);
-      }
-      match /bookmarks/{animeId} {
-         allow get, create, update, delete: if isOwner(userId);
+      // User-specific subcollections
+      match /{subcollection}/{docId} {
+        allow read, write: if isOwner(userId);
       }
     }
 
+    // Media metadata is public to read, but only writable by admins.
     match /media/{mediaId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // All writes are through overrides now
+      allow create, update, delete: if isAdmin();
     }
     
+    // Comments are public to read, creatable by any signed-in user, but only manageable by mods/admins
     match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
         allow list, get: if true;
-        allow create: if isValidNewComment();
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow update, delete: if isAdminOrModerator();
     }
     
-    //-------------------------------------------------------------------------
-    // Admin & Moderator Collections
-    //-------------------------------------------------------------------------
-
+    // Admin and Moderator roles can only be read by admins, and can't be modified by clients.
     match /roles_admin/{userId} {
       allow get: if isAdmin();
       allow list, create, update, delete: if false;
@@ -106,20 +57,21 @@ service cloud.firestore {
     match /roles_moderator/{userId} {
       allow get: if isAdmin();
       allow list: if isAdmin();
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if false;
     }
 
+    // All other admin-specific collections are only accessible by admins or moderators as appropriate.
     match /overrides/{animeId} {
-        allow get, list, create, update, delete: if isAdmin();
+        allow read, write: if isAdmin();
     }
 
     match /skiptimes/{animeId}/{episodeNumber} {
-        allow get, list, create, update, delete: if isAdminOrModerator();
+        allow read, write: if isAdminOrModerator();
     }
 
     match /reports/{reportId} {
-        allow create: if isSignedIn(); // Any signed-in user can create a report
-        allow get, list, update, delete: if isAdminOrModerator();
+        allow create: if isSignedIn();
+        allow read, update, delete: if isAdminOrModerator();
     }
 
     match /announcements/{announcementId} {
@@ -129,13 +81,12 @@ service cloud.firestore {
 
     match /settings/site {
         allow get: if true;
-        allow create, update: if isAdmin();
-        allow delete: if false;
+        allow write: if isAdmin();
     }
 
     match /requests/{requestId} {
         allow create: if isSignedIn();
-        allow get, list, update, delete: if isAdminOrModerator();
+        allow read, update, delete: if isAdminOrModerator();
     }
 
     match /logs/{logId} {

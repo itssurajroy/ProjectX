@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -11,8 +10,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarGroup,
-  SidebarGroupLabel,
-  SidebarInset,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {
@@ -30,7 +27,6 @@ import {
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
-import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/firebase';
 
@@ -62,7 +58,7 @@ function AdminSidebar() {
           <Badge variant="destructive">Admin</Badge>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-0">
+      <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarMenu>
             {adminNavItems.map((item) => (
@@ -73,7 +69,7 @@ function AdminSidebar() {
                   className="w-full justify-start"
                 >
                   <Link href={item.href}>
-                    <item.icon className="h-4 w-4" />
+                    <item.icon />
                     <span>{item.label}</span>
                     {item.badge && (
                       <Badge className="ml-auto">{item.badge}</Badge>
@@ -86,8 +82,8 @@ function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarHeader className="border-t">
-        <div className="flex items-center gap-2">
-            <Avatar className="h-8 w-8">
+        <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
                 <AvatarImage src={user?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
                 <AvatarFallback>A</AvatarFallback>
             </Avatar>
@@ -102,16 +98,19 @@ function AdminSidebar() {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const title = pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard';
+
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <SidebarInset>
+      <div className="md:peer-data-[state=expanded]:peer-data-[variant=inset]:ml-[16rem] peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[3rem]">
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6">
             <SidebarTrigger className="md:hidden"/>
-            <h1 className="text-lg font-semibold capitalize">{usePathname().split('/').pop() || 'Dashboard'}</h1>
+            <h1 className="text-lg font-semibold capitalize">{title}</h1>
         </header>
         <main className="p-4 sm:p-6">{children}</main>
-      </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

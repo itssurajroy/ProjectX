@@ -1,42 +1,28 @@
 
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BarChart, Users, MessageSquare, ShieldAlert, Database, BarChart3, TrendingUp, Tv, Laptop, Smartphone, AlertTriangle, RefreshCw, RadioTower, Bell, Eye } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, MessageSquare, ShieldAlert, Database, AlertTriangle, RefreshCw, Bell, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 
 const adminStats = [
   { title: "Total Users", value: "12,345", icon: Users },
-  { title: "Active Today", value: "1,203", icon: Eye },
+  { title: "Active Today", value: "1,203", icon: Users, variant: 'destructive' },
   { title: "Comments Today", value: "489", icon: MessageSquare },
   { title: "Reports Pending", value: "17", icon: ShieldAlert, variant: 'destructive' },
   { title: "Cached Anime", value: "5,432", icon: Database },
 ];
 
 const userGrowthData = [
-  { date: '7d ago', users: 120 },
-  { date: '6d ago', users: 150 },
-  { date: '5d ago', users: 130 },
-  { date: '4d ago', users: 180 },
-  { date: '3d ago', users: 210 },
-  { date: '2d ago', users: 250 },
-  { date: 'yesterday', users: 230 },
-  { date: 'today', users: 280 },
+  { date: '7d ago', users: 120 }, { date: '6d ago', users: 150 }, { date: '5d ago', users: 130 },
+  { date: '4d ago', users: 180 }, { date: '3d ago', users: 210 }, { date: '2d ago', users: 250 },
+  { date: 'yesterday', users: 230 }, { date: 'today', users: 280 },
 ];
 
 const topWatchedData = [
-  { name: 'Anime A', watchCount: 4000 },
-  { name: 'Anime B', watchCount: 3000 },
-  { name: 'Anime C', watchCount: 2000 },
-  { name: 'Anime D', watchCount: 2780 },
-  { name: 'Anime E', watchCount: 1890 },
-];
-
-const deviceData = [
-    { name: 'Desktop', value: 400, fill: 'var(--color-desktop)' },
-    { name: 'Mobile', value: 300, fill: 'var(--color-mobile)' },
-    { name: 'Tablet', value: 200, fill: 'var(--color-tablet)' },
+  { name: 'Anime A', watchCount: 4000 }, { name: 'Anime B', watchCount: 3000 }, { name: 'Anime C', watchCount: 2000 },
+  { name: 'Anime D', watchCount: 2780 }, { name: 'Anime E', watchCount: 1890 },
 ];
 
 const quickActions = [
@@ -81,7 +67,6 @@ export default function AdminPage() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>User Growth</CardTitle>
-            <CardDescription>New users in the last 7 days.</CardDescription>
           </CardHeader>
           <CardContent className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -94,13 +79,7 @@ export default function AdminPage() {
                 </defs>
                 <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                    contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: 'var(--radius)'
-                    }}
-                />
+                <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)' }} />
                 <Area type="monotone" dataKey="users" stroke="hsl(var(--primary))" fill="url(#colorUsers)" />
               </AreaChart>
             </ResponsiveContainer>
