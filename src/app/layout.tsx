@@ -11,6 +11,7 @@ import Splash from "@/components/Splash";
 import { Balancer as BalancerProvider } from 'react-wrap-balancer'
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
+import Footer from "@/components/layout/footer";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -51,9 +52,10 @@ export default function RootLayout({
                   color: '#fff',
                 }
               }}/>
-              <div>
+              <div className="flex flex-col min-h-screen">
                 <Navbar />
-                <main className="pb-20 md:pb-0">{children}</main>
+                <main className="flex-grow">{children}</main>
+                <Footer />
               </div>
               <ScrollToTopButton />
               </BalancerProvider>
