@@ -12,4 +12,6 @@ export const Endpoints = {
     episodes: (animeId: string) => `anime/${animeId}/episodes`,
     episodeServers: `anime/episode/servers`,
     episodeSources: `anime/episode/sources`,
+    qtip: (animeId: string) => `qtip/${animeId}`,
 };
+

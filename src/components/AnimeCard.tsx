@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Badge } from "./ui/badge"
 import { PlayCircle } from "lucide-react"
+import { AnimeTooltip } from "./AnimeTooltip"
 
 type AnimeCardProps = {
   anime: AnimeBase;
@@ -11,6 +12,7 @@ type AnimeCardProps = {
 
 export function AnimeCard({ anime }: AnimeCardProps) {
   return (
+    <AnimeTooltip animeId={anime.id}>
       <Link href={`/anime/${anime.id}`} className="group block space-y-2 h-full flex flex-col">
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-secondary">
           <Image
@@ -32,5 +34,6 @@ export function AnimeCard({ anime }: AnimeCardProps) {
         </div>
         <h3 className="font-medium text-sm truncate group-hover:text-primary">{anime.name}</h3>
       </Link>
+    </AnimeTooltip>
   )
 }

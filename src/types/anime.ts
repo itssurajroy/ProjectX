@@ -168,4 +168,21 @@ export interface SearchSuggestionResponse {
     suggestions: SearchSuggestion[];
 }
 
+export interface QtipAnime {
+  id: string;
+  name: string;
+  malscore: string;
+  quality: string;
+  episodes: {
+    sub: number;
+    dub: number;
+  };
+  type: string;
+  description: string;
+  jname: string;
+  synonyms: string;
+  aired: string;
+  status: string;
+  genres: string[];
+}
     
