@@ -10,7 +10,6 @@ import ScrollToTopButton from "@/components/layout/scroll-to-top";
 import { Toaster } from "react-hot-toast";
 import Splash from "@/components/Splash";
 import { Balancer as BalancerProvider } from 'react-wrap-balancer'
-import BottomNav from "@/components/layout/bottom-nav";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -59,7 +58,6 @@ export default function RootLayout({
               <Navbar />
               <main className="pb-20 md:pb-0">{children}</main>
               <Footer />
-              <BottomNav />
               <ScrollToTopButton />
               </SidebarProvider>
               </BalancerProvider>
