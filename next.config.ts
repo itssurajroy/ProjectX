@@ -52,6 +52,12 @@ const nextConfig: NextConfig = {
         hostname: 'cdn.myanimelist.net',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
