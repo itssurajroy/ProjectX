@@ -23,7 +23,7 @@ import { AnimeService } from '@/lib/AnimeService';
 import Image from 'next/image';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { EpisodeList } from '@/components/watch/episode-list';
+import EpisodeList from '@/components/watch/episode-list';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeAbout, AnimeEpisode } from '@/types/anime';
 import { Skeleton } from '@/components/ui/skeleton';
