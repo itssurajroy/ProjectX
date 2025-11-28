@@ -287,22 +287,25 @@ export default function EliteWatchPage() {
   const anime = aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground pt-24">
       {anime && <div 
-        className="fixed inset-0 -z-10 bg-background"
+        className="fixed inset-0 -z-10"
       >
         <Image 
           src={anime.info.poster} 
           alt={anime.info.name} 
           fill 
-          className="object-cover opacity-10 blur-xl" 
+          className="object-cover opacity-10 blur-xl scale-110" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
       </div>}
 
-      <div className="relative pt-24 pb-8">
+      <div className="relative pb-8">
         <WatchPageContent id={id} episodeParam={episodeParam} />
       </div>
     </div>
   );
 }
+
+    
