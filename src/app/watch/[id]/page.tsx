@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Star, Share2, Bookmark, Lightbulb, Expand, SkipForward, SkipBack, Volume2, Settings, AlertCircle, Home, Tv, Play, Video, Users, Focus, Heart, Flag, Clapperboard, MonitorPlay, Film, Clock, Search, List, Captions, Mic, X, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Share2, Bookmark, Lightbulb, Expand, SkipForward, SkipBack, Volume2, Settings, AlertCircle, Home, Tv, Play, Video, Users, Focus, Heart, Flag, Clapperboard, MonitorPlay, Film, Clock, Search, List, Captions, Mic, X, Loader2, Info } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInSeconds } from 'date-fns';
 import toast from 'react-hot-toast';
 import { cn, extractEpisodeId, sanitizeFirestoreId } from '@/lib/utils';
@@ -27,6 +27,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const CountdownTimer = ({ targetDate }: { targetDate: number | null }) => {
     if (!targetDate) return null;
@@ -169,57 +170,61 @@ function WatchPageComponent() {
 
   const nextAiring = about?.moreInfo?.nextAiringEpisode;
 
+  const renderInfoSidebar = () => (
+    <div className="bg-card rounded-lg p-4 border border-border/50 space-y-3">
+        <div className='relative'>
+            <Image src={about.info.poster} alt={about.info.name} width={300} height={450} className="rounded-lg w-full shadow-lg opacity-30 blur-sm"/>
+            <Image src={about.info.poster} alt={about.info.name} width={300} height={450} className="rounded-lg w-4/5 shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
+        </div>
+        <h1 className="text-xl font-bold mt-4">{about.info.name}</h1>
+        {about.moreInfo.otherNames && <p className="text-xs text-muted-foreground">{about.moreInfo.otherNames}</p>}
+        <div className="flex items-center gap-2 flex-wrap">
+            {about.info.stats.quality && <Badge variant="secondary">{about.info.stats.quality}</Badge>}
+            {about.info.stats.rating && <Badge variant="secondary">{about.info.stats.rating}</Badge>}
+            <Badge variant="secondary">{about.info.stats.type}</Badge>
+        </div>
+        <p className='text-sm text-muted-foreground line-clamp-3' dangerouslySetInnerHTML={{__html: about.info.description}}></p>
+        <div className="space-y-1 text-xs border-t border-border/50 pt-3">
+            {Object.entries({
+                "Country": about.moreInfo.country,
+                "Genres": about.moreInfo.genres?.join(', '),
+                "Date aired": about.moreInfo.aired,
+                "Status": about.moreInfo.status,
+                "Studios": about.moreInfo.studios,
+                "MAL": about.moreInfo.malscore,
+            }).map(([label, value]) => (
+                value && <div key={label} className="flex"><span className='w-20 font-semibold flex-shrink-0'>{label}:</span> <span className='text-muted-foreground truncate'>{value}</span></div>
+            ))}
+        </div>
+        <div className="border-t border-border/50 pt-3">
+             <h3 className="font-semibold mb-2">How'd you rate this anime?</h3>
+             <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-1 text-amber-400'>
+                    <Star className='w-5 h-5'/>
+                    <Star className='w-5 h-5'/>
+                    <Star className='w-5 h-5'/>
+                    <Star className='w-5 h-5'/>
+                    <Star className='w-5 h-5 opacity-50'/>
+                </div>
+                <p className='text-xs text-muted-foreground'>6.86 by 4,636 reviews</p>
+             </div>
+        </div>
+         <div className="border-t border-border/50 pt-3 flex items-center gap-3">
+             <Image src="https://cdn.noitatnemucod.net/static/img/avatar.png" alt="avatar" width={40} height={40} />
+             <div>
+                <h3 className="font-semibold">Love this site?</h3>
+                <p className='text-xs text-muted-foreground'>Share it and let others know!</p>
+             </div>
+        </div>
+    </div>
+  );
+
   return (
      <main className="min-h-screen bg-background text-foreground px-2 sm:px-4 lg:px-6 py-6 pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            <div className="lg:col-span-3 hidden lg:block">
-                <div className="bg-card rounded-lg p-4 border border-border/50 sticky top-20 space-y-3">
-                    <div className='relative'>
-                        <Image src={about.info.poster} alt={about.info.name} width={300} height={450} className="rounded-lg w-full shadow-lg opacity-30 blur-sm"/>
-                        <Image src={about.info.poster} alt={about.info.name} width={300} height={450} className="rounded-lg w-4/5 shadow-lg absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"/>
-                    </div>
-                    <h1 className="text-xl font-bold mt-4">{about.info.name}</h1>
-                    {about.moreInfo.otherNames && <p className="text-xs text-muted-foreground">{about.moreInfo.otherNames}</p>}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {about.info.stats.quality && <Badge variant="secondary">{about.info.stats.quality}</Badge>}
-                        {about.info.stats.rating && <Badge variant="secondary">{about.info.stats.rating}</Badge>}
-                        <Badge variant="secondary">{about.info.stats.type}</Badge>
-                    </div>
-                    <p className='text-sm text-muted-foreground line-clamp-3' dangerouslySetInnerHTML={{__html: about.info.description}}></p>
-                    <div className="space-y-1 text-xs border-t border-border/50 pt-3">
-                        {Object.entries({
-                            "Country": about.moreInfo.country,
-                            "Genres": about.moreInfo.genres?.join(', '),
-                            "Date aired": about.moreInfo.aired,
-                            "Status": about.moreInfo.status,
-                            "Studios": about.moreInfo.studios,
-                            "MAL": about.moreInfo.malscore,
-                        }).map(([label, value]) => (
-                            value && <div key={label} className="flex"><span className='w-20 font-semibold flex-shrink-0'>{label}:</span> <span className='text-muted-foreground truncate'>{value}</span></div>
-                        ))}
-                    </div>
-                    <div className="border-t border-border/50 pt-3">
-                         <h3 className="font-semibold mb-2">How'd you rate this anime?</h3>
-                         <div className='flex items-center gap-2'>
-                            <div className='flex items-center gap-1 text-amber-400'>
-                                <Star className='w-5 h-5'/>
-                                <Star className='w-5 h-5'/>
-                                <Star className='w-5 h-5'/>
-                                <Star className='w-5 h-5'/>
-                                <Star className='w-5 h-5 opacity-50'/>
-                            </div>
-                            <p className='text-xs text-muted-foreground'>6.86 by 4,636 reviews</p>
-                         </div>
-                    </div>
-                     <div className="border-t border-border/50 pt-3 flex items-center gap-3">
-                         <Image src="https://cdn.noitatnemucod.net/static/img/avatar.png" alt="avatar" width={40} height={40} />
-                         <div>
-                            <h3 className="font-semibold">Love this site?</h3>
-                            <p className='text-xs text-muted-foreground'>Share it and let others know!</p>
-                         </div>
-                    </div>
-                </div>
+            <div className="lg:col-span-3 hidden lg:block sticky top-20 h-max">
+                {renderInfoSidebar()}
             </div>
 
             <div className="lg:col-span-9 xl:col-span-6">
@@ -243,24 +248,50 @@ function WatchPageComponent() {
                         </div>
                     )}
                 </div>
+                
+                <div className="flex justify-between items-center mb-4 flex-wrap gap-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Sheet>
+                      <SheetTrigger asChild>
+                        <Button variant="outline" size="sm" className="lg:hidden flex items-center gap-2"><Info className="w-4 h-4" /> Anime Info</Button>
+                      </SheetTrigger>
+                      <SheetContent side="left" className="p-0">
+                          <ScrollArea className="h-full p-4">{renderInfoSidebar()}</ScrollArea>
+                      </SheetContent>
+                    </Sheet>
+                    <Sheet>
+                      <SheetTrigger asChild>
+                         <Button variant="outline" size="sm" className="lg:hidden flex items-center gap-2"><List className="w-4 h-4" /> Episodes</Button>
+                      </SheetTrigger>
+                      <SheetContent side="right" className="p-0">
+                        <EpisodeList 
+                          episodes={episodes} 
+                          currentEpisodeId={currentEpisode.number.toString()} 
+                          onEpisodeSelect={(ep) => router.push(`/watch/${animeId}?ep=${extractEpisodeId(ep.episodeId) || ep.number}`)}
+                        />
+                      </SheetContent>
+                    </Sheet>
+                  </div>
+                   <div className="flex items-center gap-1 flex-wrap">
+                       {[
+                          {icon: SkipBack, label: "Prev", action: () => navigateEpisode('prev'), disabled: !episodes.length || (episodes.findIndex(e=>e.episodeId === currentEpisode?.episodeId) <= 0)}, 
+                          {icon: SkipForward, label: "Next", action: () => navigateEpisode('next'), disabled: !episodes.length || (episodes.findIndex(e=>e.episodeId === currentEpisode?.episodeId) >= episodes.length - 1)}, 
+                          {icon: Heart, label: "Bookmark"},
+                          {icon: Users, label: "W2G"}, {icon: Flag, label: "Report"},
+                      ].map(item => (
+                          <Button key={item.label} onClick={item.action} disabled={item.disabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5"><item.icon className="w-4 h-4 mr-1"/> {item.label}</Button>
+                      ))}
+                  </div>
+                </div>
 
-                <div className="bg-card p-2 border border-border/50 rounded-lg flex items-center justify-between flex-wrap gap-2 text-xs">
+
+                <div className="bg-card p-2 border border-border/50 rounded-lg flex items-center justify-between flex-wrap gap-2 text-xs mb-4">
                     <div className="flex items-center gap-1 flex-wrap">
                         {[
                             {icon: Expand, label: "Expand"}, {icon: Focus, label: "Focus"}, {icon: MonitorPlay, label: "AutoNext"},
                             {icon: Play, label: "AutoPlay"}, {icon: SkipForward, label: "AutoSkip"},
                         ].map(item => (
                             <Button key={item.label} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5"><item.icon className="w-4 h-4 mr-1"/> {item.label}</Button>
-                        ))}
-                    </div>
-                     <div className="flex items-center gap-1 flex-wrap">
-                         {[
-                            {icon: SkipBack, label: "Prev", action: () => navigateEpisode('prev'), disabled: !episodes.length || (episodes.findIndex(e=>e.episodeId === currentEpisode?.episodeId) <= 0)}, 
-                            {icon: SkipForward, label: "Next", action: () => navigateEpisode('next'), disabled: !episodes.length || (episodes.findIndex(e=>e.episodeId === currentEpisode?.episodeId) >= episodes.length - 1)}, 
-                            {icon: Heart, label: "Bookmark"},
-                            {icon: Users, label: "W2G"}, {icon: Flag, label: "Report"},
-                        ].map(item => (
-                            <Button key={item.label} onClick={item.action} disabled={item.disabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5"><item.icon className="w-4 h-4 mr-1"/> {item.label}</Button>
                         ))}
                     </div>
                 </div>
@@ -311,7 +342,7 @@ function WatchPageComponent() {
                 <CommentsSection animeId={animeId} episodeId={episodeParam || ''} />
             </div>
 
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 hidden lg:block sticky top-20 h-max">
                  <EpisodeList 
                     episodes={episodes} 
                     currentEpisodeId={currentEpisode.number.toString()} 

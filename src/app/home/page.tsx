@@ -66,7 +66,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
            <div key={currentIndex} className="animate-banner-fade-in w-full">
               <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold my-3 text-glow max-w-2xl line-clamp-2">{spotlight.name}</h1>
-              <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4 flex-wrap">
                   {spotlight.otherInfo.map((info, i) => (
                     <span key={i} className="flex items-center gap-1.5">
                        {info}
@@ -289,8 +289,8 @@ export default function MainDashboardPage() {
       <main className="px-4 sm:px-6 lg:px-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
         <PollSection />
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-12 xl:col-span-9 space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div className="md:col-span-12 xl:col-span-9 space-y-12">
                 <section>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                         <h2 className="text-xl md:text-2xl font-bold">Latest Updates 🚀</h2>
@@ -312,7 +312,7 @@ export default function MainDashboardPage() {
                     <SmallListSection title="Latest Completed ✅" animes={latestCompletedAnimes} />
                 </div>
             </div>
-            <div className="lg:col-span-12 xl:col-span-3 space-y-8">
+            <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar trendingAnimes={trendingAnimes} />
                 <ScheduleSidebar />
             </div>

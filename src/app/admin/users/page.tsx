@@ -1,4 +1,5 @@
 
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,61 +26,63 @@ export default function UsersPage() {
     return (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                         <CardTitle>User Management</CardTitle>
                         <p className="text-muted-foreground text-sm mt-1">Search, filter, and manage all users.</p>
                     </div>
-                    <div className="flex gap-2">
-                        <Input placeholder="Search by email, UID, name..." className="w-64" />
-                        <Button variant="outline"><FileDown className="w-4 h-4 mr-2" /> Export CSV</Button>
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <Input placeholder="Search by email, UID, name..." className="w-full md:w-64" />
+                        <Button variant="outline" className="hidden sm:flex"><FileDown className="w-4 h-4 mr-2" /> Export CSV</Button>
                     </div>
                 </div>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>User</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Joined</TableHead>
-                            <TableHead>Last Login</TableHead>
-                            <TableHead>Watch Time</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {users.map(user => (
-                            <TableRow key={user.id}>
-                                <TableCell>
-                                    <div className="font-medium">{user.name}</div>
-                                    <div className="text-sm text-muted-foreground">{user.email}</div>
-                                </TableCell>
-                                <TableCell>
-                                    <Badge className={roleColors[user.role]}>{user.role}</Badge>
-                                </TableCell>
-                                <TableCell>{user.joined}</TableCell>
-                                <TableCell>{user.lastLogin}</TableCell>
-                                <TableCell>{user.watchTime}</TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon">
-                                                <MoreHorizontal className="w-4 h-4"/>
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuItem>View Profile</DropdownMenuItem>
-                                            <DropdownMenuItem>Change Role</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-yellow-500">Ban User</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Delete User</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
+                <div className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>User</TableHead>
+                                <TableHead className="hidden md:table-cell">Role</TableHead>
+                                <TableHead className="hidden lg:table-cell">Joined</TableHead>
+                                <TableHead className="hidden lg:table-cell">Last Login</TableHead>
+                                <TableHead className="hidden md:table-cell">Watch Time</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {users.map(user => (
+                                <TableRow key={user.id}>
+                                    <TableCell>
+                                        <div className="font-medium">{user.name}</div>
+                                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                                    </TableCell>
+                                    <TableCell className="hidden md:table-cell">
+                                        <Badge className={roleColors[user.role]}>{user.role}</Badge>
+                                    </TableCell>
+                                    <TableCell className="hidden lg:table-cell">{user.joined}</TableCell>
+                                    <TableCell className="hidden lg:table-cell">{user.lastLogin}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{user.watchTime}</TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="w-4 h-4"/>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent>
+                                                <DropdownMenuItem>View Profile</DropdownMenuItem>
+                                                <DropdownMenuItem>Change Role</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-yellow-500">Ban User</DropdownMenuItem>
+                                                <DropdownMenuItem className="text-destructive">Delete User</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
             </CardContent>
         </Card>
     )

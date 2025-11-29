@@ -1,9 +1,8 @@
-
 'use client';
 import { useAuth } from '@/firebase';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter } from 'lucide-react';
+import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter, X } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +25,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from '../ui/skeleton';
 import { genres } from '@/lib/data';
+import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
+import { Button } from '../ui/button';
 
 const NavLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => {
     const pathname = usePathname();
@@ -52,6 +53,7 @@ export default function Header() {
   const router = useRouter();
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -98,12 +100,56 @@ export default function Header() {
   };
 
   const suggestions = suggestionsResult && !('success' in suggestionsResult) ? suggestionsResult.data.suggestions : [];
+  
+  const navItems = [
+    { href: "/home", icon: Home, label: "Home" },
+    { href: "/movies", icon: Film, label: "Movies" },
+    { href: "/tv", icon: Tv, label: "TV Series" },
+    { href: "/top-airing", icon: TrendingUp, label: "Top Airing" },
+  ];
 
   return (
     <header className="sticky top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-2">
+            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+              <SheetTrigger asChild className="lg:hidden">
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <SheetHeader>
+                  <Link href="/home" className="text-2xl font-bold text-glow mb-4" onClick={() => setIsMobileMenuOpen(false)}>
+                      <span className="text-primary">Project</span>
+                      <span className="text-white">X</span>
+                  </Link>
+                </SheetHeader>
+                <nav className="flex flex-col gap-2 mt-4">
+                   {navItems.map(item => (
+                     <NavLink key={item.href} href={item.href} className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
+                       <item.icon className="w-4 h-4" /> {item.label}
+                     </NavLink>
+                   ))}
+                   <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 w-full justify-start")}>
+                        <LayoutGrid className="w-4 h-4"/> Genres <ChevronDown className="w-4 h-4 ml-auto" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="grid grid-cols-2 w-64 bg-card/95 backdrop-blur-sm">
+                      {genres.map(genre => (
+                        <DropdownMenuItem key={genre} asChild>
+                          <Link href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} onClick={() => setIsMobileMenuOpen(false)}>{genre}</Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </nav>
+              </SheetContent>
+            </Sheet>
+
             <Link href="/home" className="text-2xl font-bold text-glow">
                 <span className="text-primary">Project</span>
                 <span className="text-white">X</span>
@@ -111,7 +157,7 @@ export default function Header() {
         </div>
         
         <nav className="hidden lg:flex items-center gap-1">
-            <NavLink href="/home"><Home className="w-4 h-4"/> Home</NavLink>
+            {navItems.map(item => <NavLink key={item.href} href={item.href}><item.icon className="w-4 h-4"/> {item.label}</NavLink>)}
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -127,14 +173,10 @@ export default function Header() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <NavLink href="/movies"><Film className="w-4 h-4"/> Movies</NavLink>
-            <NavLink href="/tv"><Tv className="w-4 h-4"/> TV Series</NavLink>
-            <NavLink href="/top-airing"><TrendingUp className="w-4 h-4"/> Top Airing</NavLink>
         </nav>
 
         <div className="flex-1 flex justify-end items-center gap-2">
-            <div ref={searchContainerRef} className="flex-1 max-w-xs relative">
+            <div ref={searchContainerRef} className="flex-1 max-w-xs relative hidden sm:block">
               <form onSubmit={handleSearch} className="relative">
                   <input 
                       type="text"
@@ -208,8 +250,10 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <SocialLink href="https://discord.com" icon={Send} name="Discord" />
-            <SocialLink href="https://x.com" icon={Twitter} name="Twitter" />
+            <div className="hidden sm:flex items-center gap-2">
+              <SocialLink href="https://discord.com" icon={Send} name="Discord" />
+              <SocialLink href="https://x.com" icon={Twitter} name="Twitter" />
+            </div>
 
             {isClient && (
                   <>
