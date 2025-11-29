@@ -107,29 +107,22 @@ function WatchPageComponent() {
     queryKey: ['episode-servers', currentEpisode?.episodeId],
     queryFn: () => AnimeService.getEpisodeServers(currentEpisode!.episodeId),
     enabled: !!currentEpisode,
-    onSuccess: (data) => {
-        if(data.success) {
-            const servers = data.data[language];
-            if (servers && servers.length > 0 && !selectedServer) {
-                setSelectedServer(servers[0].serverName);
-            }
-        }
-    }
   });
 
+  const availableServers = useMemo(() => {
+    return serversResponse?.success ? serversResponse.data[language] : [];
+  }, [serversResponse, language]);
+
   useEffect(() => {
-    if(serversResponse?.success) {
-        const servers = serversResponse.data[language];
-        if(servers && servers.length > 0) {
-            const currentServerExists = servers.some(s => s.serverName === selectedServer);
-            if (!currentServerExists) {
-                setSelectedServer(servers[0].serverName);
-            }
-        } else {
-            setSelectedServer(null);
-        }
+    if (availableServers.length > 0) {
+      const currentServerExists = availableServers.some(s => s.serverName === selectedServer);
+      if (!currentServerExists) {
+        setSelectedServer(availableServers[0].serverName);
+      }
+    } else {
+      setSelectedServer(null);
     }
-  }, [language, serversResponse, selectedServer]);
+  }, [availableServers, selectedServer]);
 
 
   const {
@@ -204,8 +197,6 @@ function WatchPageComponent() {
     (ep) => ep.episodeId === currentEpisode?.episodeId
   );
   
-  const availableServers = serversResponse?.success ? serversResponse.data[language] : [];
-
   return (
     <main className="container mx-auto space-y-6 px-2 py-8 pt-24 sm:px-4 lg:px-6">
       <Breadcrumb

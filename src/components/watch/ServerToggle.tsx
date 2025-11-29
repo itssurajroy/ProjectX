@@ -30,7 +30,7 @@ export default function ServerToggle({ servers, activeServer, onServerChange }: 
         <p className="mr-2 font-semibold">Servers:</p>
         {servers.map(server => (
              <Button 
-                key={server.serverId} 
+                key={server.serverName} 
                 size="sm" 
                 variant={activeServer === server.serverName ? 'default' : 'secondary'} 
                 className='font-semibold capitalize'
