@@ -50,9 +50,13 @@ service cloud.firestore {
 
     // Polls: Publicly readable, but only signed-in users can write their own vote.
     match /polls/{pollId}/votes/{userId} {
-        allow get, list: if true;
+        allow get: if true;
         allow create, update: if isOwner(userId);
         allow delete: if false;
+    }
+
+    match /polls/{pollId}/votes {
+      allow list: if true;
     }
     
     // Admin and Moderator roles can only be read by admins, and can't be modified by clients.
