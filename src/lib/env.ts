@@ -15,3 +15,4 @@ const envObject = {
 
 // This will throw an error if the environment variables are missing or invalid.
 export const env = envSchema.parse(envObject);
+
