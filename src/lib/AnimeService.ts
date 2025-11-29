@@ -2,40 +2,8 @@
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 
-type ServiceError = { success: false; error: string; status?: number };
-
-async function fetchFromProxy(path: string, queryParams: Record<string, string | number> = {}): Promise<any> {
-    const params = new URLSearchParams();
-    
-    const fullPath = path.startsWith('/') ? path : `/${path}`;
-    params.set('path', fullPath);
-
-    for (const key in queryParams) {
-        params.append(key, String(queryParams[key]));
-    }
-
-    const proxyUrl = `/api/proxy?${params.toString()}`;
-    
-    try {
-        const res = await fetch(proxyUrl, {
-            headers: {
-                'Accept': 'application/json',
-            }
-        });
-        
-        if (!res.ok) {
-            const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response from proxy' }));
-            console.error(`API proxy error for ${path}:`, res.status, errorBody);
-            return { success: false, error: `API returned status ${res.status}`, status: res.status };
-        }
-
-        const data = await res.json();
-        return data; 
-    } catch (e: any) {
-        console.error(`Failed to fetch from proxy for path ${path}:`, e);
-        return { success: false, error: e.message || 'Unknown fetch error' };
-    }
-}
+const HIANIME_API_BASE = "/api/proxy"
+const CORS_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
 
 // Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
 export const extractEpisodeNumber = (episodeId: string): string => {
@@ -43,51 +11,149 @@ export const extractEpisodeNumber = (episodeId: string): string => {
   return match ? match[1] : "1";
 };
 
+// Advanced fetch with timeout + retry + proper headers
+async function fetchWithRetry(url: string, retries = 3): Promise<any> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "User-Agent": "ProjectX/1.0 (+https://projectx.to)",
+        },
+        cache: "default",
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data; // Raw response is returned now
+    } catch (error: any) {
+      if (i === retries - 1) {
+        console.error(`[AnimeService] Final fail after ${retries} retries:`, url, error);
+        return { success: false, error: error.message || "Network error" };
+      }
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+    }
+  }
+}
+
 export class AnimeService {
-  static async getHomeData(): Promise<{ data: HomeData } | ServiceError> {
-    return await fetchFromProxy('/home');
+  // Home Page
+  static async getHomeData() {
+    return fetchWithRetry(`${HIANIME_API_BASE}/home`);
   }
 
-  static async searchAnime(query: string, page: number = 1): Promise<{data: SearchResult} | ServiceError> {
-     return await fetchFromProxy('/search', { q: query, page });
+  // Anime Detail Page
+  static async getAnimeAbout(id: string) {
+    const response = await fetchWithRetry(`${HIANIME_API_BASE}/anime/${id}`);
+    if (response.success) {
+      return { success: true, data: response.data }; // Correctly wrap the response
+    }
+    return response;
+  }
+
+  // Quick Tooltip
+  static async getAnimeQtip(id: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/qtip/${id}`);
+  }
+
+  // Episodes List
+  static async getEpisodes(animeId: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/anime/${animeId}/episodes`);
+  }
+
+  // Search
+  static async searchAnime(query: string, page = 1) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/search?q=${encodeURIComponent(query)}&page=${page}`);
+  }
+
+  static async getSearchSuggestions(query: string) {
+    if (!query.trim()) return { success: true, data: { suggestions: [] } };
+    return fetchWithRetry(`${HIANIME_API_BASE}/search/suggestion?q=${encodeURIComponent(query)}`);
   }
   
-  static async getSearchSuggestions(query: string): Promise<{data: SearchSuggestionResponse} | ServiceError> {
-    if (!query) return { data: { suggestions: [] } };
-    return await fetchFromProxy('/search/suggestion', { q: query });
+  static async getSchedule(date: string): Promise<{data: ScheduleResponse} | { success: false; error: string }> {
+    return await fetchWithRetry(`${HIANIME_API_BASE}/schedule?date=${date}`);
   }
 
-  static async getAnimeAbout(id: string): Promise<{ data: AnimeAboutResponse } | ServiceError> {
-     return await fetchFromProxy(`/anime/${id}`);
-  }
-  
-  static async getAnimeQtip(id: string): Promise<{ data: { anime: QtipAnime } } | ServiceError> {
-    return await fetchFromProxy(`/qtip/${id}`);
+  // A-Z List
+  static async getAZList(sortOption: string = "all", page = 1) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/azlist/${sortOption}?page=${page}`);
   }
 
-  static async getEpisodes(animeId: string): Promise<{data: {episodes: AnimeEpisode[]}} | ServiceError> {
-     return await fetchFromProxy(`/anime/${animeId}/episodes`);
-  }
-  
-  static async getGenre(genre: string, page: number = 1) {
-    return await fetchFromProxy(`/genre/${genre}`, { page });
+  // Episode Streaming Links (WITH CORS PROXY!)
+  static async getEpisodeSources(animeEpisodeId: string, server = "hd-1", category: "sub" | "dub" | "raw" = "sub") {
+    const data = await fetchWithRetry(
+      `${HIANIME_API_BASE}/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`
+    );
+
+    if (!data.success || !data.data) return data;
+
+    // Auto-proxy all m3u8 and subtitle links
+    return {
+      ...data,
+      data: {
+        ...data.data,
+        sources: data.data.sources.map((source: any) => ({
+          ...source,
+          url: source.url // No proxy for now, handled by backend proxy
+        })),
+        subtitles: data.data.subtitles?.map((sub: any) => ({
+          ...sub,
+          url: sub.url // No proxy for now
+        })) || [],
+      },
+    };
   }
 
-  static async getSchedule(date: string): Promise<{data: ScheduleResponse} | ServiceError> {
-    return await fetchFromProxy('/schedule', { date });
+  // Episode Servers
+  static async getEpisodeServers(animeEpisodeId: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/episode/servers?animeEpisodeId=${animeEpisodeId}`);
   }
 
-  static async getAZList(sortOption: string, page: number = 1): Promise<{data: SearchResult } | ServiceError> {
-    return await fetchFromProxy(`/azlist/${sortOption}`, { page });
+  // Advanced Search (ALL filters)
+  static buildSearchUrl(filters: {
+    query: string;
+    page?: number;
+    genres?: string[];
+    type?: string;
+    status?: string;
+    season?: string;
+    language?: string;
+    rated?: string;
+    score?: string;
+    start_date?: string;
+    end_date?: string;
+    sort?: string;
+  }) {
+    const params = new URLSearchParams();
+    params.set("q", filters.query);
+    if (filters.page) params.set("page", filters.page.toString());
+    if (filters.genres?.length) params.set("genres", filters.genres.join(","));
+    if (filters.type) params.set("type", filters.type);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.season) params.set("season", filters.season);
+    if (filters.language) params.set("language", filters.language);
+    if (filters.rated) params.set("rated", filters.rated);
+    if (filters.score) params.set("score", filters.score);
+    if (filters.start_date) params.set("start_date", filters.start_date);
+    if (filters.end_date) params.set("end_date", filters.end_date);
+    if (filters.sort) params.set("sort", filters.sort);
+
+    return `${HIANIME_API_BASE}/search?${params.toString()}`;
   }
 
-  static async getEpisodeServers(animeEpisodeId: string): Promise<{data: {sub: EpisodeServer[], dub: EpisodeServer[], raw: EpisodeServer[]}} | ServiceError> {
-    const res = await fetchFromProxy('/episode/servers', { animeEpisodeId });
-    return res;
-  }
-
-  static async getEpisodeSources(animeEpisodeId: string, server: string, category: 'sub' | 'dub' | 'raw'): Promise<EpisodeSourcesResponse | ServiceError> {
-    const res = await fetchFromProxy('/episode/sources', { animeEpisodeId, server, category });
-    return res?.data || res;
+  static async advancedSearch(filters: Parameters<typeof this.buildSearchUrl>[0]) {
+    const url = this.buildSearchUrl(filters);
+    return fetchWithRetry(url);
   }
 }
