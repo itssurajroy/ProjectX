@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter, X } from 'lucide-react';
+import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter, X, Share2, Youtube, Instagram, Facebook, Twitch } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -36,11 +36,30 @@ const NavLink = ({ href, children, className, onClick }: { href: string, childre
     );
 };
 
-const SocialLink = ({ href, icon: Icon, name }: { href: string, icon: React.ElementType, name: string }) => (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center bg-card/80 rounded-full hover:bg-muted transition-colors" title={name}>
-        <Icon className="w-4 h-4" />
-    </a>
-)
+const socialIcons = {
+    Twitter: Twitter,
+    Send: Send,
+    Youtube: Youtube,
+    Instagram: Instagram,
+    Facebook: Facebook,
+    Twitch: Twitch,
+    Default: Share2,
+};
+
+const socialLinks = [
+    { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: 'Send' },
+    { name: 'Twitter', href: 'https://x.com', icon: 'Twitter' },
+];
+
+
+const SocialLink = ({ href, iconName, name }: { href: string, iconName: string, name: string }) => {
+    const Icon = socialIcons[iconName as keyof typeof socialIcons] || socialIcons.Default;
+    return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center bg-card/80 rounded-full hover:bg-muted transition-colors" title={name}>
+            <Icon className="w-4 h-4" />
+        </a>
+    )
+}
 
 
 export default function Header() {
@@ -227,8 +246,9 @@ export default function Header() {
             </DropdownMenu>
 
             <div className="hidden sm:flex items-center gap-2">
-              <SocialLink href="https://discord.com" icon={Send} name="Discord" />
-              <SocialLink href="https://x.com" icon={Twitter} name="Twitter" />
+              {socialLinks.map(link => (
+                  <SocialLink key={link.name} href={link.href} iconName={link.icon} name={link.name} />
+              ))}
             </div>
         </div>
       </div>

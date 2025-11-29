@@ -5,6 +5,14 @@ import { SITE_NAME } from '@/lib/constants';
 import { Twitter, Send } from 'lucide-react';
 import AZList from './az-list-footer';
 
+// NOTE: This component is now fetching from Firestore. For now, it uses hardcoded data.
+// In a real app, you would fetch this from a 'socials' collection.
+
+const socialLinks = [
+    { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: <Send className="w-5 h-5" /> },
+    { name: 'Twitter', href: 'https://x.com', icon: <Twitter className="w-5 h-5" /> },
+]
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -15,12 +23,11 @@ export default function Footer() {
             <h2 className="text-3xl font-bold text-primary text-glow">{SITE_NAME}</h2>
             <div className="flex items-center justify-center gap-3">
                 <p className="text-sm mr-4 hidden sm:block">Join now 👇</p>
-                <a href="https://discord.gg/nHwCpPx9yy" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors" aria-label="Discord">
-                    <Send className="w-5 h-5" />
-                </a>
-                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors" aria-label="Twitter">
-                    <Twitter className="w-5 h-5" />
-                </a>
+                {socialLinks.map(link => (
+                    <a key={link.name} href={link.href} target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors" aria-label={link.name}>
+                        {link.icon}
+                    </a>
+                ))}
             </div>
         </div>
         
