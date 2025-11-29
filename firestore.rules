@@ -29,8 +29,11 @@ service cloud.firestore {
       allow read, write: if isOwner(userId) || isAdmin();
       allow list: if isAdmin();
 
-      // User-specific subcollections
-      match /{subcollection}/{docId} {
+      // User-specific subcollections for bookmarks and history
+      match /bookmarks/{bookmarkId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /history/{historyId} {
         allow read, write: if isOwner(userId);
       }
     }
