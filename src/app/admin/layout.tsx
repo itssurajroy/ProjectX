@@ -30,7 +30,6 @@ import {
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useUser } from '@/firebase';
 
 const adminNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -48,7 +47,6 @@ const adminNavItems = [
 
 function AdminSidebar() {
   const pathname = usePathname();
-  const { user } = useUser();
 
   return (
     <Sidebar>
@@ -87,12 +85,12 @@ function AdminSidebar() {
       <SidebarHeader className="border-t">
         <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9">
-                <AvatarImage src={user?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
+                <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=admin`} />
                 <AvatarFallback>A</AvatarFallback>
             </Avatar>
             <div className="flex flex-col">
-                <span className="text-sm font-semibold">{user?.displayName || "Admin User"}</span>
-                <span className="text-xs text-muted-foreground">{user?.email}</span>
+                <span className="text-sm font-semibold">Admin User</span>
+                <span className="text-xs text-muted-foreground">admin@example.com</span>
             </div>
         </div>
       </SidebarHeader>

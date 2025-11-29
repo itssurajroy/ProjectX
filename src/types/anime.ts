@@ -1,5 +1,4 @@
 
-
 export interface AnimeBase {
     id: string;
     name: string;
@@ -133,15 +132,7 @@ export interface EpisodeServer {
 }
 
 export interface EpisodeSourcesResponse {
-    headers: { [key: string]: string };
-    sources: {
-        url: string;
-        isM3U8: boolean;
-        quality?: string;
-    }[];
-    subtitles: { lang: string; url: string; default?: boolean }[];
-    anilistID: number | null;
-    malID: number | null;
+    url: string;
 }
 
 export interface ScheduleResponse {
@@ -185,4 +176,3 @@ export interface QtipAnime {
   status: string;
   genres: string[];
 }
-    

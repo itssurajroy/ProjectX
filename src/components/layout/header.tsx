@@ -1,6 +1,5 @@
 
 'use client';
-import { useAuth } from '@/firebase';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter, X } from 'lucide-react';
@@ -10,8 +9,6 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import { HomeData, SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { useUser } from '@/firebase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,34 +44,12 @@ const SocialLink = ({ href, icon: Icon, name }: { href: string, icon: React.Elem
 
 
 export default function Header() {
-  const auth = useAuth();
-  const { user, isUserLoading } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
   
-  const handleSignIn = async () => {
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Error signing in with Google", error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    if (!auth) return;
-    await signOut(auth);
-  };
-
   const { data: suggestionsResult } = useQuery<{data: SearchSuggestionResponse} | { success: false; error: string }>({
       queryKey: ['searchSuggestions', searchQuery],
       queryFn: () => AnimeService.getSearchSuggestions(searchQuery),
@@ -255,43 +230,8 @@ export default function Header() {
               <SocialLink href="https://discord.com" icon={Send} name="Discord" />
               <SocialLink href="https://x.com" icon={Twitter} name="Twitter" />
             </div>
-
-            {isClient && (
-                  <>
-                      {isUserLoading ? (
-                        <Skeleton className="w-9 h-9 rounded-full" />
-                      ) : user && !user.isAnonymous ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="w-9 h-9 rounded-full overflow-hidden border-2 border-transparent hover:border-primary">
-                                    <Image src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt="User Avatar" width={36} height={36} />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                               <DropdownMenuLabel>
-                                 <p className="font-semibold text-sm truncate">{user.displayName}</p>
-                                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                               </DropdownMenuLabel>
-                               <DropdownMenuSeparator />
-                               <DropdownMenuItem asChild><Link href="/profile" className='cursor-pointer'><User className="mr-2 h-4 w-4"/>Profile</Link></DropdownMenuItem>
-                               <DropdownMenuItem asChild><Link href="/watchlist" className='cursor-pointer'><Book className="mr-2 h-4 w-4"/>Watchlist</Link></DropdownMenuItem>
-                               <DropdownMenuItem onSelect={handleSignOut} className="text-destructive cursor-pointer">
-                                 <LogOut className="mr-2 h-4 w-4" /> Sign Out
-                               </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-
-                      ) : (
-                         <button onClick={handleSignIn} className="hidden sm:flex items-center gap-2 p-2 px-3 bg-card/80 rounded-lg font-semibold text-sm hover:bg-muted transition-colors">
-                            <User className="w-4 h-4 text-primary" /> Sign In
-                        </button>
-                      )}
-                  </>
-              )}
         </div>
       </div>
     </header>
   );
 }
-
-    

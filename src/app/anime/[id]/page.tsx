@@ -1,22 +1,14 @@
+
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users, ChevronDown, Check, Trash2 } from 'lucide-react';
+import { Play, Clapperboard, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { doc, setDoc, deleteDoc, getDoc, DocumentData, serverTimestamp } from 'firebase/firestore';
-import { useUser, useFirestore } from '@/firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { AnimeCard } from '@/components/AnimeCard';
-import { cn } from '@/lib/utils';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useParams } from 'next/navigation';
-
-type WatchlistStatus = 'Watching' | 'Plan to Watch' | 'Completed' | 'On-Hold';
 
 const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
     <Link href={`/anime/${anime.id}`} passHref>
@@ -66,18 +58,6 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 
 
 function AnimeDetailsPageClient({ id }: { id: string }) {
-  const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
-  const [watchlistStatus, setWatchlistStatus] = useState<WatchlistStatus | null>(null);
-  const [isClient, setIsClient] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
-  const watchlistOptions: WatchlistStatus[] = ['Watching', 'Plan to Watch', 'Completed', 'On-Hold'];
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   const {
     data: apiResponse,
     isLoading: isLoadingAnime,
@@ -104,23 +84,8 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
   });
 
   const episodes = episodesResult && !('success' in episodesResult) ? episodesResult.data?.episodes : [];
-
-  useEffect(() => {
-    if (user && !user.isAnonymous && animeInfo && firestore) {
-      const docRef = doc(firestore, 'users', user.uid, 'bookmarks', animeInfo.id);
-      getDoc(docRef).then(docSnap => {
-        if (docSnap.exists()) {
-          setWatchlistStatus(docSnap.data()?.status || 'Watching');
-        } else {
-          setWatchlistStatus(null);
-        }
-      });
-    } else {
-        setWatchlistStatus(null);
-    }
-  }, [user, animeInfo, firestore]);
   
-  const isLoading = isLoadingAnime || isUserLoading;
+  const isLoading = isLoadingAnime;
 
   if (isLoading) return (
     <div className="flex justify-center items-center h-screen">
@@ -131,52 +96,7 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
   if (!animeInfo || !moreInfo) return <ErrorDisplay title="Anime Not Found" description="The details for this anime could not be found." />;
 
   
-  const handleWatchlistChange = async (newStatus: WatchlistStatus | null) => {
-    if (!user || !animeInfo || !firestore || user.isAnonymous) return;
-    const docRef = doc(firestore, 'users', user.uid, 'bookmarks', animeInfo.id);
-    setIsDropdownOpen(false);
-
-    if (newStatus === null) {
-      // Remove from watchlist
-      deleteDoc(docRef)
-        .then(() => setWatchlistStatus(null))
-        .catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'delete',
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-    } else {
-      // Add or update watchlist
-      const watchlistData: DocumentData = {
-        id: animeInfo.id,
-        name: animeInfo.name,
-        poster: animeInfo.poster,
-        type: animeInfo.stats.type,
-        status: newStatus,
-        updatedAt: serverTimestamp(),
-      };
-      // Add bookmarkedAt only when first adding
-      if (!watchlistStatus) {
-        watchlistData.bookmarkedAt = serverTimestamp();
-      }
-
-      setDoc(docRef, watchlistData, { merge: true })
-        .then(() => setWatchlistStatus(newStatus))
-        .catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: watchlistStatus ? 'update' : 'create',
-            requestResourceData: watchlistData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-        });
-    }
-  };
-  
   const firstEpisodeId = episodes && episodes.length > 0 && episodes[0]?.episodeId ? episodes[0].episodeId : null;
-
 
   const stats = animeInfo.stats;
   
@@ -234,46 +154,6 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
                   <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeId}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/20">
                     <Play /> Watch Now
                   </Link>
-                )}
-                 {isClient && user && !user.isAnonymous && (
-                    <div className="relative">
-                        <button 
-                            onClick={() => user && setIsDropdownOpen(!isDropdownOpen)} 
-                            disabled={!user} 
-                            className="flex items-center justify-center gap-2 bg-card/50 backdrop-blur-sm text-card-foreground px-6 py-3 rounded-lg font-semibold hover:bg-card/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-border w-full sm:w-auto"
-                        >
-                           {watchlistStatus ? <><Check className="text-primary"/> {watchlistStatus}</> : <>+ Add to List</>}
-                           <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-                        {isDropdownOpen && (
-                            <div 
-                                onMouseLeave={() => setIsDropdownOpen(false)}
-                                className="absolute top-full mt-2 w-48 bg-card rounded-lg shadow-xl py-1 z-20 border border-border animate-in fade-in-0 zoom-in-95"
-                            >
-                                {watchlistOptions.map(status => (
-                                    <button 
-                                        key={status}
-                                        onClick={() => handleWatchlistChange(status)} 
-                                        className={cn("w-full text-left px-4 py-2 text-sm flex items-center justify-between", watchlistStatus === status ? 'bg-primary/20 text-primary' : 'hover:bg-muted/50')}
-                                    >
-                                        {status}
-                                        {watchlistStatus === status && <Check className="w-4 h-4" />}
-                                    </button>
-                                ))}
-                                {watchlistStatus && (
-                                  <>
-                                    <div className="h-px bg-border my-1" />
-                                    <button 
-                                        onClick={() => handleWatchlistChange(null)}
-                                        className="w-full text-left px-4 py-2 text-sm text-destructive flex items-center gap-2 hover:bg-destructive/10"
-                                    >
-                                      <Trash2 className="w-4 h-4" /> Remove
-                                    </button>
-                                  </>
-                                )}
-                            </div>
-                        )}
-                    </div>
                 )}
               </div>
               
@@ -355,4 +235,3 @@ export default function AnimeDetailsPage({ params }: { params: { id: string } })
   const { id } = params;
   return <AnimeDetailsPageClient id={id} />;
 }
- 

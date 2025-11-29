@@ -1,9 +1,7 @@
 
-
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 
 const HIANIME_API_BASE = "/api/proxy"
-const CORS_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
 
 // Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
 export const extractEpisodeNumber = (episodeId: string): string => {
@@ -35,7 +33,7 @@ async function fetchWithRetry(url: string, retries = 3): Promise<any> {
       }
 
       const data = await response.json();
-      return data; // Raw response is returned now
+      return data;
     } catch (error: any) {
       if (i === retries - 1) {
         console.error(`[AnimeService] Final fail after ${retries} retries:`, url, error);
@@ -56,7 +54,7 @@ export class AnimeService {
   static async getAnimeAbout(id: string) {
     const response = await fetchWithRetry(`${HIANIME_API_BASE}/anime/${id}`);
     if (response.success) {
-      return { success: true, data: response.data }; // Correctly wrap the response
+      return { data: response.data };
     }
     return response;
   }
@@ -90,28 +88,14 @@ export class AnimeService {
     return fetchWithRetry(`${HIANIME_API_BASE}/az-list/${sortOption}?page=${page}`);
   }
 
-  // Episode Streaming Links (WITH CORS PROXY!)
-  static async getEpisodeSources(animeEpisodeId: string, server = "hd-1", category: "sub" | "dub" | "raw" = "sub") {
-    const data = await fetchWithRetry(
-      `${HIANIME_API_BASE}/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`
-    );
-
-    if (!data.success || !data.data) return data;
-
-    // Auto-proxy all m3u8 and subtitle links
+  // Episode Streaming Links
+  static async getEpisodeSources(animeEpisodeId: string, category: "sub" | "dub" | "raw" = "sub") {
+    const epId = animeEpisodeId.split('?ep=')[1];
     return {
-      ...data,
+      success: true,
       data: {
-        ...data.data,
-        sources: data.data.sources.map((source: any) => ({
-          ...source,
-          url: source.url // No proxy for now, handled by backend proxy
-        })),
-        subtitles: data.data.subtitles?.map((sub: any) => ({
-          ...sub,
-          url: sub.url // No proxy for now
-        })) || [],
-      },
+        url: `https://megaplay.buzz/stream/s-2/${epId}/${category}`
+      }
     };
   }
 

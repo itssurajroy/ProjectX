@@ -1,8 +1,8 @@
+
 'use client';
 import { AnimeInfo, AnimeBase } from "@/types/anime";
 import Image from "next/image";
 import Link from "next/link";
-import PollsSection from "./PollsSection";
 import { Button } from "../ui/button";
 
 interface WatchSidebarProps {
@@ -29,8 +29,6 @@ export default function WatchSidebar({ animeInfo, animeId, episodeId, mostPopula
                     <Link href={`/anime/${animeId}`}>View Details</Link>
                 </Button>
             </div>
-            
-            <PollsSection animeId={animeId} episodeId={episodeId} />
 
             {mostPopular && mostPopular.length > 0 && (
                 <div className="bg-card rounded-lg border border-border/50 p-4">

@@ -5,12 +5,10 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "./providers";
 import Navbar from "@/components/layout/header";
-import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
 import { Toaster } from "react-hot-toast";
 import Splash from "@/components/Splash";
 import { Balancer as BalancerProvider } from 'react-wrap-balancer'
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
-import { FirebaseClientProvider } from "@/firebase";
 import Footer from "@/components/layout/footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import BackToTopButton from "@/components/common/BackToTopButton";
@@ -47,28 +45,26 @@ export default function RootLayout({
          <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
        </head>
       <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
-        <FirebaseClientProvider>
-            <Providers>
-            <BalancerProvider>
-              <Splash />
-              <ShadToaster />
-              <Toaster position="bottom-center" toastOptions={{
-                style: {
-                  background: '#333',
-                  color: '#fff',
-                }
-              }}/>
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-grow pb-16 md:pb-0">{children}</main>
-                <Footer />
-              </div>
-              <MobileBottomNav />
-              <BackToTopButton />
-              <FloatingDiscordButton />
-              </BalancerProvider>
-            </Providers>
-        </FirebaseClientProvider>
+        <Providers>
+        <BalancerProvider>
+          <Splash />
+          <ShadToaster />
+          <Toaster position="bottom-center" toastOptions={{
+            style: {
+              background: '#333',
+              color: '#fff',
+            }
+          }}/>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-grow pb-16 md:pb-0">{children}</main>
+            <Footer />
+          </div>
+          <MobileBottomNav />
+          <BackToTopButton />
+          <FloatingDiscordButton />
+          </BalancerProvider>
+        </Providers>
       </body>
     </html>
   );
