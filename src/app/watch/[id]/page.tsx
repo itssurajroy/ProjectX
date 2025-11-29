@@ -3,7 +3,7 @@
 import { useEffect, useMemo, Suspense, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Menu } from 'lucide-react';
 import { AnimeService, extractEpisodeNumber } from '@/lib/AnimeService';
 import EpisodeList from '@/components/watch/episode-list';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
@@ -18,12 +18,11 @@ import ServerToggle from '@/components/watch/ServerToggle';
 import LanguageToggle from '@/components/watch/LanguageToggle';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Breadcrumb from '@/components/common/Breadcrumb';
-import WatchSidebar from '@/components/watch/WatchSidebar';
 import { AnimeCard } from '@/components/AnimeCard';
 import { sanitizeFirestoreId } from '@/lib/utils';
-import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import WatchSidebar from '@/components/watch/WatchSidebar';
 
 function WatchPageComponent() {
   const params = useParams();
@@ -53,6 +52,7 @@ function WatchPageComponent() {
   const episodes: AnimeEpisode[] = useMemo(() => episodesResponse && 'data' in episodesResponse ? episodesResponse.data.episodes : [], [episodesResponse]);
   const about = useMemo(() => aboutResponse && 'data' in aboutResponse ? aboutResponse.data.anime : null, [aboutResponse]);
   const recommendedAnimes = useMemo(() => aboutResponse && 'data' in aboutResponse ? aboutResponse.data.recommendedAnimes : [], [aboutResponse]);
+  const mostPopularAnimes = useMemo(() => aboutResponse && 'data' in aboutResponse ? aboutResponse.data.mostPopularAnimes : [], [aboutResponse]);
   
   const currentEpisode = useMemo(() => {
     if (!episodes || episodes.length === 0) return null;
@@ -227,7 +227,14 @@ function WatchPageComponent() {
                   </div>
                 </div>
 
-                <CommentsSection animeId={animeId} episodeId={currentEpisode?.episodeId || ''} />
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                  <div className="xl:col-span-8 space-y-6">
+                    <CommentsSection animeId={animeId} episodeId={currentEpisode?.episodeId || ''} />
+                  </div>
+                  <div className="xl:col-span-4">
+                    {about && <WatchSidebar animeInfo={about.info} animeId={animeId} episodeId={currentEpisode?.episodeId || null} mostPopular={mostPopularAnimes}/>}
+                  </div>
+                </div>
             </div>
         </div>
 

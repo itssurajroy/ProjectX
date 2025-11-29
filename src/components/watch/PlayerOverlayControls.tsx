@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack, Lightbulb } from "lucide-react";
+import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack, Lightbulb, MessageSquare } from "lucide-react";
 
 interface PlayerOverlayControlsProps {
     onPrev: () => void;
@@ -13,11 +12,14 @@ interface PlayerOverlayControlsProps {
 
 export default function PlayerOverlayControls({ onPrev, onNext, isPrevDisabled, isNextDisabled }: PlayerOverlayControlsProps) {
   const controls = [
+    { icon: Bookmark, label: "Bookmark" },
     { icon: Expand, label: "Expand" },
     { icon: Lightbulb, label: "Light On" },
     { icon: Play, label: "Auto Play On" },
     { icon: MonitorPlay, label: "Auto Next On" },
     { icon: SkipForward, label: "Auto Skip Intro On" },
+    { icon: MessageSquare, label: "Comments" },
+    { icon: Flag, label: "Report" },
   ];
 
   return (
