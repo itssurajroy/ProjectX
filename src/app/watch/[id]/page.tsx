@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Star, Share2, Bookmark, Lightbulb, Expand, SkipForward, SkipBack, Volume2, Settings, AlertCircle, Home, Tv, Play, Video, Users, Focus, Heart, Flag, Clapperboard, MonitorPlay, Film, Clock, Search, List, Captions, Mic, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Share2, Bookmark, Lightbulb, Expand, SkipForward, SkipBack, Volume2, Settings, AlertCircle, Home, Tv, Play, Video, Users, Focus, Heart, Flag, Clapperboard, MonitorPlay, Film, Clock, Search, List, Captions, Mic, X, Loader2 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInSeconds } from 'date-fns';
 import toast from 'react-hot-toast';
 import { cn, extractEpisodeId, sanitizeFirestoreId } from '@/lib/utils';
@@ -144,6 +144,10 @@ function WatchPageComponent() {
     if (newIndex < 0 || newIndex >= episodes.length) return;
     const nextEpId = extractEpisodeId(episodes[newIndex].episodeId) || episodes[newIndex].number;
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
+  };
+  
+  const handleNextEpisode = () => {
+    navigateEpisode('next');
   };
 
   const iframeSrc = `https://megaplay.buzz/stream/s-2/${currentEpisode?.episodeId}`;
@@ -317,6 +321,7 @@ function WatchPageComponent() {
                 />
             </div>
         </div>
+        <CommentsSection animeId={animeId} episodeId={currentEpisode?.episodeId} />
     </main>
   );
 }
