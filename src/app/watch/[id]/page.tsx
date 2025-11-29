@@ -33,7 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetHeader } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 function WatchPageComponent() {
