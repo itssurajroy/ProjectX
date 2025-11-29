@@ -20,6 +20,13 @@ service cloud.firestore {
     match /skiptimes/{episodeId} {
       allow read: if true;
     }
+    
+    // Comments: Publicly readable, but writing is restricted.
+    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
+      allow read: if true;
+      allow create: if false; // Change to `if request.auth != null;` when auth is re-enabled
+      allow update, delete: if false;
+    }
 
     // ╔══════════════════════════════════════════════════════════╗
     // ║                  POLLS + VOTES (WILDCARD FIX)            ║
