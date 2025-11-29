@@ -10,7 +10,7 @@ import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse, EpisodeSourcesResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import CommentsSection from '@/components/watch/comments';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
@@ -21,6 +21,9 @@ import Breadcrumb from '@/components/common/Breadcrumb';
 import WatchSidebar from '@/components/watch/WatchSidebar';
 import { AnimeCard } from '@/components/AnimeCard';
 import { sanitizeFirestoreId } from '@/lib/utils';
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Menu } from 'lucide-react';
 
 function WatchPageComponent() {
   const params = useParams();
@@ -126,7 +129,7 @@ function WatchPageComponent() {
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
   };
 
-  const iframeSrc = sourcesResponse && 'data' in sourcesResponse ? sourcesResponse.sources[0]?.url : undefined;
+  const iframeSrc = sourcesResponse && 'data' in sourcesResponse ? sourcesResponse.data.sources[0]?.url : undefined;
   
   if (isLoadingAbout || isLoadingEpisodes) {
      return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
@@ -158,7 +161,28 @@ function WatchPageComponent() {
         ]} />
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-3">
+            <div className="lg:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="w-full">
+                    <Menu className="w-4 h-4 mr-2" /> Show Episode List
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="p-0">
+                  <SheetHeader className="p-3 border-b">
+                     <h2 className="text-lg font-bold">Episodes</h2>
+                  </SheetHeader>
+                  <SheetClose asChild>
+                    <EpisodeList 
+                        episodes={episodes} 
+                        currentEpisodeId={currentEpisode?.number.toString() || null} 
+                        onEpisodeSelect={(ep) => router.push(`/watch/${animeId}?ep=${extractEpisodeNumber(ep.episodeId) || ep.number}`)}
+                    />
+                  </SheetClose>
+                </SheetContent>
+              </Sheet>
+            </div>
+            <div className="hidden lg:block lg:col-span-3">
                  <EpisodeList 
                     episodes={episodes} 
                     currentEpisodeId={currentEpisode?.number.toString() || null} 
