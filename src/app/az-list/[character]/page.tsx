@@ -10,6 +10,8 @@ import { AnimeCard } from '@/components/AnimeCard';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { HomeData, SearchResult } from '@/types/anime';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const AdvancedFilter = () => {
@@ -101,7 +103,7 @@ const AdvancedFilter = () => {
                     {statuses.map(s => <option key={s}>{s}</option>)}
                 </select>
                  <select className="bg-muted rounded-md px-3 py-2.5 border-none focus:ring-2 focus:ring-primary focus:outline-none text-sm xl:col-span-2">
-                    {sortOptions.map(s => <option key={s.value}>{s.label}</option>)}
+                    {sortOptions.map(s => <option key={s}>{s}</option>)}
                 </select>
 
                 <button className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-semibold hover:bg-primary/80 transition-colors flex items-center justify-center gap-2 xl:col-span-1">
@@ -146,6 +148,18 @@ const AZNav = ({ activeChar }: { activeChar: string }) => {
     )
 }
 
+const LoadingSkeleton = () => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+        {Array.from({ length: 12 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+                <Skeleton className="aspect-[2/3] w-full" />
+                <Skeleton className="h-4 w-4/5" />
+            </div>
+        ))}
+    </div>
+);
+
+
 function AZListPageComponent({ params }: { params: { character: string } }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -155,7 +169,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
   const sortOption = decodeURIComponent(params.character);
   const displayCharacter = sortOption === 'all' ? 'All' : sortOption === 'other' ? '#' : sortOption.toUpperCase();
 
-  const { data: azResult, isLoading, error } = useQuery<{data: SearchResult}>({
+  const { data: azResult, isLoading, error, refetch } = useQuery<{data: SearchResult}>({
     queryKey: ['az-list', sortOption, page],
     queryFn: () => AnimeService.getAZList(sortOption, page),
   });
@@ -195,35 +209,39 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
     )
   }
 
-  if (isLoading) return <div className="flex justify-center items-center h-96"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div></div>;
-  if (error) return <p className="text-center p-8">Error loading results: {(error as Error).message}</p>;
+  const renderContent = () => {
+    if (isLoading) return <LoadingSkeleton />;
+    if (error) return <ErrorDisplay title="Failed to load anime list" description={(error as Error).message} onRetry={refetch} />;
+    
+    const azData = azResult?.data;
+    if (!azData || !azData.animes || azData.animes.length === 0) {
+        return <p className="text-center text-muted-foreground mt-16">No anime found for this filter.</p>;
+    }
   
-  const azData = azResult?.data;
-  if (!azData) return <p className="text-center p-8">Could not load results.</p>;
+    const { animes, currentPage, totalPages, hasNextPage } = azData;
+    
+    return (
+      <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+          {animes.map((anime: any) => (
+              <AnimeCard key={anime.id} anime={anime} />
+          ))}
+          </div>
+          <Pagination currentPage={currentPage} totalPages={totalPages} hasNextPage={hasNextPage} />
+      </>
+    );
+  }
 
-  const { animes, currentPage, totalPages, hasNextPage } = azData;
   
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8 pt-24 min-h-[60vh]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">AZ-LIST</h1>
-        <p className="text-sm text-muted-foreground">{azData.totalAnimes?.toLocaleString() || '...'} anime</p>
+        <p className="text-sm text-muted-foreground">{azResult?.data?.totalAnimes?.toLocaleString() || '...'} anime</p>
       </div>
       <AdvancedFilter />
       <AZNav activeChar={displayCharacter} />
-      
-      {animes && animes.length > 0 ? (
-        <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
-            {animes.map((anime: any) => (
-                <AnimeCard key={anime.id} anime={anime} />
-            ))}
-            </div>
-            <Pagination currentPage={currentPage} totalPages={totalPages} hasNextPage={hasNextPage} />
-        </>
-      ) : (
-        !isLoading && <p className="text-center text-muted-foreground mt-16">No anime found for this filter.</p>
-      )}
+      {renderContent()}
     </div>
   );
 }

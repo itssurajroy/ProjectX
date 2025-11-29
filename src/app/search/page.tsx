@@ -12,6 +12,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
+import ErrorDisplay from "@/components/common/ErrorDisplay";
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ function SearchPageContent() {
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery] = useDebounce(query, 500);
 
-  const { data: searchResult, isLoading } = useQuery({
+  const { data: searchResult, isLoading, error, refetch } = useQuery({
       queryKey: ['search', debouncedQuery],
       queryFn: () => AnimeService.searchAnime(debouncedQuery),
       enabled: !!debouncedQuery,
@@ -38,7 +39,38 @@ function SearchPageContent() {
     router.replace(`${window.location.pathname}?${params.toString()}`);
   }
 
-  const filteredMedia = searchResult && 'animes' in searchResult ? searchResult.animes : [];
+  const renderContent = () => {
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center py-16">
+                <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return <ErrorDisplay onRetry={refetch} description="Could not perform search. Please try again."/>
+    }
+
+    const filteredMedia = searchResult && 'animes' in searchResult ? searchResult.animes : [];
+
+    if (filteredMedia.length > 0) {
+        return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+                {filteredMedia.map((item) => (
+                    <AnimeCard key={item.id} anime={item} />
+                ))}
+            </div>
+        );
+    }
+    
+    return (
+        <div className="text-center py-16">
+            <h3 className="text-xl font-semibold">{debouncedQuery ? 'No results found' : 'Start typing to search'}</h3>
+            <p className="text-muted-foreground">Try adjusting your search or filters.</p>
+        </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
@@ -80,22 +112,7 @@ function SearchPageContent() {
 
       <div>
         <h2 className="text-2xl font-bold mb-4">{debouncedQuery ? `Results for "${debouncedQuery}"` : 'Search for shows'}</h2>
-        {isLoading ? (
-            <div className="flex justify-center items-center py-16">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-            </div>
-        ) : filteredMedia.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
-            {filteredMedia.map((item) => (
-              <AnimeCard key={item.id} anime={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <h3 className="text-xl font-semibold">{debouncedQuery ? 'No results found' : 'Start typing to search'}</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filters.</p>
-          </div>
-        )}
+        {renderContent()}
       </div>
     </div>
   );

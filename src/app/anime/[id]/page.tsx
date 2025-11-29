@@ -10,12 +10,13 @@ import { Bookmark, Play, Loader2, AlertCircle, Star, Tv, Clapperboard, Calendar 
 import { Badge } from '@/components/ui/badge';
 import { AnimeCard } from '@/components/AnimeCard';
 import { AnimeAboutResponse } from '@/types/anime';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
 
 function AnimeDetailPageContent() {
     const params = useParams();
     const animeId = params.id as string;
 
-    const { data: aboutResponse, isLoading, error } = useQuery<{data: AnimeAboutResponse} | { success: false, error: string }>({
+    const { data: aboutResponse, isLoading, error, refetch } = useQuery<{data: AnimeAboutResponse} | { success: false, error: string }>({
         queryKey: ['anime', animeId],
         queryFn: () => AnimeService.getAnimeAbout(animeId),
         enabled: !!animeId,
@@ -27,16 +28,11 @@ function AnimeDetailPageContent() {
 
     if (error || !aboutResponse || (aboutResponse && 'success' in aboutResponse && !aboutResponse.success) || !aboutResponse.data) {
         return (
-            <div className="flex flex-col justify-center items-center h-screen text-center px-4">
-                <AlertCircle className="w-16 h-16 text-destructive mb-4" />
-                <h1 className="text-2xl font-bold">Content Not Available</h1>
-                <p className="text-muted-foreground max-w-md mt-2">
-                    We couldn't load the details for this anime. It might not exist or there was a network issue.
-                </p>
-                <Link href="/home" className="mt-6 bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold">
-                    Back to Home
-                </Link>
-            </div>
+            <ErrorDisplay 
+                title="Failed to Load Anime Details"
+                description="There was an error fetching the details for this anime. Please try again."
+                onRetry={refetch}
+            />
         );
     }
     
