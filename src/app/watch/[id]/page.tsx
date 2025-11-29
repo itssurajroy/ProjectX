@@ -9,9 +9,7 @@ import { format, formatDistanceToNow, differenceInSeconds } from 'date-fns';
 import toast from 'react-hot-toast';
 import { cn, extractEpisodeId, sanitizeFirestoreId } from '@/lib/utils';
 import { AnimeService } from '@/lib/AnimeService';
-import AdvancedMegaPlayPlayer from '@/components/player/AdvancedMegaPlayPlayer';
 import EpisodeList from '@/components/watch/episode-list';
-import CommentsSection from '@/components/watch/comments';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +19,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
+import CommentsSection from '@/components/watch/comments';
+import PollsSection from '@/components/watch/PollsSection';
 import {
   Tooltip,
   TooltipContent,
@@ -145,10 +145,6 @@ function WatchPageComponent() {
     const nextEpId = extractEpisodeId(episodes[newIndex].episodeId) || episodes[newIndex].number;
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
   };
-  
-  const handleNextEpisode = () => {
-    navigateEpisode('next');
-  };
 
   const iframeSrc = `https://megaplay.buzz/stream/s-2/${currentEpisode?.episodeId}`;
   
@@ -233,18 +229,16 @@ function WatchPageComponent() {
                     <span className="text-foreground font-medium truncate">{about.info.name}</span>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4 aspect-video w-full rounded-lg overflow-hidden bg-black">
                    {currentEpisode ? (
-                        <AdvancedMegaPlayPlayer
-                          key={iframeSrc}
-                          iframeSrc={iframeSrc}
-                          server="MegaPlay"
-                          title={currentEpisode.title}
-                          episode={String(currentEpisode.number)}
-                          onNextEpisode={handleNextEpisode}
-                        />
+                        <iframe
+                            key={iframeSrc}
+                            src={iframeSrc}
+                            allowFullScreen
+                            className="w-full h-full"
+                        ></iframe>
                     ) : (
-                        <div className="aspect-video w-full rounded-lg overflow-hidden bg-black flex justify-center items-center h-full">
+                        <div className="flex justify-center items-center h-full">
                             <Loader2 className="animate-spin text-primary w-12 h-12" />
                         </div>
                     )}
@@ -261,10 +255,12 @@ function WatchPageComponent() {
                     </div>
                      <div className="flex items-center gap-1 flex-wrap">
                          {[
-                            {icon: SkipBack, label: "Prev"}, {icon: SkipForward, label: "Next"}, {icon: Heart, label: "Bookmark"},
+                            {icon: SkipBack, label: "Prev", action: () => navigateEpisode('prev'), disabled: !episodes.length || (episodes.findIndex(e=>e.episodeId === currentEpisode?.episodeId) <= 0)}, 
+                            {icon: SkipForward, label: "Next", action: () => navigateEpisode('next'), disabled: !episodes.length || (episodes.findIndex(e=>e.episodeId === currentEpisode?.episodeId) >= episodes.length - 1)}, 
+                            {icon: Heart, label: "Bookmark"},
                             {icon: Users, label: "W2G"}, {icon: Flag, label: "Report"},
                         ].map(item => (
-                            <Button key={item.label} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5"><item.icon className="w-4 h-4 mr-1"/> {item.label}</Button>
+                            <Button key={item.label} onClick={item.action} disabled={item.disabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5"><item.icon className="w-4 h-4 mr-1"/> {item.label}</Button>
                         ))}
                     </div>
                 </div>
@@ -293,6 +289,8 @@ function WatchPageComponent() {
                     </div>
                 )}
                 
+                <PollsSection animeId={animeId} episodeId={episodeParam} />
+                
                 {seasons && seasons.length > 1 && (
                     <div className='mt-4'>
                         <h3 className='font-bold text-lg mb-2'>Seasons</h3>
@@ -310,7 +308,7 @@ function WatchPageComponent() {
                         </div>
                     </div>
                 )}
-
+                <CommentsSection animeId={animeId} episodeId={episodeParam || ''} />
             </div>
 
             <div className="lg:col-span-3">
@@ -321,7 +319,6 @@ function WatchPageComponent() {
                 />
             </div>
         </div>
-        <CommentsSection animeId={animeId} episodeId={currentEpisode?.episodeId} />
     </main>
   );
 }

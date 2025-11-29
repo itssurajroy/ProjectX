@@ -1,13 +1,11 @@
 'use client';
-
-import { cn, extractEpisodeId } from '@/lib/utils';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { AnimeEpisode } from '@/types/anime';
-import { ScrollArea } from '../ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { Button } from '../ui/button';
-import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, List, Mic, Captions, Search } from 'lucide-react';
-import { Input } from '../ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface EpisodeListProps {
   episodes: AnimeEpisode[];
@@ -15,99 +13,60 @@ interface EpisodeListProps {
   onEpisodeSelect: (episode: AnimeEpisode) => void;
 }
 
-export default function EpisodeList({
-  episodes,
-  currentEpisodeId,
-  onEpisodeSelect
-}: EpisodeListProps) {
-  
-  const episodesPerPage = 100;
-  const totalPages = Math.ceil(episodes.length / episodesPerPage);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [filterType, setFilterType] = useState('all');
+export default function EpisodeList({ episodes, currentEpisodeId, onEpisodeSelect }: EpisodeListProps) {
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<'asc' | 'desc'>('asc');
 
-  const activeEpisodeRef = useRef<HTMLButtonElement>(null);
-
-  const getEpisodeRange = (page: number) => {
-    const start = page * episodesPerPage + 1;
-    const end = Math.min((page + 1) * episodesPerPage, episodes.length);
-    return `${String(start).padStart(3, '0')}-${String(end).padStart(3, '0')}`;
+  if (!episodes || episodes.length === 0) {
+    return (
+      <div className="bg-card rounded-lg p-4 border border-border/50 h-full">
+        <h2 className="text-lg font-bold mb-4">Episodes</h2>
+        <div className="flex items-center justify-center h-48">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
   }
 
-  // Find the page that the current episode is on
-  useEffect(() => {
-    const currentIndex = episodes.findIndex(e => String(e.number) === currentEpisodeId);
-    if (currentIndex !== -1) {
-      setCurrentPage(Math.floor(currentIndex / episodesPerPage));
-    }
-  }, [currentEpisodeId, episodes, episodesPerPage]);
-  
-  useEffect(() => {
-    if (activeEpisodeRef.current) {
-      activeEpisodeRef.current.scrollIntoView({ block: 'nearest' });
-    }
-  }, [currentEpisodeId, currentPage]);
-
-  const displayedEpisodes = episodes.slice(currentPage * episodesPerPage, (currentPage + 1) * episodesPerPage);
+  const filteredEpisodes = episodes
+    .filter(ep => ep.number.toString().includes(search))
+    .sort((a, b) => (sort === 'asc' ? a.number - b.number : b.number - a.number));
 
   return (
-    <div className="space-y-3 bg-card border border-border/50 rounded-lg p-3 sticky top-20">
-        <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">Episodes</h2>
-            <div className="flex items-center gap-1">
-                 <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:bg-muted/50 hover:text-primary" title="Find Episode">
-                    <Search className='w-4 h-4'/>
-                </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:bg-muted/50 hover:text-primary" title="Subtitles">
-                    <Captions className='w-4 h-4'/>
-                </Button>
-                <Button variant="ghost" size="icon" className="w-8 h-8 text-muted-foreground hover:bg-muted/50 hover:text-primary" title="Audio">
-                    <Mic className='w-4 h-4'/>
-                </Button>
-            </div>
+    <div className="bg-card rounded-lg p-3 border border-border/50 sticky top-20">
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-lg font-bold">Episodes</h2>
+        <Button variant="ghost" size="sm" onClick={() => setSort(s => (s === 'asc' ? 'desc' : 'asc'))}>
+          <ChevronsUpDown className="w-4 h-4 mr-1" />
+          {sort === 'asc' ? 'Newest' : 'Oldest'}
+        </Button>
+      </div>
+      <input
+        type="text"
+        placeholder={`Search (1 - ${episodes.length})`}
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        className="w-full bg-muted/50 rounded-md px-3 py-2 text-sm mb-3 border-transparent focus:border-primary focus:ring-primary"
+      />
+      <ScrollArea className="h-[calc(100vh-220px)]">
+        <div className="grid grid-cols-4 gap-2">
+          {filteredEpisodes.map(ep => (
+            <button
+              key={ep.episodeId}
+              onClick={() => onEpisodeSelect(ep)}
+              className={cn(
+                'p-2 text-center text-sm font-medium rounded-md truncate',
+                (currentEpisodeId === String(ep.number) || currentEpisodeId === ep.episodeId)
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted/50 hover:bg-muted'
+              )}
+              title={`Episode ${ep.number}`}
+            >
+              {ep.number}
+            </button>
+          ))}
         </div>
-
-        <div className="flex items-center justify-between bg-background p-1 rounded-md">
-            <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:bg-muted/50" onClick={() => setCurrentPage(p => Math.max(0, p - 1))} disabled={currentPage === 0}>
-                <ChevronLeft className="w-5 h-5"/>
-            </Button>
-            <Select value={String(currentPage)} onValueChange={(val) => setCurrentPage(Number(val))}>
-                <SelectTrigger className="w-auto bg-transparent border-0 shadow-none focus:ring-0 text-xs h-auto py-1">
-                    <SelectValue placeholder="Select episode range" />
-                </SelectTrigger>
-                <SelectContent>
-                    {Array.from({length: totalPages}).map((_, i) => (
-                         <SelectItem key={i} value={String(i)}>{getEpisodeRange(i)}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            <Button variant="ghost" size="icon" className="w-7 h-7 text-muted-foreground hover:bg-muted/50" onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))} disabled={currentPage === totalPages - 1}>
-                <ChevronRight className="w-5 h-5"/>
-            </Button>
-        </div>
-
-        <ScrollArea className="h-72">
-            <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6 gap-1.5 pr-3">
-                {displayedEpisodes.map((ep) => {
-                const epNum = String(ep.number);
-                if (!epNum) return null;
-                const isActive = epNum === currentEpisodeId;
-
-                return (
-                    <Button
-                        ref={isActive ? activeEpisodeRef : null}
-                        onClick={() => onEpisodeSelect(ep)}
-                        key={ep.episodeId}
-                        variant={isActive ? 'default' : 'secondary'}
-                        size="sm"
-                        className={cn("aspect-square h-auto", isActive ? "bg-primary" : "bg-muted hover:bg-muted/80")}
-                    >
-                        {ep.number}
-                    </Button>
-                );
-                })}
-            </div>
-        </ScrollArea>
+      </ScrollArea>
     </div>
   );
 }
