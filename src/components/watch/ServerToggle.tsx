@@ -1,39 +1,42 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { EpisodeServer } from '@/types/anime';
 
 interface ServerToggleProps {
+  servers: EpisodeServer[];
+  activeServer: string | null;
   onServerChange: (server: string) => void;
 }
 
-const servers = [
-    { id: 'megacloud', name: 'MegaCloud' },
-    { id: 'vidplay', name: 'VidPlay' },
-    { id: 'streamlare', name: 'StreamLare' },
-];
-
-export default function ServerToggle({ onServerChange }: ServerToggleProps) {
-  const [activeServer, setActiveServer] = useState(servers[0].id);
-
+export default function ServerToggle({ servers, activeServer, onServerChange }: ServerToggleProps) {
   const handleServerClick = (serverId: string) => {
-    setActiveServer(serverId);
     onServerChange(serverId);
   }
 
+  if (!servers || servers.length === 0) {
+    return (
+        <div className='flex items-center gap-1 text-sm'>
+            <p className="mr-2 font-semibold">Servers:</p>
+            <p className="text-muted-foreground text-xs">No servers available.</p>
+        </div>
+    );
+  }
+
   return (
-    <div className='flex items-center gap-1 text-sm'>
+    <div className='flex items-center gap-1 text-sm flex-wrap'>
         <p className="mr-2 font-semibold">Servers:</p>
         {servers.map(server => (
              <Button 
-                key={server.id} 
+                key={server.serverId} 
                 size="sm" 
-                variant={activeServer === server.id ? 'default' : 'secondary'} 
-                className='font-semibold'
-                onClick={() => handleServerClick(server.id)}
+                variant={activeServer === server.serverName ? 'default' : 'secondary'} 
+                className='font-semibold capitalize'
+                onClick={() => handleServerClick(server.serverName)}
             >
-                {server.name}
+                {server.serverName}
             </Button>
         ))}
     </div>

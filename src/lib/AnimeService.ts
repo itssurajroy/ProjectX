@@ -1,12 +1,13 @@
 
-import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
+import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime, EpisodeServersResponse } from "@/types/anime";
 
 const HIANIME_API_BASE = "/api/proxy"
 
 // Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
-export const extractEpisodeNumber = (episodeId: string): string => {
+export const extractEpisodeNumber = (episodeId: string): string | null => {
+  if (!episodeId) return null;
   const match = episodeId.match(/[\?&]ep[=:]?(\d+)/i);
-  return match ? match[1] : "1";
+  return match ? match[1] : episodeId.split('/').pop() || "1";
 };
 
 // Advanced fetch with timeout + retry + proper headers
@@ -89,18 +90,12 @@ export class AnimeService {
   }
 
   // Episode Streaming Links
-  static async getEpisodeSources(animeEpisodeId: string, category: "sub" | "dub" | "raw" = "sub") {
-    const epId = animeEpisodeId.split('?ep=')[1];
-    return {
-      success: true,
-      data: {
-        url: `https://megaplay.buzz/stream/s-2/${epId}/${category}`
-      }
-    };
+  static async getEpisodeSources(animeEpisodeId: string, server: string, category: "sub" | "dub" | "raw" = "sub") {
+     return fetchWithRetry(`${HIANIME_API_BASE}/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`);
   }
 
   // Episode Servers
-  static async getEpisodeServers(animeEpisodeId: string) {
+  static async getEpisodeServers(animeEpisodeId: string): Promise<{ success: boolean, data: EpisodeServersResponse }> {
     return fetchWithRetry(`${HIANIME_API_BASE}/episode/servers?animeEpisodeId=${animeEpisodeId}`);
   }
 

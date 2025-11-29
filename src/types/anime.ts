@@ -131,8 +131,32 @@ export interface EpisodeServer {
     serverName: string;
 }
 
-export interface EpisodeSourcesResponse {
+export interface EpisodeServersResponse {
+    episodeId: string;
+    episodeNo: number;
+    sub: EpisodeServer[];
+    dub: EpisodeServer[];
+    raw: EpisodeServer[];
+}
+
+
+export interface Source {
     url: string;
+    isM3U8: boolean;
+    quality?: string;
+}
+
+export interface Subtitle {
+    lang: string;
+    url: string;
+}
+
+export interface EpisodeSourcesResponse {
+    headers: Record<string, string>;
+    sources: Source[];
+    subtitles: Subtitle[];
+    anilistID: number | null;
+    malID: number | null;
 }
 
 export interface ScheduleResponse {

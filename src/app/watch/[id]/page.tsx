@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense, useEffect, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
 import { AnimeService, extractEpisodeNumber } from '@/lib/AnimeService';
 import EpisodeList from '@/components/watch/episode-list';
-import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse, EpisodeServer } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
 import ServerToggle from '@/components/watch/ServerToggle';
@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import WatchSidebar from '@/components/watch/WatchSidebar';
-import { useState } from 'react';
 import CommentsSection from '@/components/watch/comments';
 
 function WatchPageComponent() {
@@ -32,6 +31,9 @@ function WatchPageComponent() {
 
   const animeId = params.id as string;
   const episodeParam = searchParams.get('ep');
+
+  const [language, setLanguage] = useState<Language>('sub');
+  const [selectedServer, setSelectedServer] = useState<string | null>(null);
 
   const {
     data: aboutResponse,
@@ -57,9 +59,6 @@ function WatchPageComponent() {
     enabled: !!animeId,
   });
 
-  const [lastWatchedEp, setLastWatchedEp] = useState<string | null>(null);
-  const [language, setLanguage] = useState<'sub' | 'dub'>('sub');
-
   const episodes: AnimeEpisode[] = useMemo(
     () =>
       episodesResponse && 'data' in episodesResponse
@@ -67,6 +66,7 @@ function WatchPageComponent() {
         : [],
     [episodesResponse]
   );
+  
   const about = useMemo(
     () =>
       aboutResponse && 'data' in aboutResponse
@@ -91,27 +91,60 @@ function WatchPageComponent() {
 
   const currentEpisode = useMemo(() => {
     if (!episodes || episodes.length === 0) return null;
-    const epNum = episodeParam || lastWatchedEp || '1';
+    const epNum = episodeParam || '1';
     return (
       episodes.find((e) => {
         const extractedEp = extractEpisodeNumber(e.episodeId);
         return extractedEp === epNum || String(e.number) === epNum;
       }) || episodes[0]
     );
-  }, [episodes, episodeParam, lastWatchedEp]);
+  }, [episodes, episodeParam]);
+
+  const {
+    data: serversResponse,
+    isLoading: isLoadingServers,
+  } = useQuery({
+    queryKey: ['episode-servers', currentEpisode?.episodeId],
+    queryFn: () => AnimeService.getEpisodeServers(currentEpisode!.episodeId),
+    enabled: !!currentEpisode,
+    onSuccess: (data) => {
+        if(data.success) {
+            const servers = data.data[language];
+            if (servers && servers.length > 0 && !selectedServer) {
+                setSelectedServer(servers[0].serverName);
+            }
+        }
+    }
+  });
+
+  useEffect(() => {
+    if(serversResponse?.success) {
+        const servers = serversResponse.data[language];
+        if(servers && servers.length > 0) {
+            const currentServerExists = servers.some(s => s.serverName === selectedServer);
+            if (!currentServerExists) {
+                setSelectedServer(servers[0].serverName);
+            }
+        } else {
+            setSelectedServer(null);
+        }
+    }
+  }, [language, serversResponse, selectedServer]);
+
 
   const {
     data: sourcesResponse,
     isLoading: isLoadingSources,
     error: sourcesError,
-  } = useQuery<{ data: EpisodeSourcesResponse } | { success: false; error: string }>(
+  } = useQuery<{ data: { sources: { url: string }[] } } | { success: false; error: string }>(
     {
-      queryKey: ['episode-sources', currentEpisode?.episodeId, language],
+      queryKey: ['episode-sources', currentEpisode?.episodeId, language, selectedServer],
       queryFn: () =>
-        AnimeService.getEpisodeSources(currentEpisode!.episodeId, language),
-      enabled: !!currentEpisode,
+        AnimeService.getEpisodeSources(currentEpisode!.episodeId, selectedServer!, language),
+      enabled: !!currentEpisode && !!selectedServer,
     }
   );
+
 
   useEffect(() => {
     if (isLoadingEpisodes || !episodes) return;
@@ -140,9 +173,10 @@ function WatchPageComponent() {
   };
 
   const iframeSrc =
-    sourcesResponse && 'data' in sourcesResponse
-      ? sourcesResponse.data.url
-      : undefined;
+    sourcesResponse && 'data' in sourcesResponse && sourcesResponse.data.sources.length > 0
+      ? sourcesResponse.data.sources[0].url
+      : `https://megaplay.buzz/stream/s-2/${extractEpisodeNumber(currentEpisode?.episodeId || '')}/${language}`;
+
 
   if (isLoadingAbout || isLoadingEpisodes) {
     return (
@@ -169,6 +203,8 @@ function WatchPageComponent() {
   const currentIndex = episodes.findIndex(
     (ep) => ep.episodeId === currentEpisode?.episodeId
   );
+  
+  const availableServers = serversResponse?.success ? serversResponse.data[language] : [];
 
   return (
     <main className="container mx-auto space-y-6 px-2 py-8 pt-24 sm:px-4 lg:px-6">
@@ -224,19 +260,17 @@ function WatchPageComponent() {
         </div>
         <div className="lg:col-span-9">
           <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-            {isLoadingSources || !iframeSrc ? (
+            {isLoadingSources ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                {sourcesError ? (
-                  <ErrorDisplay
+                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              </div>
+            ) : sourcesError ? (
+              <ErrorDisplay
                     isCompact
                     onRetry={() => {}}
                     description="Could not load video sources."
                   />
-                ) : (
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                )}
-              </div>
-            ) : (
+            ): (
               <iframe
                 key={iframeSrc}
                 src={iframeSrc}
@@ -266,7 +300,10 @@ function WatchPageComponent() {
               <LanguageToggle
                 onLanguageChange={(lang: Language) => setLanguage(lang)}
               />
-              <ServerToggle onServerChange={(server) => console.log(server)} />
+              <ServerToggle 
+                servers={availableServers}
+                activeServer={selectedServer}
+                onServerChange={(server) => setSelectedServer(server)} />
             </div>
           </div>
         </div>
