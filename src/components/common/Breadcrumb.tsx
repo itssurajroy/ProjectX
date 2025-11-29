@@ -27,7 +27,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
           )}
 
           {index < items.length - 1 && (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4 shrink-0" />
           )}
         </div>
       ))}

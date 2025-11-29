@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack } from "lucide-react";
+import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack, Lightbulb } from "lucide-react";
 
 interface PlayerOverlayControlsProps {
     onPrev: () => void;
@@ -14,17 +14,10 @@ interface PlayerOverlayControlsProps {
 export default function PlayerOverlayControls({ onPrev, onNext, isPrevDisabled, isNextDisabled }: PlayerOverlayControlsProps) {
   const controls = [
     { icon: Expand, label: "Expand" },
-    { icon: MonitorPlay, label: "AutoNext" },
-    { icon: Play, label: "AutoPlay" },
-    { icon: SkipForward, label: "AutoSkip" },
-  ];
-
-  const actions = [
-      {icon: SkipBack, label: "Prev", action: onPrev, disabled: isPrevDisabled}, 
-      {icon: SkipForward, label: "Next", action: onNext, disabled: isNextDisabled}, 
-      {icon: Bookmark, label: "Bookmark"},
-      {icon: Users, label: "W2G"}, 
-      {icon: Flag, label: "Report"},
+    { icon: Lightbulb, label: "Light On" },
+    { icon: Play, label: "Auto Play On" },
+    { icon: MonitorPlay, label: "Auto Next On" },
+    { icon: SkipForward, label: "Auto Skip Intro On" },
   ];
 
   return (
@@ -37,11 +30,12 @@ export default function PlayerOverlayControls({ onPrev, onNext, isPrevDisabled, 
         ))}
       </div>
       <div className="flex items-center gap-1 flex-wrap">
-        {actions.map(item => (
-          <Button key={item.label} onClick={item.action} disabled={item.disabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5">
-            <item.icon className="w-4 h-4 mr-1" /> {item.label}
+          <Button onClick={onPrev} disabled={isPrevDisabled} variant="outline" size="sm" className="h-auto p-1.5 px-3">
+            <SkipBack className="w-4 h-4 mr-1" /> Prev
           </Button>
-        ))}
+          <Button onClick={onNext} disabled={isNextDisabled} variant="outline" size="sm" className="h-auto p-1.5 px-3">
+            Next <SkipForward className="w-4 h-4 ml-1" />
+          </Button>
       </div>
     </div>
   );
