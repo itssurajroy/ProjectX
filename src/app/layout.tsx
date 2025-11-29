@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lexend, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,9 @@ export const metadata: Metadata = {
   title: "ProjectX - Watch Your Favorite Shows",
   description: "A modern streaming platform for all your favorite shows.",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#0f0f17",
 };
 
