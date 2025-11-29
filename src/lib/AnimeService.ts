@@ -87,7 +87,7 @@ export class AnimeService {
 
   // A-Z List
   static async getAZList(sortOption: string = "all", page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/azlist/${sortOption}?page=${page}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/az-list/${sortOption}?page=${page}`);
   }
 
   // Episode Streaming Links (WITH CORS PROXY!)
