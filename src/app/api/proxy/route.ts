@@ -2,13 +2,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // This is the target API that all requests will be proxied to.
-const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/v2/hianime';
+const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime';
 
-export async function GET(request: NextRequest) {
-  const { searchParams, pathname } = new URL(request.url);
-  
-  // Handle requests that are for proxying external media URLs (like m3u8 files)
+// The GET function now accepts a `params` object to access the dynamic route segments.
+export async function GET(request: NextRequest, { params }: { params: { path: string[] } }) {
+  const { searchParams } = new URL(request.url);
   const externalUrl = searchParams.get('url');
+
+  // This block correctly handles proxying for external media like M3U8 files.
   if (externalUrl) {
     try {
       const response = await fetch(externalUrl, {
@@ -34,11 +35,11 @@ export async function GET(request: NextRequest) {
       return new NextResponse('Error fetching from external URL', { status: 500 });
     }
   }
-
-  // Handle requests for the hianime API
-  // Extract the path after '/api/proxy'
-  const apiPath = pathname.replace('/api/proxy', '');
-  const fullTargetPath = `${API_BASE_URL}${apiPath}?${searchParams.toString()}`;
+  
+  // This block handles proxying for the main anime API.
+  // It now correctly joins the `params.path` array to get the API endpoint.
+  const apiPath = params.path.join('/');
+  const fullTargetPath = `${API_BASE_URL}/${apiPath}?${searchParams.toString()}`;
 
   try {
     const response = await fetch(fullTargetPath, {
