@@ -100,7 +100,7 @@ export default function Header() {
     }
   };
 
-  const suggestions = suggestionsResult && !('success' in suggestionsResult) ? suggestionsResult.data.suggestions : [];
+  const suggestions = suggestionsResult && 'data' in suggestionsResult ? suggestionsResult.data.suggestions : [];
   
   const navItems = [
     { href: "/home", icon: Home, label: "Home" },

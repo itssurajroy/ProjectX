@@ -29,7 +29,7 @@ export default function LandingPage() {
         queryFn: AnimeService.getHomeData,
     });
     
-    const trendingAnimes = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
+    const trendingAnimes = homeDataResult && 'data' in homeDataResult ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

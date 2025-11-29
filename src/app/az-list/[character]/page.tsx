@@ -211,7 +211,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
 
   const renderContent = () => {
     if (isLoading) return <LoadingSkeleton />;
-    if (error) return <ErrorDisplay title="Failed to load anime list" description={(error as Error).message} onRetry={refetch} />;
+    if (error || (azResult && 'success' in azResult && !azResult.success)) return <ErrorDisplay title="Failed to load anime list" description={(error as Error)?.message || (azResult as any)?.error} onRetry={refetch} />;
     
     const azData = azResult?.data;
     if (!azData || !azData.animes || azData.animes.length === 0) {

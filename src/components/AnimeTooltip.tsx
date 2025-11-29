@@ -27,7 +27,7 @@ const TooltipSkeleton = () => (
 )
 
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
-  const { data: qtipResult, isLoading, isError, error } = useQuery<{data: {anime: QtipAnime}} | { success: false, error: string, status?: number }>({
+  const { data: qtipResult, isLoading, isError, error } = useQuery<{data: {anime: QtipAnime}} | { success: false; error: string; status?: number }>({
     queryKey: ['qtip', animeId],
     queryFn: () => AnimeService.getAnimeQtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -49,7 +49,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
             <TooltipSkeleton />
           ) : isError || !anime ? (
             <div className="p-4 text-center text-muted-foreground">
-                {(error as any)?.status === 404 
+                {(error as any)?.status === 404 || (qtipResult as any)?.status === 404
                     ? "No details available for this item."
                     : "Could not load details."
                 }

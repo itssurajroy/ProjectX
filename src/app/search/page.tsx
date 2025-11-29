@@ -48,11 +48,11 @@ function SearchPageContent() {
         );
     }
 
-    if (error) {
+    if (error || (searchResult && 'success' in searchResult && !searchResult.success)) {
         return <ErrorDisplay onRetry={refetch} description="Could not perform search. Please try again."/>
     }
 
-    const filteredMedia = searchResult && 'animes' in searchResult ? searchResult.animes : [];
+    const filteredMedia = searchResult && 'data' in searchResult && searchResult.data ? searchResult.data.animes : [];
 
     if (filteredMedia.length > 0) {
         return (

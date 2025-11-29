@@ -11,6 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { AnimeCard } from '@/components/AnimeCard';
 import { AnimeAboutResponse } from '@/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
+import AnimeHero from '@/components/anime/AnimeHero';
+import Synopsis from '@/components/anime/Synopsis';
+import InfoSidebar from '@/components/anime/InfoSidebar';
+import RelationsSidebar from '@/components/anime/RelationsSidebar';
+import PVCarousel from '@/components/anime/PVCarousel';
+import CharactersGrid from '@/components/anime/CharactersGrid';
+import RecommendedGrid from '@/components/anime/RecommendedGrid';
+import SeasonsSwiper from '@/components/anime/SeasonsSwiper';
 
 function AnimeDetailPageContent() {
     const params = useParams();
@@ -36,69 +44,24 @@ function AnimeDetailPageContent() {
         );
     }
     
-    const { anime, recommendedAnimes, relatedAnimes } = aboutResponse.data;
+    const { anime, recommendedAnimes, relatedAnimes, seasons } = aboutResponse.data;
     const { info, moreInfo } = anime;
 
     return (
         <div>
-            {/* Hero Section */}
-            <div className="relative h-[30vh] md:h-[40vh] w-full">
-                <Image 
-                    src={moreInfo.background || info.poster}
-                    alt={`${info.name} background`}
-                    fill
-                    className="object-cover object-top opacity-20 blur-sm"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
-            </div>
-
-            {/* Main Content */}
-            <main className="container mx-auto px-4 sm:px-6 lg:px-8 pb-12 -mt-[15vh]">
-                <div className="relative grid grid-cols-1 md:grid-cols-12 gap-8">
-                    {/* Left Column (Poster & Actions) */}
-                    <div className="md:col-span-3">
-                         <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden shadow-2xl shadow-primary/20 border-2 border-primary/50">
-                            <Image src={info.poster} alt={info.name} fill className="object-cover" />
-                        </div>
-                        <div className="mt-4 flex flex-col gap-2">
-                            <Button asChild size="lg" className="w-full">
-                                <Link href={`/watch/${animeId}`}>
-                                    <Play className="mr-2 h-5 w-5" /> Watch Now
-                                </Link>
-                            </Button>
-                             <Button variant="secondary" size="lg" className="w-full">
-                                <Bookmark className="mr-2 h-5 w-5" /> Add to List
-                            </Button>
-                        </div>
+            <AnimeHero animeInfo={info} animeId={animeId} />
+            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="lg:col-span-9 space-y-8">
+                        <Synopsis description={info.description} />
+                        <SeasonsSwiper seasons={seasons} currentAnimeId={animeId} />
+                        <PVCarousel videos={info.promotionalVideos} />
+                        <CharactersGrid characters={info.characterVoiceActors} />
+                        <RecommendedGrid recommendedAnimes={recommendedAnimes} />
                     </div>
-
-                    {/* Right Column (Details) */}
-                    <div className="md:col-span-9">
-                        <h1 className="text-3xl md:text-5xl font-bold text-glow font-display">{info.name}</h1>
-                        <p className="text-muted-foreground mt-1">{moreInfo.japanese}</p>
-                        
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground text-sm mt-4">
-                            {info.stats.rating && <div className="flex items-center gap-1.5"><Star className="h-4 w-4 text-amber-400" /> {info.stats.rating}</div>}
-                            <div className="flex items-center gap-1.5"><Tv className="h-4 w-4"/> {info.stats.type}</div>
-                            {info.stats.episodes.sub && <div className="flex items-center gap-1.5"><Clapperboard className="h-4 w-4"/> SUB {info.stats.episodes.sub}</div>}
-                            {info.stats.episodes.dub && <div className="flex items-center gap-1.5"><Clapperboard className="h-4 w-4"/> DUB {info.stats.episodes.dub}</div>}
-                            {moreInfo.aired && <div className="flex items-center gap-1.5"><Calendar className="h-4 w-4"/> {moreInfo.aired}</div>}
-                        </div>
-
-                        <p className="mt-4 text-muted-foreground text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: info.description }} />
-                        
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {moreInfo.genres?.map((genre: string) => (
-                                <Badge key={genre} variant="outline" className="border-primary/50 text-primary/90 bg-primary/10">{genre}</Badge>
-                            ))}
-                        </div>
-
-                         <div className="mt-8">
-                            <h2 className="text-2xl font-bold mb-4">Recommended For You</h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-8">
-                                {recommendedAnimes.slice(0, 10).map(rec => <AnimeCard key={rec.id} anime={rec} />)}
-                            </div>
-                        </div>
+                    <div className="lg:col-span-3 space-y-8">
+                        <InfoSidebar moreInfo={moreInfo} />
+                        <RelationsSidebar relatedAnimes={relatedAnimes} />
                     </div>
                 </div>
             </main>

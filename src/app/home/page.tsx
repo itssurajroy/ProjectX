@@ -173,7 +173,7 @@ const ScheduleSidebar = () => {
         });
     }
 
-    const scheduledAnimes = scheduleResult && !('success' in scheduleResult) && scheduleResult.data ? scheduleResult.data.scheduledAnimes : [];
+    const scheduledAnimes = scheduleResult && 'data' in scheduleResult && scheduleResult.data ? scheduleResult.data.scheduledAnimes : [];
     
     return (
         <section className='bg-card/50 p-4 rounded-lg border border-border/50'>
@@ -196,7 +196,7 @@ const ScheduleSidebar = () => {
                     <div className="flex justify-center items-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                ) : error ? (
+                ) : error || ('success' in scheduleResult! && !scheduleResult.success) ? (
                      <ErrorDisplay description='Could not load schedule.' onRetry={refetch} isCompact/>
                 ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
                     return (
