@@ -15,7 +15,7 @@ export async function GET(
   // Reconstruct the original query parameters intended for the target API
   const targetParams = new URLSearchParams(req.nextUrl.search);
 
-  const targetUrl = `${env.HIANIME_API_BASE}/${path}?${targetParams.toString()}`;
+  const targetUrl = `${env.HIANIME_API_BASE}/api/v2/hianime/${path}?${targetParams.toString()}`;
 
   const forwardHeaders = new Headers();
   if (req.headers.has('user-agent')) {
