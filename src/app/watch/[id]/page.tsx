@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
@@ -110,7 +111,8 @@ function WatchPageComponent() {
   });
 
   const availableServers = useMemo(() => {
-    return serversResponse?.success ? serversResponse.data[language] : [];
+    if (!serversResponse || !serversResponse.success) return [];
+    return serversResponse.data[language] || [];
   }, [serversResponse, language]);
 
   useEffect(() => {
@@ -284,7 +286,7 @@ function WatchPageComponent() {
                 You are watching Episode {currentEpisode?.number}
               </h2>
               <p className="line-clamp-1 text-sm text-muted-foreground">
-                {currentEpisode?.title || 'No title available'}
+                {currentEpisode?.title || `Episode ${currentEpisode?.number}`}
               </p>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row">
