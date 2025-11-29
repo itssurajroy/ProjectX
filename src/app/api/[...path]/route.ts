@@ -1,12 +1,20 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app';
+// Use the environment variable for the base URL.
+const API_BASE_URL = process.env.NEXT_PUBLIC_HIANIME_API_BASE;
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
+  if (!API_BASE_URL) {
+    return new NextResponse(JSON.stringify({ error: 'API base URL is not configured' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const apiPath = params.path.join('/');
   const searchParams = request.nextUrl.search;
   const targetUrl = `${API_BASE_URL}/${apiPath}${searchParams}`;
