@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     }
   });
 
-  const targetUrl = `${env.HIANIME_API_BASE}${path}?${targetParams.toString()}`;
+  const targetUrl = `${env.HIANIME_API_BASE}/api/v2/hianime${path}?${targetParams.toString()}`;
 
   const forwardHeaders = new Headers();
   if (req.headers.has('user-agent')) {
