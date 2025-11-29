@@ -47,6 +47,13 @@ service cloud.firestore {
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow update, delete: if isAdminOrModerator();
     }
+
+    // Polls: Publicly readable, but only signed-in users can write their own vote.
+    match /polls/{pollId}/votes/{userId} {
+        allow get, list: if true;
+        allow create, update: if isOwner(userId);
+        allow delete: if false;
+    }
     
     // Admin and Moderator roles can only be read by admins, and can't be modified by clients.
     match /roles_admin/{userId} {
