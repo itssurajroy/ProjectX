@@ -15,7 +15,7 @@ export default function Footer() {
             <h2 className="text-3xl font-bold text-primary text-glow">{SITE_NAME}</h2>
             <div className="flex items-center justify-center gap-3">
                 <p className="text-sm mr-4 hidden sm:block">Join now 👇</p>
-                <a href="https://discord.gg" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors" aria-label="Discord">
+                <a href="https://discord.gg/nHwCpPx9yy" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors" aria-label="Discord">
                     <Send className="w-5 h-5" />
                 </a>
                 <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-primary transition-colors" aria-label="Twitter">

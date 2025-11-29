@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
 
 const socialLinks = [
-    { name: "Discord", count: "82.6k", icon: Send, color: "bg-[#5865F2]", href: "#" },
+    { name: "Discord", count: "82.6k", icon: Send, color: "bg-[#5865F2]", href: "https://discord.gg/nHwCpPx9yy" },
     { name: "Telegram", count: "14.5k", icon: Send, color: "bg-[#2AABEE]", href: "#" },
     { name: "Twitter", count: "11.6k", icon: Twitter, color: "bg-[#1DA1F2]", href: "#" },
     { name: "Reddit", count: "12.7k", icon: Film, color: "bg-[#FF4500]", href: "#" },

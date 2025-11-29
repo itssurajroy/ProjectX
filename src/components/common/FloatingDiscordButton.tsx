@@ -16,7 +16,7 @@ export default function FloatingDiscordButton() {
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href="https://discord.gg"
+            href="https://discord.gg/nHwCpPx9yy"
             target="_blank"
             rel="noopener noreferrer"
             className="fixed bottom-20 right-5 z-50 w-14 h-14 flex items-center justify-center rounded-full bg-[#5865F2] text-white shadow-lg hover:scale-110 transition-transform duration-300"
