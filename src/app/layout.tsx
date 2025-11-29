@@ -12,6 +12,7 @@ import { Balancer as BalancerProvider } from 'react-wrap-balancer'
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 import Footer from "@/components/layout/footer";
+import BottomNav from "@/components/layout/bottom-nav";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -54,9 +55,10 @@ export default function RootLayout({
               }}/>
               <div className="flex flex-col min-h-screen">
                 <Navbar />
-                <main className="flex-grow">{children}</main>
+                <main className="flex-grow pb-16 md:pb-0">{children}</main>
                 <Footer />
               </div>
+              <BottomNav />
               <ScrollToTopButton />
               </BalancerProvider>
             </Providers>
