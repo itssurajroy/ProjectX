@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime';
+const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app';
 
 export async function GET(
   request: NextRequest,
