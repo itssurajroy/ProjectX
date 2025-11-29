@@ -1,6 +1,5 @@
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
-import { Endpoints } from "./endpoints";
 import { env } from "./env";
 
 type ServiceError = { success: false; error: string; status?: number };
@@ -42,47 +41,47 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
 
 export class AnimeService {
   static async getHomeData(): Promise<{ data: HomeData } | ServiceError> {
-    return await fetchFromApi(Endpoints.home);
+    return await fetchFromApi('home');
   }
 
   static async searchAnime(query: string, page: number = 1): Promise<{data: SearchResult} | ServiceError> {
-     return await fetchFromApi(Endpoints.search, { q: query, page });
+     return await fetchFromApi('search', { q: query, page });
   }
   
   static async getSearchSuggestions(query: string): Promise<{data: SearchSuggestionResponse} | ServiceError> {
     if (!query) return { data: { suggestions: [] } };
-    return await fetchFromApi(Endpoints.searchSuggestion, { q: query });
+    return await fetchFromApi('search/suggest', { q: query });
   }
 
   static async getAnimeAbout(id: string): Promise<{ data: AnimeAboutResponse } | ServiceError> {
-     return await fetchFromApi(Endpoints.anime(id));
+     return await fetchFromApi(`anime/${id}`);
   }
 
   static async getAnimeQtip(id: string): Promise<{ data: { anime: QtipAnime } } | ServiceError> {
-    return await fetchFromApi(Endpoints.qtip(id));
+    return await fetchFromApi(`qtip/${id}`);
   }
   
   static async getEpisodes(animeId: string): Promise<{data: {episodes: AnimeEpisode[]}} | ServiceError> {
-     return await fetchFromApi(Endpoints.episodes(animeId));
+     return await fetchFromApi(`anime/${animeId}/episodes`);
   }
   
   static async getGenre(genre: string, page: number = 1) {
-    return await fetchFromApi(Endpoints.genre(genre), { page });
+    return await fetchFromApi(`genre/${genre}`, { page });
   }
 
   static async getSchedule(date: string): Promise<{data: ScheduleResponse} | ServiceError> {
-    return await fetchFromApi(Endpoints.schedule, { date });
+    return await fetchFromApi('schedule', { date });
   }
 
   static async getAZList(sortOption: string, page: number = 1): Promise<{data: SearchResult } | ServiceError> {
-    return await fetchFromApi(Endpoints.azList(sortOption), { page });
+    return await fetchFromApi(`az-list/${sortOption}`, { page });
   }
 
   static async getEpisodeServers(animeEpisodeId: string): Promise<{data: {sub: EpisodeServer[], dub: EpisodeServer[], raw: EpisodeServer[]}} | ServiceError> {
-    return await fetchFromApi(Endpoints.episodeServers, { episodeId: animeEpisodeId });
+    return await fetchFromApi('anime/episode/servers', { episodeId: animeEpisodeId });
   }
 
   static async getEpisodeSources(animeEpisodeId: string, server: string, category: 'sub' | 'dub' | 'raw'): Promise<EpisodeSourcesResponse | ServiceError> {
-    return await fetchFromApi(Endpoints.episodeSources, { episodeId: animeEpisodeId, server, category });
+    return await fetchFromApi('anime/episode/sources', { episodeId: animeEpisodeId, server, category });
   }
 }
