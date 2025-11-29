@@ -1,9 +1,12 @@
+
 'use client';
+
 import { useState, useEffect } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
 
-export default function ScrollToTopButton() {
+export default function BackToTopButton() {
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => {
@@ -29,14 +32,15 @@ export default function ScrollToTopButton() {
   }, []);
 
   return (
-    <button
+    <Button
+      size="icon"
       onClick={scrollToTop}
       className={cn(
-        'fixed bottom-5 right-5 w-12 h-12 flex items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/80 transition-opacity duration-300 z-50',
-        isVisible ? 'opacity-100' : 'opacity-0'
+        'fixed bottom-5 right-5 w-12 h-12 rounded-full shadow-lg transition-opacity duration-300 z-50',
+        isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       )}
     >
       <ChevronUp className="w-6 h-6" />
-    </button>
+    </Button>
   );
 }

@@ -1,3 +1,4 @@
+
 import type { Metadata, Viewport } from "next";
 import { Lexend, Space_Grotesk } from "next/font/google";
 import "./globals.css";
@@ -5,14 +6,15 @@ import { cn } from "@/lib/utils";
 import Providers from "./providers";
 import Navbar from "@/components/layout/header";
 import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
-import ScrollToTopButton from "@/components/layout/scroll-to-top";
 import { Toaster } from "react-hot-toast";
 import Splash from "@/components/Splash";
 import { Balancer as BalancerProvider } from 'react-wrap-balancer'
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase";
 import Footer from "@/components/layout/footer";
-import BottomNav from "@/components/layout/bottom-nav";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
+import BackToTopButton from "@/components/common/BackToTopButton";
+import FloatingDiscordButton from "@/components/common/FloatingDiscordButton";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -61,8 +63,9 @@ export default function RootLayout({
                 <main className="flex-grow pb-16 md:pb-0">{children}</main>
                 <Footer />
               </div>
-              <BottomNav />
-              <ScrollToTopButton />
+              <MobileBottomNav />
+              <BackToTopButton />
+              <FloatingDiscordButton />
               </BalancerProvider>
             </Providers>
         </FirebaseClientProvider>
