@@ -18,12 +18,12 @@ export default function PollsSection({ animeId, episodeId }: { animeId: string; 
   const pollOptions = ['🤯 Mind-blown', '😍 Loved it', '😊 Good', '🤔 Meh', '😠 Awful'];
 
   useEffect(() => {
-    if (!animeId || !episode || !firestore) return;
+    if (!episode || !firestore) return;
     
     setUserVote(null);
     setPollResults({});
 
-    const pollRef = collection(firestore, 'polls', `${animeId}-${episode}`, 'votes');
+    const pollRef = collection(firestore, 'polls', episode, 'votes');
     const unsub = onSnapshot(pollRef, 
         (snapshot) => {
             const results: Record<string, number> = {};
@@ -44,7 +44,7 @@ export default function PollsSection({ animeId, episodeId }: { animeId: string; 
     );
     
     if(user && !user.isAnonymous) {
-      const voteRef = doc(firestore, 'polls', `${animeId}-${episode}`, 'votes', user.uid);
+      const voteRef = doc(firestore, 'polls', episode, 'votes', user.uid);
       getDoc(voteRef).then(docSnap => {
         if (docSnap.exists()) {
           setUserVote(docSnap.data().vote);
@@ -59,13 +59,13 @@ export default function PollsSection({ animeId, episodeId }: { animeId: string; 
     }
 
     return () => unsub();
-  }, [animeId, episode, user, firestore]);
+  }, [episode, user, firestore]);
 
   const handleVote = async (vote: string) => {
     if (!user || user.isAnonymous) return toast.error("You must be logged in to vote.");
-    if (!animeId || !episode || !firestore) return;
+    if (!episode || !firestore) return;
 
-    const voteRef = doc(firestore, 'polls', `${animeId}-${episode}`, 'votes', user.uid);
+    const voteRef = doc(firestore, 'polls', episode, 'votes', user.uid);
     try {
       await setDoc(voteRef, { vote });
       setUserVote(vote);
