@@ -2,8 +2,8 @@
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 
 // src/lib/AnimeService.ts
-const HIANIME_API_BASE = process.env.NEXT_PUBLIC_HIANIME_API_BASE || "https://aniwatch-api-five-dusky.vercel.app";
-const CORS_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
+const HIANIME_API_BASE = "/api/proxy"; // ALWAYS use the proxy
+const CORS_PROXY = "/api/proxy?url=";
 
 // Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
 export const extractEpisodeNumber = (episodeId: string): string => {
@@ -49,43 +49,43 @@ async function fetchWithRetry(url: string, retries = 3): Promise<any> {
 export class AnimeService {
   // Home Page
   static async getHomeData() {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/home`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/home`);
   }
 
   // Anime Detail Page
   static async getAnimeAbout(id: string) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/anime/${id}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/anime/${id}`);
   }
 
   // Quick Tooltip
   static async getAnimeQtip(id: string) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/qtip/${id}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/qtip/${id}`);
   }
 
   // Episodes List
   static async getEpisodes(animeId: string) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/anime/${animeId}/episodes`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/anime/${animeId}/episodes`);
   }
 
   // Search
   static async searchAnime(query: string, page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/search?q=${encodeURIComponent(query)}&page=${page}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/search?q=${encodeURIComponent(query)}&page=${page}`);
   }
 
   static async getSearchSuggestions(query: string) {
     if (!query.trim()) return { success: true, data: { suggestions: [] } };
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/search/suggestion?q=${encodeURIComponent(query)}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/search/suggestion?q=${encodeURIComponent(query)}`);
   }
 
   // A-Z List
   static async getAZList(sortOption: string = "all", page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/azlist/${sortOption}?page=${page}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/azlist/${sortOption}?page=${page}`);
   }
 
   // Episode Streaming Links (WITH CORS PROXY!)
   static async getEpisodeSources(animeEpisodeId: string, server = "hd-1", category: "sub" | "dub" | "raw" = "sub") {
     const data = await fetchWithRetry(
-      `${HIANIME_API_BASE}/v2/hianime/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`
+      `${HIANIME_API_BASE}/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`
     );
 
     if (!data.success || !data.data) return data;
@@ -106,15 +106,20 @@ export class AnimeService {
       },
     };
   }
-
+  
   // Episode Servers
   static async getEpisodeServers(animeEpisodeId: string) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/episode/servers?animeEpisodeId=${animeEpisodeId}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/episode/servers?animeEpisodeId=${animeEpisodeId}`);
+  }
+
+  // Schedule
+  static async getSchedule(date: string) { // date format YYYY-MM-DD
+      return fetchWithRetry(`${HIANIME_API_BASE}/schedule?date=${date}`);
   }
 
   // Advanced Search (ALL filters)
   static buildSearchUrl(filters: {
-    query: string;
+    query?: string;
     page?: number;
     genres?: string[];
     type?: string;
@@ -128,7 +133,7 @@ export class AnimeService {
     sort?: string;
   }) {
     const params = new URLSearchParams();
-    params.set("q", filters.query);
+    if (filters.query) params.set("q", filters.query);
     if (filters.page) params.set("page", filters.page.toString());
     if (filters.genres?.length) params.set("genres", filters.genres.join(","));
     if (filters.type) params.set("type", filters.type);
@@ -141,7 +146,7 @@ export class AnimeService {
     if (filters.end_date) params.set("end_date", filters.end_date);
     if (filters.sort) params.set("sort", filters.sort);
 
-    return `${HIANIME_API_BASE}/v2/hianime/search?${params.toString()}`;
+    return `${HIANIME_API_BASE}/search?${params.toString()}`;
   }
 
   static async advancedSearch(filters: Parameters<typeof this.buildSearchUrl>[0]) {
