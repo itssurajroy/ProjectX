@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AnimeBase } from "@/types/anime";
@@ -22,16 +23,11 @@ export const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, a
                     </Button>
                 )}
             </div>
-            <ScrollArea className="w-full whitespace-nowrap rounded-lg">
-                 <div className="flex space-x-4 pb-4">
-                    {animes.slice(0, 12).map((anime) => (
-                         <div key={anime.id} className="w-40 sm:w-48 flex-shrink-0">
-                             <AnimeCard anime={anime} />
-                         </div>
-                    ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-8">
+                {animes.slice(0, 12).map((anime) => (
+                    <AnimeCard key={anime.id} anime={anime} />
+                ))}
+            </div>
         </section>
     );
 };

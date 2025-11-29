@@ -1,3 +1,4 @@
+
 'use client';
 import { useAuth } from '@/firebase';
 import Link from 'next/link';
@@ -28,11 +29,11 @@ import { genres } from '@/lib/data';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
 
-const NavLink = ({ href, children, className }: { href: string, children: React.ReactNode, className?: string }) => {
+const NavLink = ({ href, children, className, onClick }: { href: string, children: React.ReactNode, className?: string, onClick?: () => void }) => {
     const pathname = usePathname();
     const isActive = pathname === href;
     return (
-        <Link href={href} className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md", isActive ? "text-primary bg-primary/10" : "text-gray-300 hover:text-white hover:bg-white/10", className)}>
+        <Link href={href} onClick={onClick} className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md", isActive ? "text-primary bg-primary/10" : "text-gray-300 hover:text-white hover:bg-white/10", className)}>
             {children}
         </Link>
     );
@@ -150,7 +151,7 @@ export default function Header() {
               </SheetContent>
             </Sheet>
 
-            <Link href="/home" className="text-2xl font-bold text-glow">
+            <Link href="/home" className="text-2xl font-bold text-glow hidden sm:block">
                 <span className="text-primary">Project</span>
                 <span className="text-white">X</span>
             </Link>
@@ -176,7 +177,7 @@ export default function Header() {
         </nav>
 
         <div className="flex-1 flex justify-end items-center gap-2">
-            <div ref={searchContainerRef} className="flex-1 max-w-xs relative hidden sm:block">
+            <div ref={searchContainerRef} className="flex-1 max-w-xs relative">
               <form onSubmit={handleSearch} className="relative">
                   <input 
                       type="text"
@@ -195,7 +196,7 @@ export default function Header() {
                     {suggestions && suggestions.length > 0 ? suggestions.map(anime => (
                       <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
-                           <Image src={anime.poster} alt={anime.name} fill className="rounded-md object-cover" />
+                           <Image src={anime.poster} alt={anime.name} fill sizes="40px" className="rounded-md object-cover" />
                         </div>
                         <div className='overflow-hidden'>
                             <p className="font-semibold truncate text-sm">{anime.name}</p>

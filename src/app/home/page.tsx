@@ -51,6 +51,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
                     src={s.poster}
                     alt={s.name}
                     fill
+                    sizes="100vw"
                     className={cn(
                         'object-cover transition-opacity duration-1000',
                         index === currentIndex ? 'opacity-30' : 'opacity-0'
@@ -137,7 +138,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
                     {animes.slice(0, 7).map((anime, index) => (
                         <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
-                                <Image src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
+                                <Image src={anime.poster} alt={anime.name} fill sizes="48px" className="object-cover rounded-md" />
                             </div>
                             <div className='overflow-hidden'>
                                 <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{anime.name}</p>
@@ -236,7 +237,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
                 <div className="flex items-start gap-4 group">
                   <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
                   <div className="relative w-14 h-20 flex-shrink-0">
-                     <Image src={anime.poster} alt={anime.name} fill className="rounded-md object-cover" />
+                     <Image src={anime.poster} alt={anime.name} fill sizes="56px" className="rounded-md object-cover" />
                   </div>
                   <div className="flex-grow overflow-hidden">
                     <p className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-2">{anime.name}</p>

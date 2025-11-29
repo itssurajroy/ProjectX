@@ -39,6 +39,7 @@ export default function AnimeHero({ anime }: AnimeHeroProps) {
                         src={info.poster}
                         alt={`Poster for ${info.name}`}
                         fill
+                        sizes="(max-width: 768px) 80vw, (max-width: 1200px) 25vw, 20vw"
                         className="object-cover"
                         priority
                     />

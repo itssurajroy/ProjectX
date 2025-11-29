@@ -18,6 +18,7 @@ export default function RelatedSidebar({ relatedAnimes }: { relatedAnimes: Anime
                                 src={anime.poster}
                                 alt={anime.name}
                                 fill
+                                sizes="64px"
                                 className="object-cover rounded-md"
                             />
                         </div>
