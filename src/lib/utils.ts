@@ -12,6 +12,17 @@ export function sanitizeFirestoreId(id: string): string {
 
 export function extractEpisodeId(episodeId: string): string | null {
   if (!episodeId) return null;
-  const match = episodeId.match(/ep=(\d+)/);
-  return match ? match[1] : null;
+  // This regex is more robust, handling cases like "ep=123", "ep:123", and just the number.
+  // It will match ?ep=, &ep=, or just the episode number from an ID like `...-episode-123`
+  const match = episodeId.match(/(?:[?&]ep=|episode-)(\d+)/);
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  // Fallback for cases where the ID is just the number itself
+  if (/^\d+$/.test(episodeId)) {
+    return episodeId;
+  }
+  
+  return null;
 }

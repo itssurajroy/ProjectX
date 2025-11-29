@@ -1,197 +1,151 @@
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
-import { env } from "./env";
 
-type ServiceError = { success: false; error: string; status?: number };
+// src/lib/AnimeService.ts
+const HIANIME_API_BASE = process.env.NEXT_PUBLIC_HIANIME_API_BASE || "https://aniwatch-api-five-dusky.vercel.app";
+const CORS_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
 
-/**
- * Fetches data from the anime API. It constructs the URL and handles fetch operations.
- * This function is for internal use by the AnimeService class.
- *
- * @param path - The API endpoint path.
- * @param queryParams - An object representing URL query parameters.
- * @returns A promise that resolves to the JSON response data or a service error object.
- */
-async function fetchFromApi(path: string, queryParams: Record<string, string | number | string[] | undefined> = {}): Promise<any> {
-    const url = new URL(`${env.NEXT_PUBLIC_HIANIME_API_BASE}/${path}`);
-    
-    // Append query parameters to the URL
-    Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined) {
-             if (Array.isArray(value)) {
-                value.forEach(v => url.searchParams.append(key, v));
-            } else {
-                url.searchParams.append(key, String(value));
-            }
-        }
-    });
+// Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
+export const extractEpisodeNumber = (episodeId: string): string => {
+  const match = episodeId.match(/[\?&]ep[=:]?(\d+)/i);
+  return match ? match[1] : "1";
+};
 
+// Advanced fetch with timeout + retry + proper headers
+async function fetchWithRetry(url: string, retries = 3): Promise<any> {
+  for (let i = 0; i < retries; i++) {
     try {
-        const res = await fetch(url.toString(), {
-            headers: {
-                'Accept': 'application/json',
-            }
-        });
-        
-        if (!res.ok) {
-            // Don't log 404s as they are expected for some tooltips
-            if (res.status !== 404) {
-                const errorBody = await res.json().catch(() => ({ error: 'Failed to parse error response' }));
-                console.error(`API error for ${path}:`, res.status, errorBody);
-            }
-            return { success: false, error: `API returned status ${res.status}`, status: res.status };
-        }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
 
-        const data = await res.json();
-        return data; 
-    } catch (e: any) {
-        console.error(`Failed to fetch from API for path ${path}:`, e);
-        return { success: false, error: e.message || 'Unknown fetch error' };
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "User-Agent": "ProjectX/1.0 (+https://projectx.to)",
+        },
+        cache: "default",
+      });
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error: any) {
+      if (i === retries - 1) {
+        console.error(`[AnimeService] Final fail after ${retries} retries:`, url, error);
+        return { success: false, error: error.message || "Network error" };
+      }
+      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
     }
+  }
 }
 
-
-/**
- * A service class to interact with the anime data API.
- * It provides methods to fetch various types of anime data, such as home page content,
- * search results, anime details, and episode information.
- * All methods are static and can be called directly.
- */
 export class AnimeService {
-  /**
-   * Fetches the data required for the home page.
-   * @returns A promise resolving to home page data or a service error.
-   */
-  static async getHomeData(): Promise<{ data: HomeData } | ServiceError> {
-    return await fetchFromApi('home');
+  // Home Page
+  static async getHomeData() {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/home`);
   }
 
-  /**
-   * Searches for anime based on a query and various filters.
-   * @param query - The search term.
-   * @param page - The page number for pagination.
-   * @returns A promise resolving to search results or a service error.
-   */
-  static async searchAnime(
-    query: string, 
-    page: number = 1
-  ): Promise<{data: SearchResult} | ServiceError> {
-     return await fetchFromApi('search', { q: query, page });
-  }
-  
-  /**
-   * Fetches search suggestions based on a partial query.
-   * @param query - The search term.
-   * @returns A promise resolving to a list of suggestions or a service error.
-   */
-  static async getSearchSuggestions(query: string): Promise<{data: SearchSuggestionResponse} | ServiceError> {
-    if (!query) return { data: { suggestions: [] } };
-    return await fetchFromApi('search/suggest', { q: query });
+  // Anime Detail Page
+  static async getAnimeAbout(id: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/anime/${id}`);
   }
 
-  /**
-   * Fetches detailed information about a specific anime.
-   * @param id - The ID of the anime.
-   * @returns A promise resolving to the anime's details or a service error.
-   */
-  static async getAnimeAbout(id: string): Promise<{ data: AnimeAboutResponse } | ServiceError> {
-     return await fetchFromApi(`anime/${id}`);
+  // Quick Tooltip
+  static async getAnimeQtip(id: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/qtip/${id}`);
   }
 
-  /**
-   * Fetches tooltip information for a specific anime.
-   * @param id - The ID of the anime.
-   * @returns A promise resolving to tooltip data or a service error.
-   */
-  static async getAnimeQtip(id: string): Promise<{ data: { anime: QtipAnime } } | ServiceError> {
-    return await fetchFromApi(`qtip/${id}`);
-  }
-  
-  /**
-   * Fetches the list of episodes for a specific anime.
-   * @param animeId - The ID of the anime.
-   * @returns A promise resolving to a list of episodes or a service error.
-   */
-  static async getEpisodes(animeId: string): Promise<{data: {episodes: AnimeEpisode[]}} | ServiceError> {
-     return await fetchFromApi(`anime/${animeId}/episodes`);
-  }
-  
-  /**
-   * Fetches anime belonging to a specific genre.
-   * @param genre - The genre to filter by.
-   * @param page - The page number for pagination.
-   * @returns A promise resolving to a list of anime or a service error.
-   */
-  static async getGenre(genre: string, page: number = 1) {
-    return await fetchFromApi(`genre/${genre}`, { page });
+  // Episodes List
+  static async getEpisodes(animeId: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/anime/${animeId}/episodes`);
   }
 
-  /**
-   * Fetches the anime release schedule for a given date.
-   * @param date - The date in YYYY-MM-DD format.
-   * @returns A promise resolving to the schedule or a service error.
-   */
-  static async getSchedule(date: string): Promise<{data: ScheduleResponse} | ServiceError> {
-    return await fetchFromApi('schedule', { date });
+  // Search
+  static async searchAnime(query: string, page = 1) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/search?q=${encodeURIComponent(query)}&page=${page}`);
   }
 
-  /**
-   * Fetches a list of anime sorted alphabetically.
-   * @param sortOption - The character or category to sort by.
-   * @param page - The page number for pagination.
-   * @returns A promise resolving to a sorted list of anime or a service error.
-   */
-  static async getAZList(sortOption: string, page: number = 1): Promise<{data: SearchResult } | ServiceError> {
-    return await fetchFromApi(`az-list/${sortOption}`, { page });
+  static async getSearchSuggestions(query: string) {
+    if (!query.trim()) return { success: true, data: { suggestions: [] } };
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/search/suggestion?q=${encodeURIComponent(query)}`);
   }
 
-  /**
-   * Fetches available streaming servers for a specific anime episode.
-   * @param animeEpisodeId - The ID of the anime episode.
-   * @returns A promise resolving to a list of servers or a service error.
-   */
-  static async getEpisodeServers(animeEpisodeId: string): Promise<{data: {sub: EpisodeServer[], dub: EpisodeServer[], raw: EpisodeServer[]}} | ServiceError> {
-    return await fetchFromApi('anime/episode/servers', { episodeId: animeEpisodeId });
+  // A-Z List
+  static async getAZList(sortOption: string = "all", page = 1) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/azlist/${sortOption}?page=${page}`);
   }
 
-  /**
-   * Proxies a URL to bypass CORS restrictions, typically for HLS streams.
-   * @param url - The URL to proxy.
-   * @returns The proxied URL.
-   */
-  static getProxiedUrl(url: string): string {
-    return `/api/proxy?url=${encodeURIComponent(url)}`;
-  }
-  
-  /**
-   * Fetches the video sources for a specific anime episode from a given server.
-   * It proxies HLS and subtitle URLs to avoid CORS issues.
-   * @param animeEpisodeId - The ID of the anime episode.
-   * @param server - The server to fetch from.
-   * @param category - The language category (sub, dub, or raw).
-   * @returns A promise resolving to the episode sources or a service error.
-   */
-  static async getEpisodeSources(animeEpisodeId: string, server: string, category: 'sub' | 'dub' | 'raw'): Promise<EpisodeSourcesResponse | ServiceError> {
-    const data = await fetchFromApi('anime/episode/sources', { 
-        episodeId: animeEpisodeId, 
-        server, 
-        category 
-    });
+  // Episode Streaming Links (WITH CORS PROXY!)
+  static async getEpisodeSources(animeEpisodeId: string, server = "hd-1", category: "sub" | "dub" | "raw" = "sub") {
+    const data = await fetchWithRetry(
+      `${HIANIME_API_BASE}/v2/hianime/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`
+    );
 
-    if (data.success === false) {
-        return data;
-    }
+    if (!data.success || !data.data) return data;
 
+    // Auto-proxy all m3u8 and subtitle links
     return {
-        ...data,
-        sources: data.sources.map((source: any) => ({
-            ...source,
-            url: source.isM3U8 ? this.getProxiedUrl(source.url) : source.url,
+      ...data,
+      data: {
+        ...data.data,
+        sources: data.data.sources.map((source: any) => ({
+          ...source,
+          url: `${CORS_PROXY}${encodeURIComponent(source.url)}`,
         })),
-        subtitles: data.subtitles?.map((subtitle: any) => ({
-            ...subtitle,
-            url: this.getProxiedUrl(subtitle.url),
+        subtitles: data.data.subtitles?.map((sub: any) => ({
+          ...sub,
+          url: `${CORS_PROXY}${encodeURIComponent(sub.url)}`,
         })) || [],
+      },
     };
+  }
+
+  // Episode Servers
+  static async getEpisodeServers(animeEpisodeId: string) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/v2/hianime/episode/servers?animeEpisodeId=${animeEpisodeId}`);
+  }
+
+  // Advanced Search (ALL filters)
+  static buildSearchUrl(filters: {
+    query: string;
+    page?: number;
+    genres?: string[];
+    type?: string;
+    status?: string;
+    season?: string;
+    language?: string;
+    rated?: string;
+    score?: string;
+    start_date?: string;
+    end_date?: string;
+    sort?: string;
+  }) {
+    const params = new URLSearchParams();
+    params.set("q", filters.query);
+    if (filters.page) params.set("page", filters.page.toString());
+    if (filters.genres?.length) params.set("genres", filters.genres.join(","));
+    if (filters.type) params.set("type", filters.type);
+    if (filters.status) params.set("status", filters.status);
+    if (filters.season) params.set("season", filters.season);
+    if (filters.language) params.set("language", filters.language);
+    if (filters.rated) params.set("rated", filters.rated);
+    if (filters.score) params.set("score", filters.score);
+    if (filters.start_date) params.set("start_date", filters.start_date);
+    if (filters.end_date) params.set("end_date", filters.end_date);
+    if (filters.sort) params.set("sort", filters.sort);
+
+    return `${HIANIME_API_BASE}/v2/hianime/search?${params.toString()}`;
+  }
+
+  static async advancedSearch(filters: Parameters<typeof this.buildSearchUrl>[0]) {
+    const url = this.buildSearchUrl(filters);
+    return fetchWithRetry(url);
   }
 }
