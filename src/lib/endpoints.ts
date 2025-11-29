@@ -1,5 +1,4 @@
 
-const API_BASE_PATH = 'api/v2/hianime';
 
 export const Endpoints = {
     home: `home`,
@@ -14,4 +13,3 @@ export const Endpoints = {
     episodeSources: `anime/episode/sources`,
     qtip: (animeId: string) => `qtip/${animeId}`,
 };
-

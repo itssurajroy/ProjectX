@@ -1,6 +1,7 @@
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 import { Endpoints } from "./endpoints";
+import { env } from "./env";
 
 type ServiceError = { success: false; error: string; status?: number };
 
@@ -11,10 +12,12 @@ async function fetchFromApi(path: string, queryParams: Record<string, string | n
     }
 
     const fullPath = path.startsWith('/') ? path.substring(1) : path;
-    const url = `/api/${fullPath}?${params.toString()}`;
+    
+    // Construct the absolute URL using the base from environment variables
+    const absoluteUrl = `${env.NEXT_PUBLIC_HIANIME_API_BASE}/${fullPath}?${params.toString()}`;
     
     try {
-        const res = await fetch(url, {
+        const res = await fetch(absoluteUrl, {
             headers: {
                 'Accept': 'application/json',
             }
