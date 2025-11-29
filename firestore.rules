@@ -3,108 +3,71 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                     PUBLIC READS                         ║
+    // ║  Anyone (even unauthenticated) can read basic data       ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /{path=**}/announcements/{doc} {
+      allow read: if true;
     }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    match /settings/{doc} {
+      allow read: if true;
     }
-
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-    
-    function isModerator() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_moderator/$(request.auth.uid));
-    }
-
-    function isAdminOrModerator() {
-        return isAdmin() || isModerator();
-    }
-
-    // User data is private
-    match /users/{userId} {
-      allow read, write: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
-
-      // User-specific subcollections for bookmarks and history
-      match /bookmarks/{bookmarkId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /history/{historyId} {
-        allow read, write: if isOwner(userId);
-      }
-    }
-
-    // Media metadata is public to read, but only writable by admins.
-    match /media/{mediaId} {
-      allow get, list: if true;
-      allow create, update, delete: if isAdmin();
-    }
-    
-    // Comments are public to read, creatable by any signed-in user, but only manageable by mods/admins
-    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
-        allow list, get: if true;
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if isAdminOrModerator();
-    }
-
-    // Polls: Publicly readable, but only signed-in users can write their own vote.
-    match /polls/{pollId}/votes/{userId} {
-        allow get, create, update: if isOwner(userId);
-        allow delete: if false;
-    }
-    
-    match /polls/{pollId}/votes {
-        allow list: if true;
-    }
-    
-    // Admin and Moderator roles can only be read by admins, and can't be modified by clients.
-    match /roles_admin/{userId} {
-      allow get: if isAdmin();
-      allow list, create, update, delete: if false;
-    }
-
-    match /roles_moderator/{userId} {
-      allow get: if isAdmin();
-      allow list: if isAdmin();
-      allow create, update, delete: if false;
-    }
-
-    // All other admin-specific collections are only accessible by admins or moderators as appropriate.
     match /overrides/{animeId} {
-        allow read, write: if isAdmin();
+      allow read: if true;
+    }
+    match /skiptimes/{episodeId} {
+      allow read: if true;
     }
 
-    match /skiptimes/{animeId}/{episodeNumber} {
-        allow read, write: if isAdminOrModerator();
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                       POLLS SYSTEM                       ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /polls/{pollId} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+      
+      match /votes/{userId} {
+        allow read: if true;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
-    match /reports/{reportId} {
-        allow create: if isSignedIn();
-        allow read, update, delete: if isAdminOrModerator();
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                     WATCH PROGRESS                       ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /users/{userId}/progress/{animeId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /announcements/{announcementId} {
-        allow get, list: if true;
-        allow create, update, delete: if isAdmin();
+    match /users/{userId}/watchlist/{animeId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /settings/site {
-        allow get: if true;
-        allow write: if isAdmin();
+    match /users/{userId}/history/{animeId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /requests/{requestId} {
-        allow create: if isSignedIn();
-        allow read, update, delete: if isAdminOrModerator();
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                        BOOKMARKS                         ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /users/{userId}/bookmarks/{animeId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    match /logs/{logId} {
-        allow get, list: if isAdminOrModerator();
-        allow create, update, delete: if false; // Only backend can write logs
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                     ADMIN ACCESS                         ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /admin/{document=**} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                     DEFAULT DENY                         ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
