@@ -1,256 +1,358 @@
 'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { AnimeService } from '@/lib/AnimeService';
+import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase } from '@/types/anime';
+import { useQuery } from '@tanstack/react-query';
+import { Play, Clapperboard, Users, ChevronDown, Check, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Bookmark, BookmarkCheck, Share2, Volume2, VolumeX, ChevronDown, Star, Tv, Clapperboard, Calendar, Clock, Users, Globe, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+import { doc, setDoc, deleteDoc, getDoc, DocumentData, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 import { AnimeCard } from '@/components/AnimeCard';
+import { cn } from '@/lib/utils';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'react-hot-toast';
+import { useParams } from 'next/navigation';
 
-export default function AnimeDetailPage() {
-  const params = useParams();
-  const animeId = params.id as string;
-  const [isMuted, setIsMuted] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+type WatchlistStatus = 'Watching' | 'Plan to Watch' | 'Completed' | 'On-Hold';
 
-  const { data: res, isLoading, error } = useQuery({
-    queryKey: ['anime-about', animeId],
-    queryFn: () => AnimeService.getAnimeAbout(animeId),
-    staleTime: 1000 * 60 * 30, // 30 min cache
-  });
+const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
+    <Link href={`/anime/${anime.id}`} passHref>
+        <div className="flex gap-4 items-center group cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="relative w-16 h-24 flex-shrink-0">
+                <Image src={anime.poster} alt={anime.name} fill className="rounded-md object-cover shadow-md" />
+            </div>
+            <div className="overflow-hidden">
+                <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">{anime.name}</h3>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                    {anime.type && <span className="flex items-center gap-1">{anime.type}</span>}
+                    {anime.episodes?.sub && <span>{anime.episodes.sub} EPs</span>}
+                </div>
+            </div>
+        </div>
+    </Link>
+);
 
-  const anime = res?.success ? res.data.anime : null;
-  const info = anime?.info;
-  const moreInfo = anime?.moreInfo;
-  const recommended = res?.data.recommendedAnimes || [];
-  const related = res?.data.relatedAnimes || [];
-  const seasons = res?.data.seasons || [];
-  const pv = info?.promotionalVideos?.[0];
+
+const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
+    <div className="bg-card/50 rounded-lg overflow-hidden flex border border-border/50">
+        {/* Character */}
+        <div className="w-1/2 flex items-center gap-3 p-3">
+            <div className="relative aspect-[2/3] w-12 flex-shrink-0">
+                <Image src={cv.character.poster} alt={cv.character.name} fill className="object-cover rounded-md" />
+            </div>
+            <div className="overflow-hidden">
+                <h4 className="font-bold text-sm text-primary truncate">{cv.character.name}</h4>
+                <p className="text-xs text-muted-foreground">{cv.character.cast}</p>
+            </div>
+        </div>
+
+        {/* Voice Actor */}
+        {cv.voiceActor && (
+            <div className="w-1/2 flex items-center gap-3 p-3 bg-card/40 justify-end text-right">
+                <div className="overflow-hidden">
+                    <p className="font-bold text-sm truncate">{cv.voiceActor.name}</p>
+                    <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
+                </div>
+                <div className="relative aspect-square w-12 flex-shrink-0">
+                    <Image src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill className="rounded-full object-cover" />
+                </div>
+            </div>
+        )}
+    </div>
+);
+
+
+function AnimeDetailsPageClient({ id }: { id: string }) {
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+  const [watchlistStatus, setWatchlistStatus] = useState<WatchlistStatus | null>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  const watchlistOptions: WatchlistStatus[] = ['Watching', 'Plan to Watch', 'Completed', 'On-Hold'];
 
   useEffect(() => {
-    if (pv && !isMuted) {
-      const video = document.getElementById('trailer-video') as HTMLVideoElement;
-      if (video) video.play().catch(() => {});
+    setIsClient(true);
+  }, []);
+
+  const {
+    data: apiResponse,
+    isLoading: isLoadingAnime,
+    error,
+    refetch,
+  } = useQuery<{data: AnimeAboutResponse} | { success: false; error: string }>({
+    queryKey: ['anime', id],
+    queryFn: () => AnimeService.getAnimeAbout(id),
+  });
+  
+  const animeResult = apiResponse && !('success' in apiResponse) ? apiResponse.data : null;
+  const anime = animeResult?.anime;
+  const animeInfo: AnimeInfo | undefined = anime?.info;
+  const moreInfo = anime?.moreInfo;
+  const recommendedAnimes = animeResult?.recommendedAnimes;
+  const relatedAnimes = animeResult?.relatedAnimes;
+  const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
+
+
+  const { data: episodesResult } = useQuery<any | { success: false, error: string }>({
+    queryKey: ['episodes', id],
+    queryFn: () => AnimeService.getEpisodes(id),
+    enabled: !!animeInfo
+  });
+
+  const episodes = episodesResult && !('success' in episodesResult) ? episodesResult.data?.episodes : [];
+
+  useEffect(() => {
+    if (user && !user.isAnonymous && animeInfo && firestore) {
+      const docRef = doc(firestore, 'users', user.uid, 'bookmarks', animeInfo.id);
+      getDoc(docRef).then(docSnap => {
+        if (docSnap.exists()) {
+          setWatchlistStatus(docSnap.data()?.status || 'Watching');
+        } else {
+          setWatchlistStatus(null);
+        }
+      });
+    } else {
+        setWatchlistStatus(null);
     }
-  }, [isMuted, pv]);
+  }, [user, animeInfo, firestore]);
+  
+  const isLoading = isLoadingAnime || isUserLoading;
 
-  if (isLoading) return <AnimeDetailSkeleton />;
-  if (error || !anime) return <ErrorState />;
+  if (isLoading) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
+  if (error || !animeResult) return <ErrorDisplay onRetry={refetch} />;
+  if (!animeInfo || !moreInfo) return <ErrorDisplay title="Anime Not Found" description="The details for this anime could not be found." />;
 
+  
+  const handleWatchlistChange = async (newStatus: WatchlistStatus | null) => {
+    if (!user || !animeInfo || !firestore || user.isAnonymous) return;
+    const docRef = doc(firestore, 'users', user.uid, 'bookmarks', animeInfo.id);
+    setIsDropdownOpen(false);
+
+    if (newStatus === null) {
+      // Remove from watchlist
+      deleteDoc(docRef)
+        .then(() => setWatchlistStatus(null))
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'delete',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+    } else {
+      // Add or update watchlist
+      const watchlistData: DocumentData = {
+        id: animeInfo.id,
+        name: animeInfo.name,
+        poster: animeInfo.poster,
+        type: animeInfo.stats.type,
+        status: newStatus,
+        updatedAt: serverTimestamp(),
+      };
+      // Add bookmarkedAt only when first adding
+      if (!watchlistStatus) {
+        watchlistData.bookmarkedAt = serverTimestamp();
+      }
+
+      setDoc(docRef, watchlistData, { merge: true })
+        .then(() => setWatchlistStatus(newStatus))
+        .catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: watchlistStatus ? 'update' : 'create',
+            requestResourceData: watchlistData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        });
+    }
+  };
+  
+  const firstEpisodeId = episodes && episodes.length > 0 && episodes[0]?.episodeId ? episodes[0].episodeId : null;
+
+
+  const stats = animeInfo.stats;
+  
   return (
-    <>
-      {/* HERO TRAILER BACKGROUND — NETFLIX STYLE */}
-      <div className="relative h-screen overflow-hidden">
-        {pv && (
-          <video
-            id="trailer-video"
-            className="absolute inset-0 w-full h-full object-cover brightness-[0.4] scale-110"
-            src={pv.source}
-            poster={pv.thumbnail || info.poster}
-            muted={isMuted}
-            loop
-            playsInline
-          />
-        )}
-        {!pv && info.poster && (
-          <Image
-            src={info.poster}
-            alt={info.name}
-            fill
-            className="object-cover brightness-[0.4] scale-110 blur-xl"
-            priority
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent" />
-
-        {/* HERO CONTENT */}
-        <div className="relative h-full flex items-end pb-32 container mx-auto px-6">
-          <div className="max-w-4xl space-y-8">
-            {/* Title */}
-            <motion.h1 
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              className="text-6xl md:text-8xl font-black text-white drop-shadow-2xl"
-            >
-              {info.name}
-            </motion.h1>
-
-            {/* Japanese Title */}
-            {moreInfo.japanese && (
-              <motion.p 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl md:text-4xl text-gray-300 italic"
-              >
-                {moreInfo.japanese}
-              </motion.p>
-            )}
-
-            {/* Stats Row */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex flex-wrap items-center gap-4 text-lg"
-            >
-              <Badge variant="secondary" className="bg-green-600/20 text-green-400 border-green-600/50 text-lg px-4 py-2">
-                <Star className="w-5 h-5 mr-1 fill-yellow-500" /> {moreInfo.malScore || "N/A"}
-              </Badge>
-              <span className="text-gray-300">{moreInfo.status}</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-gray-300">{moreInfo.duration}</span>
-              <span className="text-gray-300">•</span>
-              <span className="text-gray-300">{info.stats.type}</span>
-            </motion.div>
-
-            {/* Action Buttons */}
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-              className="flex flex-wrap gap-4"
-            >
-              <Link href={`/watch/${animeId}?ep=1`}>
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200 text-xl px-12 py-7 rounded-full font-bold shadow-2xl">
-                  <Play className="w-6 h-6 mr-3 fill-current" /> Play Episode 1
-                </Button>
-              </Link>
-              <Button 
-                size="lg" 
-                variant="secondary" 
-                className="bg-white/20 backdrop-blur border-white/30 text-white hover:bg-white/30 text-xl px-10 py-7 rounded-full font-bold"
-                onClick={() => setIsBookmarked(!isBookmarked)}
-              >
-                {isBookmarked ? <BookmarkCheck className="w-6 h-6 mr-3" /> : <Bookmark className="w-6 h-6 mr-3" />}
-                {isBookmarked ? "Bookmarked" : "Add to List"}
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white/50 text-white hover:bg-white/20 text-xl px-10 py-7 rounded-full"
-                onClick={() => toast.success("Link copied!")}
-              >
-                <Share2 className="w-6 h-6 mr-3" /> Share
-              </Button>
-            </motion.div>
-
-            {/* Synopsis */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.9 }}
-              className="max-w-3xl"
-            >
-              <p className="text-lg md:text-xl text-gray-200 leading-relaxed line-clamp-4">
-                {info.description?.replace(/<[^>]*>/g, '')}
-              </p>
-              <button className="text-purple-400 font-medium mt-4 flex items-center hover:text-purple-300">
-                Read More <ChevronDown className="w-5 h-5 ml-1" />
-              </button>
-            </motion.div>
-
-            {/* Genres */}
-            <div className="flex flex-wrap gap-3">
-              {moreInfo.genres?.map((g: string) => (
-                <Badge key={g} className="bg-purple-600/30 text-purple-300 border-purple-600/50 text-base px-5 py-2">
-                  {g}
-                </Badge>
-              ))}
-            </div>
+    <div className="min-h-screen bg-background text-foreground">
+        <div className="relative h-auto md:h-auto overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={animeInfo.poster}
+              alt={animeInfo.name}
+              fill
+              className="object-cover opacity-10 blur-xl scale-110"
+              priority
+            />
+             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
+             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
           </div>
 
-          {/* Mute Toggle */}
-          <button
-            onClick={() => setIsMuted(!isMuted)}
-            className="absolute bottom-8 right-8 bg-black/50 backdrop-blur p-4 rounded-full hover:bg-black/70 transition"
-          >
-            {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
-
-      {/* CONTENT SECTIONS — HULU STYLE */}
-      <div className="bg-black text-white min-h-screen">
-        <div className="container mx-auto px-6 py-16 space-y-24">
-          {/* Recommended */}
-          {recommended.length > 0 && (
-            <section>
-              <h2 className="text-4xl font-bold mb-8">Because you watched {info.name}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                {recommended.slice(0, 12).map((rec: any) => (
-                  <AnimeCard key={rec.id} anime={rec} />
-                ))}
+          <div className="px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
+            <div className="lg:col-span-3 flex justify-center lg:justify-start">
+              <Image
+                src={animeInfo.poster}
+                alt={animeInfo.name}
+                width={250}
+                height={380}
+                className="rounded-lg shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
+                priority
+              />
+            </div>
+            
+            <div className="lg:col-span-9 flex flex-col justify-center h-full text-center lg:text-left">
+              <div className="text-sm text-muted-foreground hidden sm:block">Home &gt; {stats.type} &gt; {animeInfo.name}</div>
+              <h1 className="text-3xl md:text-5xl font-bold mt-2 text-glow">{animeInfo.name}</h1>
+              
+              <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
+                  {stats.rating && <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</span>}
+                  <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">{stats.quality}</span>
+                  {stats.episodes.sub && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-card/50 rounded-md border border-border/50">
+                          <Clapperboard className="w-3 h-3" /> SUB {stats.episodes.sub}
+                      </span>
+                  )}
+                  {stats.episodes.dub && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 text-blue-300 rounded-md border border-blue-500/30">
+                         DUB {stats.episodes.dub}
+                      </span>
+                  )}
+                  <span className="text-sm text-muted-foreground">&bull; {stats.type} &bull; {stats.duration}</span>
               </div>
-            </section>
-          )}
 
-          {/* Related */}
-          {related.length > 0 && (
-            <section>
-              <h2 className="text-4xl font-bold mb-8">More like this</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                {related.map((rel: any) => (
-                  <AnimeCard key={rel.id} anime={rel} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Seasons */}
-          {seasons.length > 1 && (
-            <section>
-              <h2 className="text-4xl font-bold mb-8">Seasons</h2>
-              <div className="flex gap-6 overflow-x-auto pb-4">
-                {seasons.map((season: any) => (
-                  <Card key={season.id} className="bg-gray-900 border-gray-800 min-w-64">
-                    <Image src={season.poster} alt={season.title} width={400} height={600} className="rounded-t-lg" />
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold">{season.title}</h3>
-                      <p className="text-gray-400">{season.isCurrent && "Currently watching"}</p>
+              <p className="text-muted-foreground leading-relaxed mt-6 max-w-3xl text-sm line-clamp-3 mx-auto lg:mx-0" dangerouslySetInnerHTML={{ __html: animeInfo.description }}></p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
+                {firstEpisodeId && (
+                  <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeId}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/20">
+                    <Play /> Watch Now
+                  </Link>
+                )}
+                 {isClient && user && !user.isAnonymous && (
+                    <div className="relative">
+                        <button 
+                            onClick={() => user && setIsDropdownOpen(!isDropdownOpen)} 
+                            disabled={!user} 
+                            className="flex items-center justify-center gap-2 bg-card/50 backdrop-blur-sm text-card-foreground px-6 py-3 rounded-lg font-semibold hover:bg-card/80 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border border-border w-full sm:w-auto"
+                        >
+                           {watchlistStatus ? <><Check className="text-primary"/> {watchlistStatus}</> : <>+ Add to List</>}
+                           <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isDropdownOpen && (
+                            <div 
+                                onMouseLeave={() => setIsDropdownOpen(false)}
+                                className="absolute top-full mt-2 w-48 bg-card rounded-lg shadow-xl py-1 z-20 border border-border animate-in fade-in-0 zoom-in-95"
+                            >
+                                {watchlistOptions.map(status => (
+                                    <button 
+                                        key={status}
+                                        onClick={() => handleWatchlistChange(status)} 
+                                        className={cn("w-full text-left px-4 py-2 text-sm flex items-center justify-between", watchlistStatus === status ? 'bg-primary/20 text-primary' : 'hover:bg-muted/50')}
+                                    >
+                                        {status}
+                                        {watchlistStatus === status && <Check className="w-4 h-4" />}
+                                    </button>
+                                ))}
+                                {watchlistStatus && (
+                                  <>
+                                    <div className="h-px bg-border my-1" />
+                                    <button 
+                                        onClick={() => handleWatchlistChange(null)}
+                                        className="w-full text-left px-4 py-2 text-sm text-destructive flex items-center gap-2 hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="w-4 h-4" /> Remove
+                                    </button>
+                                  </>
+                                )}
+                            </div>
+                        )}
                     </div>
-                  </Card>
-                ))}
+                )}
               </div>
-            </section>
-          )}
+              
+              <p className="text-muted-foreground text-xs mt-4 max-w-3xl mx-auto lg:mx-0">
+                <Link href="/" className="text-primary hover:underline">ProjectX</Link> is the best site to watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> SUB online, or you can even watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> DUB in HD quality. You can also find various anime on <Link href="/" className="text-primary hover:underline">ProjectX</Link> website.
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </>
-  );
-}
 
-// Loading & Error States
-function AnimeDetailSkeleton() {
-  return (
-    <div className="min-h-screen bg-black">
-      <Skeleton className="h-screen w-full" />
+      <main className="px-4 sm:px-6 lg:px-8 -mt-10 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-3 bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start">
+                <div className="space-y-3 text-sm">
+                    {Object.entries(moreInfo).map(([key, value]) => {
+                       if (!value || (Array.isArray(value) && value.length === 0)) return null;
+                       const label = key.charAt(0).toUpperCase() + key.slice(1);
+                       
+                       return (
+                         <div key={key} className="flex justify-between border-b border-border/50 pb-2 last:border-b-0">
+                            <span className="font-bold text-foreground/80">{label}:</span>
+                            {key === 'genres' && Array.isArray(value) ? (
+                                <div className="flex flex-wrap items-center justify-end gap-1 max-w-[60%]">
+                                    {value.map((genre: string) => (
+                                        <Link key={genre} href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted">{genre}</Link>
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-muted-foreground text-right">{Array.isArray(value) ? value.join(', ') : value}</span>
+                            )}
+                         </div>
+                       )
+                    })}
+                </div>
+            </div>
+
+          <div className="lg:col-span-6 space-y-12">
+              {characters.length > 0 && (
+                <section>
+                   <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
+                    <div className="grid grid-cols-1 gap-2">
+                        {characters.slice(0, 10).map(cv => (
+                            <CharacterCard key={cv.character.id} cv={cv} />
+                        ))}
+                    </div>
+                </section>
+              )}
+
+             {recommendedAnimes && recommendedAnimes.length > 0 && (
+                <section>
+                    <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {recommendedAnimes?.slice(0,8).map((rec: AnimeBase) => (
+                        <AnimeCard key={rec.id} anime={rec} />
+                    ))}
+                    </div>
+                </section>
+             )}
+          </div>
+          <div className="lg:col-span-3 space-y-6">
+            {relatedAnimes && relatedAnimes.length > 0 && (
+                <div className='bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border'>
+                    <h2 className="text-xl font-bold mb-4 border-l-4 border-primary pl-3">🔀 Related Anime</h2>
+                    <div className="flex flex-col gap-2">
+                    {relatedAnimes?.slice(0, 7).map((rec: AnimeBase) => (
+                        <SidebarAnimeCard key={rec.id} anime={rec} />
+                    ))}
+                    </div>
+                </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
 
-function ErrorState() {
-  return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-center space-y-6">
-        <AlertCircle className="w-24 h-24 text-red-500 mx-auto" />
-        <h1 className="text-4xl font-bold">Anime Not Found</h1>
-        <p className="text-gray-400">This anime doesn't exist... yet.</p>
-        <Link href="/home">
-          <Button className="bg-purple-600 hover:bg-purple-700">Back to Home</Button>
-        </Link>
-      </div>
-    </div>
-  );
+export default function AnimeDetailsPage({ params }: { params: { id: string } }) {
+  const { id } = params;
+  return <AnimeDetailsPageClient id={id} />;
 }
+ 
