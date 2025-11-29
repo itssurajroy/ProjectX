@@ -1,15 +1,7 @@
 
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime } from "@/types/anime";
 
-// src/lib/AnimeService.ts
 const HIANIME_API_BASE = "/api/proxy"; // ALWAYS use the proxy
-const CORS_PROXY = "/api/proxy?url=";
-
-// Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
-export const extractEpisodeNumber = (episodeId: string): string => {
-  const match = episodeId.match(/[\?&]ep[=:]?(\d+)/i);
-  return match ? match[1] : "1";
-};
 
 // Advanced fetch with timeout + retry + proper headers
 async function fetchWithRetry(url: string, retries = 3): Promise<any> {
@@ -82,26 +74,29 @@ export class AnimeService {
     return fetchWithRetry(`${HIANIME_API_BASE}/azlist/${sortOption}?page=${page}`);
   }
 
-  // Episode Streaming Links (WITH CORS PROXY!)
+  // Episode Streaming Links
   static async getEpisodeSources(animeEpisodeId: string, server = "hd-1", category: "sub" | "dub" | "raw" = "sub") {
     const data = await fetchWithRetry(
       `${HIANIME_API_BASE}/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`
     );
-
+    
     if (!data.success || !data.data) return data;
 
-    // Auto-proxy all m3u8 and subtitle links
+    // The external CORS proxy is no longer needed if we proxy m3u8 files ourselves.
+    // We can use our own proxy for this.
+    const PROXY_PREFIX = "/api/proxy?url=";
+
     return {
       ...data,
       data: {
         ...data.data,
         sources: data.data.sources.map((source: any) => ({
           ...source,
-          url: `${CORS_PROXY}${encodeURIComponent(source.url)}`,
+          url: `${PROXY_PREFIX}${encodeURIComponent(source.url)}`,
         })),
         subtitles: data.data.subtitles?.map((sub: any) => ({
           ...sub,
-          url: `${CORS_PROXY}${encodeURIComponent(sub.url)}`,
+          url: `${PROXY_PREFIX}${encodeURIComponent(sub.url)}`,
         })) || [],
       },
     };
