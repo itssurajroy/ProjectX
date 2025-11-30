@@ -1,4 +1,5 @@
 
+
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime, EpisodeServersResponse } from "@/types/anime";
 
 const HIANIME_API_BASE = "/api/proxy"
@@ -73,6 +74,10 @@ export class AnimeService {
   // Search
   static async searchAnime(query: string, page = 1) {
     return fetchWithRetry(`${HIANIME_API_BASE}/search?q=${encodeURIComponent(query)}&page=${page}`);
+  }
+
+  static async getMovies(page = 1) {
+    return fetchWithRetry(`${HIANIME_API_BASE}/movies?page=${page}`);
   }
 
   static async getSearchSuggestions(query: string) {

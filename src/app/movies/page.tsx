@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { AnimeCard } from "@/components/AnimeCard";
@@ -31,7 +32,7 @@ function MoviesPageContent() {
 
     const { data: moviesResult, isLoading, error, refetch } = useQuery<{ data: SearchResult }>({
         queryKey: ['movies', page],
-        queryFn: () => AnimeService.advancedSearch({ query: '', type: 'Movie', page }),
+        queryFn: () => AnimeService.getMovies(page),
     });
 
     const handlePageChange = (newPage: number) => {
