@@ -27,17 +27,16 @@ export default function PVCarousel({ videos }: PVCarouselProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold font-display">Promotional Videos</h2>
+      <h2 className="text-2xl font-bold font-display border-l-4 border-primary pl-3">Trailers</h2>
       <Carousel
         opts={{
           align: "start",
-          loop: true,
         }}
         className="w-full"
       >
         <CarouselContent>
           {videos.map((video, index) => (
-            <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+            <CarouselItem key={index} className="md:basis-1/2">
               <div 
                 className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-lg"
                 onClick={() => openVideo(video.source)}
@@ -60,8 +59,8 @@ export default function PVCarousel({ videos }: PVCarouselProps) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-2" />
-        <CarouselNext className="right-2" />
+        <CarouselPrevious className="left-2 bg-card/80 hover:bg-card" />
+        <CarouselNext className="right-2 bg-card/80 hover:bg-card" />
       </Carousel>
     </div>
   );

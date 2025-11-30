@@ -1,12 +1,15 @@
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
-import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase } from '@/types/anime';
+import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimeCard } from '@/components/AnimeCard';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
+import Synopsis from './Synopsis';
+import SeasonsSwiper from './SeasonsSwiper';
+import PVCarousel from './PVCarousel';
 
 const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
     <Link href={`/anime/${anime.id}`} passHref>
@@ -70,6 +73,8 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const anime = animeResult?.anime;
   const animeInfo: AnimeInfo | undefined = anime?.info;
   const moreInfo = anime?.moreInfo;
+  const seasons: AnimeSeason[] = animeResult?.seasons ?? [];
+  const promotionalVideos: PromotionalVideo[] = animeInfo?.promotionalVideos ?? [];
   const recommendedAnimes = animeResult?.recommendedAnimes;
   const relatedAnimes = animeResult?.relatedAnimes;
   const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
@@ -145,8 +150,10 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                   <span className="text-sm text-muted-foreground">&bull; {stats.type} &bull; {stats.duration}</span>
               </div>
 
-              <p className="text-muted-foreground leading-relaxed mt-6 max-w-3xl text-sm line-clamp-3 mx-auto lg:mx-0" dangerouslySetInnerHTML={{ __html: animeInfo.description }}></p>
-              
+              <div className="mt-6 max-w-3xl mx-auto lg:mx-0">
+                <Synopsis description={animeInfo.description} />
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
                 {firstEpisodeId && (
                   <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeId}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/20">
@@ -189,6 +196,10 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
             </div>
 
           <div className="lg:col-span-6 space-y-12">
+              <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
+
+              <PVCarousel videos={promotionalVideos} />
+              
               {characters.length > 0 && (
                 <section>
                    <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>

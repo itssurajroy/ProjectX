@@ -25,11 +25,11 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
 
     return (
         <div className="space-y-4">
-            <h2 className="text-2xl font-bold font-display">Seasons</h2>
+            <h2 className="text-2xl font-bold font-display border-l-4 border-primary pl-3">Seasons</h2>
             <Carousel opts={{ align: "start" }} className="w-full">
                 <CarouselContent>
                     {seasons.map(season => (
-                        <CarouselItem key={season.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/8">
+                        <CarouselItem key={season.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/4">
                              <Link href={`/anime/${season.id}`}>
                                 <div className={cn(
                                     "relative aspect-[2/3] rounded-md overflow-hidden group border-2 transition-all", 
@@ -39,13 +39,18 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
                                         <p className="text-white font-semibold text-xs line-clamp-2 group-hover:text-primary transition-colors">{season.title}</p>
                                     </div>
+                                    {season.isCurrent && (
+                                        <div className="absolute top-1 right-1 px-1.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground rounded-md">
+                                            Current
+                                        </div>
+                                    )}
                                 </div>
                             </Link>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
+                <CarouselPrevious className="left-2 bg-card/80 hover:bg-card" />
+                <CarouselNext className="right-2 bg-card/80 hover:bg-card" />
             </Carousel>
         </div>
     )
