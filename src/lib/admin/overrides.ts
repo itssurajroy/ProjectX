@@ -1,11 +1,11 @@
 'use server';
 
-import { initializeFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { AdminError, handleAdminError } from './utils';
+import { initializeAdminFirebase } from '@/firebase/server-admin';
 
-const { firestore } = initializeFirebase();
+const { firestore } = initializeAdminFirebase();
 
 // This is a placeholder. In a real app, you'd get this from your auth state.
 const mockAuth = { currentUser: { uid: 'admin-user-placeholder' } };
@@ -17,6 +17,7 @@ export async function setAnimeOverride(
     poster: string;
     description: string;
     status: string;
+    malId?: number;
   }>
 ) {
   if (!animeId || !data || Object.keys(data).length === 0) {

@@ -1,9 +1,9 @@
 'use server';
 
-import { initializeFirebase } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
+import { initializeAdminFirebase } from '@/firebase/server-admin';
 
-const { firestore } = initializeFirebase();
+const { firestore } = initializeAdminFirebase();
 
 export async function updateSkipTimes(
   animeId: string,

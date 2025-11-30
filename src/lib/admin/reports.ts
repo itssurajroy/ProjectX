@@ -1,11 +1,11 @@
 'use server';
 
-import { initializeFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { AdminError, handleAdminError } from './utils';
+import { initializeAdminFirebase } from '@/firebase/server-admin';
 
-const { firestore } = initializeFirebase();
+const { firestore } = initializeAdminFirebase();
 
 // This is a placeholder. In a real app, you'd get this from your auth state.
 const mockAuth = { currentUser: { uid: 'anonymous-user-placeholder' } };

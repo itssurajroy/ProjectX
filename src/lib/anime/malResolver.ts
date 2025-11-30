@@ -1,10 +1,12 @@
 
-import { initializeFirebase } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { AnimeService } from '../AnimeService';
 import { MALService } from '../MALService';
+import { initializeAdminFirebase } from '@/firebase/server-admin';
 
-const { firestore } = initializeFirebase();
+// Use the server-side initialized firestore instance
+const { firestore } = initializeAdminFirebase();
+
 
 export async function getMALId(animeId: string): Promise<number | null> {
   // 1. Check override
@@ -17,6 +19,7 @@ export async function getMALId(animeId: string): Promise<number | null> {
     }
   } catch (e) {
       // This might fail if user is not admin, which is fine.
+      console.warn(`Could not check for MAL override for ${animeId}. This is expected if not logged in as admin.`);
   }
 
   // 2. Auto search by title
