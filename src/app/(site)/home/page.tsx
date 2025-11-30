@@ -283,8 +283,15 @@ export default function MainDashboardPage() {
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
                 <AnimeSection title="Trending" animes={trendingAnimes} viewMoreLink="/trending" />
                 <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} viewMoreLink="/recent-episodes" />
-                <AnimeSection title="Top Airing" animes={topAiringAnimes} viewMoreLink="/top-airing" />
-                <AnimeSection title="Most Popular" animes={mostPopularAnimes} viewMoreLink="/most-popular" />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-12">
+                        <AnimeSection title="Most Popular" animes={mostPopularAnimes} viewMoreLink="/most-popular" />
+                    </div>
+                    <div className="space-y-8">
+                         <SmallListSection title="Top Airing" animes={topAiringAnimes} />
+                         <SmallListSection title="Top Upcoming" animes={topUpcomingAnimes} />
+                    </div>
+                </div>
                 <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} viewMoreLink="/most-favorite" />
                 <AnimeSection title="Completed" animes={latestCompletedAnimes} viewMoreLink="/completed" />
             </div>
@@ -297,5 +304,3 @@ export default function MainDashboardPage() {
     </div>
   );
 }
-
-    
