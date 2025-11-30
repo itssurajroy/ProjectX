@@ -25,7 +25,9 @@ export default function AnnouncementsPage() {
                         <div className="space-y-2">
                             <Label>Color</Label>
                             <Select defaultValue="blue">
-                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="blue">Blue</SelectItem>
                                     <SelectItem value="green">Green</SelectItem>
