@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import "../globals.css";
 import Providers from "../providers";
@@ -26,16 +27,9 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-       <head>
-         <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
-       </head>
-      <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
-        <Providers>
-            <ShadToaster />
-            {children}
-        </Providers>
-      </body>
-    </html>
+    <Providers>
+        <ShadToaster />
+        {children}
+    </Providers>
   );
 }
