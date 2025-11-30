@@ -24,13 +24,14 @@ import {
   Trash2,
   ListTodo,
   ScrollText,
-  Badge,
+  Badge as BadgeIcon,
   Tags,
   Share2,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 const adminNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -70,15 +71,13 @@ function AdminSidebar() {
                   asChild
                   isActive={pathname === item.href}
                   className="w-full justify-start"
+                  icon={<item.icon />}
+                  label={item.label}
                 >
                   <Link href={item.href}>
-                    <>
-                      <item.icon />
-                      <span>{item.label}</span>
-                      {item.badge && (
+                     {item.badge && (
                         <Badge className="ml-auto">{item.badge}</Badge>
                       )}
-                    </>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -119,3 +118,5 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     </SidebarProvider>
   );
 }
+
+    

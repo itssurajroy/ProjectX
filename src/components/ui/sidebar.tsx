@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -318,12 +319,13 @@ function SidebarMenuItem({
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   ButtonProps & {
-    isActive?: boolean
+    isActive?: boolean;
+    icon?: React.ReactNode;
+    label: string;
   }
->(({ className, isActive, children, ...props }, ref) => {
-  const { isExpanded } = useSidebar()
-
-  const clonedChild = React.Children.only(children) as React.ReactElement
+>(({ className, isActive, icon, label, children, ...props }, ref) => {
+  const { isExpanded } = useSidebar();
+  const child = children ? React.Children.only(children) : null;
 
   return (
     <Tooltip>
@@ -337,20 +339,30 @@ const SidebarMenuButton = React.forwardRef<
             className
           )}
           {...props}
+          asChild={!!child}
         >
-          {React.cloneElement(clonedChild, {
-            ...clonedChild.props,
-            className: cn(clonedChild.props.className, "h-4 w-4 shrink-0"),
-          })}
-          {isExpanded && (
-            <span
-              className={cn(
-                "overflow-hidden text-ellipsis whitespace-nowrap",
-                !isExpanded && "sr-only"
+          {child ? (
+             React.cloneElement(child as React.ReactElement, {}, (
+              <>
+                {icon && React.cloneElement(icon as React.ReactElement, { className: "h-4 w-4 shrink-0" })}
+                {isExpanded && (
+                  <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    {label}
+                  </span>
+                )}
+                {/* Render other children passed to the button, like a badge */}
+                {(child.props.children as React.ReactNode[]).filter(c => c !== label && c !== icon)}
+              </>
+            ))
+          ) : (
+            <>
+              {icon && React.cloneElement(icon as React.ReactElement, { className: "h-4 w-4 shrink-0" })}
+              {isExpanded && (
+                <span className="overflow-hidden text-ellipsis whitespace-nowrap">
+                  {label}
+                </span>
               )}
-            >
-              {clonedChild.props.children}
-            </span>
+            </>
           )}
         </Button>
       </TooltipTrigger>
@@ -360,12 +372,12 @@ const SidebarMenuButton = React.forwardRef<
           sideOffset={10}
           className="bg-background text-foreground"
         >
-          {clonedChild.props.children}
+          {label}
         </TooltipContent>
       )}
     </Tooltip>
-  )
-})
+  );
+});
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 export {
@@ -378,3 +390,5 @@ export {
   SidebarMenuItem,
   SidebarTrigger,
 }
+
+    
