@@ -1,5 +1,4 @@
 
-'use server';
 // src/lib/MALService.ts
 const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID!;
 
