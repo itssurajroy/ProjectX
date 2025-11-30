@@ -1,4 +1,3 @@
-
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
@@ -11,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
-import HomeTabs from '@/components/home/HomeTabs';
+import { AnimeSection } from '@/components/home/AnimeSection';
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -270,7 +269,7 @@ export default function MainDashboardPage() {
   }
   
   const data = apiResponse.data;
-  const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes } = data;
+  const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = data;
 
 
   return (
@@ -282,12 +281,12 @@ export default function MainDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
-                <HomeTabs homeData={data} />
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <SmallListSection title="Top Airing 🔥" animes={topAiringAnimes} />
-                    <SmallListSection title="Top Upcoming ✨" animes={topUpcomingAnimes} />
-                    <SmallListSection title="Latest Completed ✅" animes={latestCompletedAnimes} />
-                </div>
+                <AnimeSection title="Trending" animes={trendingAnimes} viewMoreLink="/trending" />
+                <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} viewMoreLink="/recent-episodes" />
+                <AnimeSection title="Top Airing" animes={topAiringAnimes} viewMoreLink="/top-airing" />
+                <AnimeSection title="Most Popular" animes={mostPopularAnimes} viewMoreLink="/most-popular" />
+                <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} viewMoreLink="/most-favorite" />
+                <AnimeSection title="Completed" animes={latestCompletedAnimes} viewMoreLink="/completed" />
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar top10Animes={top10Animes} />
