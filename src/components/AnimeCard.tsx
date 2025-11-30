@@ -28,6 +28,11 @@ export function AnimeCard({ anime }: AnimeCardProps) {
               {anime.episodes?.dub && <Badge variant="default" className="bg-blue-500/80 text-white">DUB</Badge>}
               {anime.episodes?.sub && <Badge variant="secondary" className="bg-primary/80 text-primary-foreground">SUB</Badge>}
           </div>
+          {anime.rating === 'R' && (
+              <div className="absolute top-2 right-2">
+                  <Badge variant="destructive" className="bg-red-700/90 text-white">18+</Badge>
+              </div>
+          )}
           {anime.episodes?.sub && <div className="absolute bottom-2 right-2">
               <Badge variant="destructive">{`Ep ${anime.episodes.sub}`}</Badge>
           </div>}
