@@ -2,6 +2,8 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import { AdminError, handleAdminError } from './utils';
 
 const { firestore } = initializeFirebase();
 
@@ -9,17 +11,24 @@ const { firestore } = initializeFirebase();
 const VERCEL_TOKEN = process.env.ADMIN_REVALIDATE_TOKEN;
 
 export async function clearCache(key: string) {
-  await deleteDoc(doc(firestore, 'admin', 'cache', 'keys', key));
+  if (!key) throw new AdminError('Cache key is required');
 
-  // Also trigger Vercel revalidation if a token is provided
-  if (VERCEL_TOKEN) {
-    try {
-      await fetch(`https://api.vercel.com/v1/integrations/revalidate?token=${VERCEL_TOKEN}`, {
-        method: 'POST',
-        body: JSON.stringify({ paths: ['/'] }), // Revalidate the home page, adjust as needed
+  try {
+    // Clear Firestore cache entry
+    await deleteDoc(doc(firestore, 'admin', 'cache', 'keys', key));
+
+    // Also trigger Vercel revalidation if a token is provided
+    if (VERCEL_TOKEN) {
+      const res = await fetch(`https://api.vercel.com/v1/integrations/revalidate?token=${VERCEL_TOKEN}`, {
+          method: 'POST',
+          body: JSON.stringify({ paths: ['/'] }), // Revalidate the home page, adjust as needed
       });
-    } catch (error) {
-      console.error('Failed to trigger Vercel revalidation:', error);
+      if (!res.ok) throw new Error('Vercel revalidation failed');
     }
+
+    toast.success('Cache cleared + site revalidated!');
+  } catch (error) {
+    handleAdminError(error, 'clearCache');
+    throw error;
   }
 }

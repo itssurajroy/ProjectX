@@ -2,6 +2,8 @@
 
 import { initializeFirebase } from '@/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import { AdminError, handleAdminError } from './utils';
 
 const { firestore } = initializeFirebase();
 
@@ -14,9 +16,19 @@ export async function createAnnouncement(data: {
   type: 'banner' | 'modal' | 'toast';
   active: boolean;
 }) {
-  await addDoc(collection(firestore, 'admin', 'announcements', 'list'), {
-    ...data,
-    createdAt: serverTimestamp(),
-    createdBy: mockAuth.currentUser?.uid,
-  });
+  if (!data.title?.trim() || !data.message?.trim()) {
+    throw new AdminError('Title and message are required');
+  }
+
+  try {
+    await addDoc(collection(firestore, 'admin', 'announcements', 'list'), {
+      ...data,
+      createdAt: serverTimestamp(),
+      createdBy: mockAuth.currentUser?.uid,
+    });
+    toast.success('Announcement created!');
+  } catch (error) {
+    handleAdminError(error, 'createAnnouncement');
+    throw error;
+  }
 }

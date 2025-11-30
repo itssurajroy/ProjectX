@@ -1,7 +1,9 @@
 'use server';
 
 import { initializeFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import { AdminError, handleAdminError } from './utils';
 
 const { firestore } = initializeFirebase();
 
@@ -20,4 +22,21 @@ export async function reportContent(
     reason,
     timestamp: serverTimestamp(),
   });
+}
+
+export async function resolveReport(reportId: string, action: 'ban' | 'dismiss' | 'warning') {
+  if (!reportId) throw new AdminError('Report ID required');
+
+  try {
+    await updateDoc(doc(firestore, 'admin', 'reports', 'active', reportId), {
+        status: action,
+        resolvedAt: serverTimestamp(),
+        resolvedBy: mockAuth.currentUser?.uid,
+      });
+
+    toast.success(`Report ${action} — user notified`);
+  } catch (error) {
+    handleAdminError(error, 'resolveReport');
+    throw error;
+  }
 }

@@ -2,6 +2,8 @@
 
 import { initializeFirebase } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import { AdminError, handleAdminError } from './utils';
 
 const { firestore } = initializeFirebase();
 
@@ -17,14 +19,24 @@ export async function setAnimeOverride(
     status: string;
   }>
 ) {
-  const overrideRef = doc(firestore, 'admin', 'overrides', 'animes', animeId);
-  await setDoc(
-    overrideRef,
-    {
-      ...data,
-      updatedAt: serverTimestamp(),
-      updatedBy: mockAuth.currentUser?.uid,
-    },
-    { merge: true }
-  );
+  if (!animeId || !data || Object.keys(data).length === 0) {
+    throw new AdminError('Invalid anime data');
+  }
+
+  try {
+    const overrideRef = doc(firestore, 'admin', 'overrides', 'animes', animeId);
+    await setDoc(
+      overrideRef,
+      {
+        ...data,
+        updatedAt: serverTimestamp(),
+        updatedBy: mockAuth.currentUser?.uid || 'unknown',
+      },
+      { merge: true }
+    );
+    toast.success('Anime override saved!');
+  } catch (error) {
+    handleAdminError(error, 'setAnimeOverride');
+    throw error;
+  }
 }
