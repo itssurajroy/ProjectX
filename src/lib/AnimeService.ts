@@ -74,7 +74,8 @@ export class AnimeService {
 
   // Search
   static async searchAnime(query: string, page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/search?q=${encodeURIComponent(query)}&page=${page}`);
+    const url = this.buildSearchUrl({ query, page });
+    return fetchWithRetry(url);
   }
 
   static async getMovies(page = 1) {
@@ -92,7 +93,7 @@ export class AnimeService {
 
   // A-Z List
   static async getAZList(sortOption: string = "all", page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/az-list/${sortOption}?page=${page}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/azlist/${sortOption}?page=${page}`);
   }
 
   // Episode Streaming Links
