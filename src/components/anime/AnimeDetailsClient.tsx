@@ -11,6 +11,7 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
 import SeasonsSwiper from './SeasonsSwiper';
 import PVCarousel from './PVCarousel';
+import { extractEpisodeNumber } from '@/lib/AnimeService';
 
 const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
     <Link href={`/anime/${anime.id}`} passHref>
@@ -100,7 +101,8 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   if (!animeInfo || !moreInfo) return <ErrorDisplay title="Anime Not Found" description="The details for this anime could not be found." />;
 
   
-  const firstEpisodeId = episodes && episodes.length > 0 && episodes[0]?.episodeId ? episodes[0].episodeId : null;
+  const firstEpisode = episodes?.[0];
+  const firstEpisodeWatchId = firstEpisode ? (extractEpisodeNumber(firstEpisode.episodeId) || firstEpisode.number) : null;
 
   const stats = animeInfo.stats;
   
@@ -156,8 +158,8 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
-                {firstEpisodeId && (
-                  <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeId}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/20">
+                {firstEpisodeWatchId && (
+                  <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/20">
                     <Play /> Watch Now
                   </Link>
                 )}
@@ -184,7 +186,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                             {key === 'genres' && Array.isArray(value) ? (
                                 <div className="flex flex-wrap items-center justify-end gap-1 max-w-[60%]">
                                     {value.map((genre: string) => (
-                                        <Link key={genre} href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted">{genre}</Link>
+                                        <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted">{genre}</Link>
                                     ))}
                                 </div>
                             ) : (
@@ -240,3 +242,5 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     </div>
   );
 }
+
+    
