@@ -7,22 +7,22 @@
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 249 34% 16%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 10%;
+    --card: 249 34% 22%;
     --card-foreground: 0 0% 98%;
  
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 262 88% 66%; /* Electric Indigo */
-    --primary-foreground: 262 47% 98%;
+    --primary: 100 78% 54%; /* Vibrant Green */
+    --primary-foreground: 262 47% 12%;
  
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
  
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 3.7% 25.9%;
     --muted-foreground: 240 5% 64.9%;
  
     --accent: 240 3.7% 15.9%;
@@ -31,9 +31,9 @@
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
+    --border: 240 3.7% 25.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262 88% 66%;
+    --ring: 100 78% 54%;
  
     --radius: 0.5rem;
 
@@ -42,22 +42,22 @@
   }
  
   .dark {
-    --background: 240 10% 3.9%;
+    --background: 249 34% 16%;
     --foreground: 0 0% 98%;
  
-    --card: 240 10% 10%;
+    --card: 249 34% 22%;
     --card-foreground: 0 0% 98%;
  
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 262 88% 66%; /* Electric Indigo */
-    --primary-foreground: 262 47% 98%;
+    --primary: 100 78% 54%; /* Vibrant Green */
+    --primary-foreground: 262 47% 12%;
  
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
  
-    --muted: 240 3.7% 15.9%;
+    --muted: 240 3.7% 25.9%;
     --muted-foreground: 240 5% 64.9%;
  
     --accent: 240 3.7% 15.9%;
@@ -66,9 +66,9 @@
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 0 0% 98%;
  
-    --border: 240 3.7% 15.9%;
+    --border: 240 3.7% 25.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 262 88% 66%;
+    --ring: 100 78% 54%;
   }
 }
  

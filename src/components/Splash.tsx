@@ -40,8 +40,7 @@ const Splash = () => {
         className="text-6xl font-bold text-glow"
         style={{ animation: 'splash-pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1)' }}
       >
-        <span className="text-primary">Project</span>
-        <span className="text-white">X</span>
+        <span className="text-white">Kaido</span>
       </div>
     </div>
   );

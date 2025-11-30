@@ -2,39 +2,27 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Home, LayoutGrid, Menu, Shuffle, Rss, MessagesSquare, Calendar, Wand2, User, LogOut, Tv, Film, Star, Clock, ChevronDown, Book, Newspaper, Users, Info, TrendingUp,Languages, Sun, Moon, Send, Twitter, X, Share2, Youtube, Instagram, Facebook, Twitch } from 'lucide-react';
+import { Search, Menu, Shuffle, Languages, Send, Twitter, Youtube, Instagram, Facebook, Twitch, Share2, Rss, Info } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
-import { HomeData, SearchSuggestionResponse } from '@/types/anime';
+import { SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
   DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Skeleton } from '../ui/skeleton';
 import { genres } from '@/lib/data';
 import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
-
-const NavLink = ({ href, children, className, onClick }: { href: string, children: React.ReactNode, className?: string, onClick?: () => void }) => {
-    const pathname = usePathname();
-    const isActive = pathname === href;
-    return (
-        <Link href={href} onClick={onClick} className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md", isActive ? "text-primary bg-primary/10" : "text-gray-300 hover:text-white hover:bg-white/10", className)}>
-            {children}
-        </Link>
-    );
-};
+import { Input } from '../ui/input';
 
 const socialIcons = {
     Twitter: Twitter,
@@ -43,24 +31,29 @@ const socialIcons = {
     Instagram: Instagram,
     Facebook: Facebook,
     Twitch: Twitch,
+    Rss: Rss,
+    Info: Info,
     Default: Share2,
 };
 
 const socialLinks = [
-    { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: 'Send' },
-    { name: 'Twitter', href: 'https://x.com', icon: 'Twitter' },
+    { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: 'Send', color: 'bg-blue-600' },
+    { name: 'Telegram', href: '#', icon: 'Send', color: 'bg-sky-500' },
+    { name: 'Reddit', href: '#', icon: 'Rss', color: 'bg-orange-600' },
+    { name: 'Twitter', href: 'https://x.com', icon: 'Twitter', color: 'bg-sky-400' },
 ];
 
-
-const SocialLink = ({ href, iconName, name }: { href: string, iconName: string, name: string }) => {
-    const Icon = socialIcons[iconName as keyof typeof socialIcons] || socialIcons.Default;
-    return (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="w-9 h-9 flex items-center justify-center bg-card/80 rounded-full hover:bg-muted transition-colors" title={name}>
-            <Icon className="w-4 h-4" />
-        </a>
-    )
-}
-
+const KaidoLogo = () => (
+    <Link href="/home" className="flex items-center gap-2">
+      <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-primary">
+              <path d="M12.25 2.016c-.82.01-1.63.1-2.42.24.48.17.93.39 1.35.63.4.24.78.52 1.13.84.7.64 1.25 1.44 1.63 2.34.38.9.57 1.86.57 2.84s-.2 1.94-.58 2.84c-.38.9-1 1.7-1.67 2.35-.67.64-1.45 1.15-2.3 1.5l.22.1a12.42 12.42 0 0 1-2.42 1.12 12.28 12.28 0 0 1-2.7 0c-.8-.23-1.57-.54-2.28-.9a12.42 12.42 0 0 1-2.42-1.12l.22-.1c-.85-.35-1.63-.86-2.3-1.5-.67-.65-.2-1.45-1.67-2.35-.38-.9-.58-1.85-.58-2.84s.2-1.95.58-2.85c.38-.9 1-1.7 1.67-2.34.67-.65 1.45-1.16 2.3-1.5a12.28 12.28 0 0 1 2.7 0c.8.22 1.57.53 2.28.9.45.2.88.45 1.3.73l.07.05c.42-.24.87-.46 1.35-.63.8-.15 1.6-.23 2.42-.24z"/>
+              <path d="M12.25 2.016c.82.01 1.63.1 2.42.24-.48.17-.93.39-1.35.63-.4.24-.78.52-1.13.84-.7.64-1.25 1.44-1.63 2.34-.38.9-.57 1.86-.57 2.84s.2 1.94.58 2.84c.38.9 1 1.7 1.67 2.35.67.64 1.45 1.15 2.3 1.5l-.22.1a12.42 12.42 0 0 0 2.42 1.12 12.28 12.28 0 0 0 2.7 0c.8-.23 1.57-.54 2.28-.9a12.42 12.42 0 0 0 2.42-1.12l-.22-.1c.85-.35 1.63-.86 2.3-1.5.67-.65 1.22-1.45 1.67-2.35.38-.9.58-1.85.58-2.84s-.2-1.95-.58-2.85c-.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 0-2.7 0c-.8.22-1.57.53-2.28.9-.45.2-.88.45-1.3.73l-.07.05c-.42-.24-.87-.46-1.35-.63-.8-.15-1.6-.23-2.42-.24z"/>
+          </svg>
+      </div>
+      <span className="text-2xl font-bold text-white hidden sm:inline">Kaido</span>
+    </Link>
+)
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -97,14 +90,14 @@ export default function Header() {
   const suggestions = suggestionsResult && 'data' in suggestionsResult ? suggestionsResult.data.suggestions : [];
   
   const navItems = [
-    { href: "/home", icon: Home, label: "Home" },
-    { href: "/movies", icon: Film, label: "Movies" },
-    { href: "/tv", icon: Tv, label: "TV Series" },
-    { href: "/top-airing", icon: TrendingUp, label: "Top Airing" },
+    { href: "/home", label: "Home" },
+    { href: "/movies", label: "Movies" },
+    { href: "/tv", label: "TV Series" },
+    { href: "/top-airing", label: "Top Airing" },
   ];
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/80 backdrop-blur-sm border-b border-border">
+    <header className="sticky top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/90 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-2">
@@ -115,74 +108,47 @@ export default function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left">
-                <SheetHeader>
-                  <Link href="/home" className="text-2xl font-bold text-glow mb-4" onClick={() => setIsMobileMenuOpen(false)}>
-                      <span className="text-primary">Project</span>
-                      <span className="text-white">X</span>
-                  </Link>
+                <SheetHeader className="border-b pb-4">
+                  <KaidoLogo />
                 </SheetHeader>
                 <nav className="flex flex-col gap-2 mt-4">
                    {navItems.map(item => (
-                     <NavLink key={item.href} href={item.href} className="w-full justify-start" onClick={() => setIsMobileMenuOpen(false)}>
-                       <item.icon className="w-4 h-4" /> {item.label}
-                     </NavLink>
+                     <Link key={item.href} href={item.href} className="flex items-center gap-2 text-base font-medium p-2 rounded-md hover:bg-muted" onClick={() => setIsMobileMenuOpen(false)}>
+                       {item.label}
+                     </Link>
                    ))}
-                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10 w-full justify-start")}>
-                        <LayoutGrid className="w-4 h-4"/> Genres <ChevronDown className="w-4 h-4 ml-auto" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="grid grid-cols-2 w-64 bg-card/95 backdrop-blur-sm">
-                      {genres.map(genre => (
-                        <DropdownMenuItem key={genre} asChild>
-                          <Link href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} onClick={() => setIsMobileMenuOpen(false)}>{genre}</Link>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <div className="space-y-1">
+                        <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
+                        <div className="max-h-64 overflow-y-auto">
+                            {genres.map(genre => (
+                            <Link key={genre} href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} onClick={() => setIsMobileMenuOpen(false)} className="block p-2 text-base font-medium rounded-md hover:bg-muted">
+                                {genre}
+                            </Link>
+                            ))}
+                        </div>
+                    </div>
                 </nav>
               </SheetContent>
             </Sheet>
-
-            <Link href="/home" className="text-2xl font-bold text-glow hidden sm:block">
-                <span className="text-primary">Project</span>
-                <span className="text-white">X</span>
-            </Link>
+            <div className="hidden lg:block">
+                <KaidoLogo />
+            </div>
         </div>
         
-        <nav className="hidden lg:flex items-center gap-1">
-            {navItems.map(item => <NavLink key={item.href} href={item.href}><item.icon className="w-4 h-4"/> {item.label}</NavLink>)}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className={cn("flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-md text-gray-300 hover:text-white hover:bg-white/10")}>
-                  <LayoutGrid className="w-4 h-4"/> Genres <ChevronDown className="w-4 h-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="grid grid-cols-4 w-[600px] bg-card/95 backdrop-blur-sm">
-                {genres.map(genre => (
-                  <DropdownMenuItem key={genre} asChild>
-                    <Link href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`}>{genre}</Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-        </nav>
-
-        <div className="flex-1 flex justify-end items-center gap-2">
-            <div ref={searchContainerRef} className="flex-1 max-w-xs relative">
+        <div className="flex-1 flex justify-center items-center gap-2 lg:ml-8">
+            <div ref={searchContainerRef} className="w-full max-w-lg relative">
               <form onSubmit={handleSearch} className="relative">
-                  <input 
+                  <Input 
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setShowSuggestions(true)}
                       placeholder="Search anime..."
-                      className="bg-card/80 w-full rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm transition-all"
+                      className="bg-card w-full rounded-full h-11 px-5 pr-28 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all"
                   />
-                  <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Search className="w-4 h-4 text-gray-400 hover:text-white" />
+                  <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-4 bg-muted rounded-full flex items-center gap-2 text-sm font-semibold hover:bg-muted/80">
+                      <Search className="w-4 h-4 text-gray-400" />
+                      Filter
                   </button>
               </form>
                {showSuggestions && searchQuery.length > 2 && (
@@ -205,51 +171,28 @@ export default function Header() {
                  </div>
                )}
             </div>
-            
-            <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card/80 hover:bg-muted" title="Random Anime">
-                <Shuffle className="w-4 h-4" />
-            </Link>
+        </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card/80 hover:bg-muted" title="Language & Theme">
-                  <Languages className="w-4 h-4" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Languages className="mr-2 h-4 w-4" />
-                    <span>Language</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem>English</DropdownMenuItem>
-                      <DropdownMenuItem>Japanese</DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Sun className="mr-2 h-4 w-4" />
-                    <span>Theme</span>
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem>Light</DropdownMenuItem>
-                      <DropdownMenuItem>Dark</DropdownMenuItem>
-                      <DropdownMenuItem>System</DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-1.5">
+            <p className="text-sm font-semibold text-muted-foreground hidden lg:block">Join now</p>
+            {socialLinks.map(link => (
+              <a key={link.name} href={link.href} target="_blank" rel="noopener noreferrer" className={cn("w-8 h-8 flex items-center justify-center rounded-full text-white transition-transform hover:scale-110", link.color)} title={link.name}>
+                <link.icon className="w-4 h-4" />
+              </a>
+            ))}
+          </div>
 
-            <div className="hidden sm:flex items-center gap-2">
-              {socialLinks.map(link => (
-                  <SocialLink key={link.name} href={link.href} iconName={link.icon} name={link.name} />
-              ))}
-            </div>
+          <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
+              <Shuffle className="w-4 h-4 text-primary" />
+          </Link>
+          
+          <div className="hidden sm:flex items-center gap-1 bg-card rounded-full p-0.5 text-sm font-semibold">
+              <button className="px-3 py-1 rounded-full bg-primary text-primary-foreground">EN</button>
+              <button className="px-3 py-1 rounded-full text-muted-foreground hover:bg-muted">JP</button>
+          </div>
+
+          <Button>Login</Button>
         </div>
       </div>
     </header>
