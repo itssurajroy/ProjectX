@@ -57,7 +57,8 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 );
 
 
-function AnimeDetailsPageClient({ id }: { id: string }) {
+export default function AnimeDetailsPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const {
     data: apiResponse,
     isLoading: isLoadingAnime,
@@ -229,9 +230,4 @@ function AnimeDetailsPageClient({ id }: { id: string }) {
       </main>
     </div>
   );
-}
 
-export default function AnimeDetailsPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-  return <AnimeDetailsPageClient id={id} />;
-}
