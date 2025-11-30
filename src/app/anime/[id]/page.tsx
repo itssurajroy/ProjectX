@@ -231,3 +231,4 @@ export default function AnimeDetailsPage({ params }: { params: { id: string } })
     </div>
   );
 
+    
