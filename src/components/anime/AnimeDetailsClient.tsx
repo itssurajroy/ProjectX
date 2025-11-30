@@ -136,7 +136,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
               <h1 className="text-3xl md:text-5xl font-bold mt-2 text-glow">{animeInfo.name}</h1>
               
               <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
-                  {stats.rating && stats.rating !== "N/A" && <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</span>}
+                  {stats.rating && stats.rating !== 'N/A' && <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</span>}
                   <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">{stats.quality}</span>
                   {stats.episodes.sub && (
                       <span className="flex items-center gap-1 px-2 py-1 bg-card/50 rounded-md border border-border/50">
