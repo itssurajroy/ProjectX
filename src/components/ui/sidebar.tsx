@@ -351,7 +351,7 @@ const SidebarMenuButton = React.forwardRef<
                   </span>
                 )}
                 {/* Render other children passed to the button, like a badge */}
-                {(child.props.children as React.ReactNode[]).filter(c => c !== label && c !== icon)}
+                {React.Children.toArray((child.props as any).children).filter(c => c !== label && c !== icon)}
               </>
             ))
           ) : (
