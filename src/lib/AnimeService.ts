@@ -101,7 +101,7 @@ export class AnimeService {
 
   // Advanced Search (ALL filters)
   static buildSearchUrl(filters: {
-    query: string;
+    query?: string;
     page?: number;
     genres?: string[];
     type?: string;
@@ -115,7 +115,9 @@ export class AnimeService {
     sort?: string;
   }) {
     const params = new URLSearchParams();
-    params.set("q", filters.query);
+    if (filters.query) {
+      params.set("q", filters.query);
+    }
     if (filters.page) params.set("page", filters.page.toString());
     if (filters.genres?.length) params.set("genres", filters.genres.join(","));
     if (filters.type) params.set("type", filters.type);
