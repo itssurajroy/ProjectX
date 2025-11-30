@@ -1,3 +1,4 @@
+
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
@@ -284,16 +285,12 @@ export default function MainDashboardPage() {
                 <AnimeSection title="Trending" animes={trendingAnimes} viewMoreLink="/trending" />
                 <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} viewMoreLink="/recent-episodes" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2 space-y-12">
-                        <AnimeSection title="Most Popular" animes={mostPopularAnimes} viewMoreLink="/most-popular" />
-                    </div>
-                    <div className="space-y-8">
-                         <SmallListSection title="Top Airing" animes={topAiringAnimes} />
-                         <SmallListSection title="Top Upcoming" animes={topUpcomingAnimes} />
-                    </div>
+                    <SmallListSection title="Top Airing" animes={topAiringAnimes} />
+                    <SmallListSection title="Top Upcoming" animes={topUpcomingAnimes} />
+                    <SmallListSection title="Completed" animes={latestCompletedAnimes} />
                 </div>
+                <AnimeSection title="Most Popular" animes={mostPopularAnimes} viewMoreLink="/most-popular" />
                 <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} viewMoreLink="/most-favorite" />
-                <AnimeSection title="Completed" animes={latestCompletedAnimes} viewMoreLink="/completed" />
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar top10Animes={top10Animes} />
@@ -304,3 +301,5 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
