@@ -201,3 +201,5 @@ export interface QtipAnime {
   status: string;
   genres: string[];
 }
+
+    

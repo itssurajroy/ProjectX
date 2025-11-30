@@ -20,25 +20,27 @@ const HomeTabs = ({ homeData }: HomeTabsProps) => {
                 <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
             <TabsContent value="trending">
-                <AnimeSection title="Trending" animes={homeData.trendingAnimes} />
+                <AnimeSection title="Trending" animes={homeData.trendingAnimes} viewMoreLink="/trending" />
             </TabsContent>
             <TabsContent value="top-airing">
-                <AnimeSection title="Top Airing" animes={homeData.topAiringAnimes} />
+                <AnimeSection title="Top Airing" animes={homeData.topAiringAnimes} viewMoreLink="/top-airing" />
             </TabsContent>
             <TabsContent value="recently-updated">
-                 <AnimeSection title="Latest Episodes" animes={homeData.latestEpisodeAnimes} />
+                 <AnimeSection title="Latest Episodes" animes={homeData.latestEpisodeAnimes} viewMoreLink="/recent-episodes"/>
             </TabsContent>
             <TabsContent value="most-popular">
-                 <AnimeSection title="Most Popular" animes={homeData.mostPopularAnimes} />
+                 <AnimeSection title="Most Popular" animes={homeData.mostPopularAnimes} viewMoreLink="/most-popular"/>
             </TabsContent>
              <TabsContent value="most-favorite">
-                 <AnimeSection title="Most Favorite" animes={homeData.mostFavoriteAnimes} />
+                 <AnimeSection title="Most Favorite" animes={homeData.mostFavoriteAnimes} viewMoreLink="/most-favorite"/>
             </TabsContent>
              <TabsContent value="completed">
-                 <AnimeSection title="Latest Completed" animes={homeData.latestCompletedAnimes} />
+                 <AnimeSection title="Latest Completed" animes={homeData.latestCompletedAnimes} viewMoreLink="/completed"/>
             </TabsContent>
         </Tabs>
     )
 }
 
 export default HomeTabs;
+
+    

@@ -1,7 +1,7 @@
 
 'use client';
 import { AnimeService } from '@/lib/AnimeService';
-import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse } from '@/types/anime';
+import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
+import HomeTabs from '@/components/home/HomeTabs';
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -217,17 +218,16 @@ const ScheduleSidebar = () => {
 };
 
 
-const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | undefined }) => {
+const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes'] | undefined }) => {
     const [trendingPeriod, setTrendingPeriod] = useState<'today' | 'week' | 'month'>('today');
-    if (!trendingAnimes) return null;
+    if (!top10Animes) return null;
 
-    // Just use the same list for all periods for now
-    const animesToDisplay = trendingAnimes;
+    const animesToDisplay = top10Animes[trendingPeriod] || [];
 
     return (
         <div className='bg-card/50 p-4 rounded-lg border border-border/50'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                <h2 className="text-lg font-bold flex items-center gap-2">Top Trending 📈</h2>
+                <h2 className="text-lg font-bold flex items-center gap-2">Top 10 🏆</h2>
                 <div className="flex items-center text-sm bg-card p-1 rounded-md gap-1">
                     <button onClick={() => setTrendingPeriod('today')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'today' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Today</button>
                     <button onClick={() => setTrendingPeriod('week')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'week' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Week</button>
@@ -235,7 +235,7 @@ const TrendingSidebar = ({ trendingAnimes }: { trendingAnimes: AnimeBase[] | und
                 </div>
             </div>
           <div className='space-y-1'>
-            {animesToDisplay.slice(0, 10).map((anime: any, index) => (
+            {animesToDisplay.map((anime: Top10Anime, index) => (
               <Link key={anime.id} href={`/anime/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex items-start gap-4 group">
                   <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
@@ -263,8 +263,6 @@ export default function MainDashboardPage() {
     queryKey: ['homeData'],
     queryFn: AnimeService.getHomeData,
   });
-
-  const [filter, setFilter] = useState<'all' | 'sub' | 'dub'>('all');
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
   if (error || !apiResponse || (apiResponse && 'success' in apiResponse && !apiResponse.success) || !apiResponse.data) {
@@ -272,13 +270,8 @@ export default function MainDashboardPage() {
   }
   
   const data = apiResponse.data;
-  const { spotlightAnimes, trendingAnimes, latestEpisodeAnimes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes } = data;
+  const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes } = data;
 
-  const filteredLatest = latestEpisodeAnimes?.filter(anime => {
-    if (filter === 'sub') return !!anime.episodes?.sub;
-    if (filter === 'dub') return !!anime.episodes?.dub;
-    return true;
-  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -289,21 +282,7 @@ export default function MainDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
-                <section>
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                        <h2 className="text-xl md:text-2xl font-bold">Latest Updates 🚀</h2>
-                         <div className='flex items-center gap-2'>
-                            <button onClick={() => setFilter('all')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>All</button>
-                            <button onClick={() => setFilter('sub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'sub' ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>Sub</button>
-                            <button onClick={() => setFilter('dub')} className={cn('px-3 py-1 text-sm rounded-md', filter === 'dub' ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>Dub</button>
-                         </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6">
-                        {filteredLatest?.slice(0, 10).map((anime) => (
-                            <AnimeCard key={anime.id} anime={anime} />
-                        ))}
-                    </div>
-                </section>
+                <HomeTabs homeData={data} />
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <SmallListSection title="Top Airing 🔥" animes={topAiringAnimes} />
                     <SmallListSection title="Top Upcoming ✨" animes={topUpcomingAnimes} />
@@ -311,7 +290,7 @@ export default function MainDashboardPage() {
                 </div>
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
-                <TrendingSidebar trendingAnimes={trendingAnimes} />
+                <TrendingSidebar top10Animes={top10Animes} />
                 <ScheduleSidebar />
             </div>
         </div>
@@ -319,3 +298,5 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
