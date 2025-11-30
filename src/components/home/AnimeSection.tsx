@@ -24,8 +24,8 @@ export const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, a
                 )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-8">
-                {animes.slice(0, 12).map((anime) => (
-                    <AnimeCard key={anime.id} anime={anime} />
+                {animes.slice(0, 12).map((anime, index) => (
+                    <AnimeCard key={`${anime.id}-${index}`} anime={anime} />
                 ))}
             </div>
         </section>
