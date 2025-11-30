@@ -57,7 +57,9 @@ export default function OverridesPage() {
                          <div className="space-y-2">
                             <Label>Status</Label>
                             <Select defaultValue="ongoing">
-                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="ongoing">Ongoing</SelectItem>
                                     <SelectItem value="completed">Completed</SelectItem>
