@@ -62,10 +62,21 @@ service cloud.firestore {
     // ║                USER & ADMIN DATA (SECURED)               ║
     // ╚══════════════════════════════════════════════════════════╝
     
-    // User-specific data (watchlist, history, etc.)
+    // User-specific data (watchlist, history, notifications)
     match /users/{userId}/{document=**} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
+
+    // Notifications
+    match /notifications/{userId}/{notificationId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    match /notifications/{userId} {
+      // This is a subcollection, not a document. Rules on parent do not apply.
+      // This rule is not strictly necessary if you only access via subcollection.
+      allow read, write: if false;
+    }
+
 
     // Admin-only write access sections.
     match /admin/{document=**} {

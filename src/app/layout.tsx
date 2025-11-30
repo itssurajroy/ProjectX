@@ -13,6 +13,7 @@ import Footer from "@/components/layout/footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import BackToTopButton from "@/components/common/BackToTopButton";
 import FloatingDiscordButton from "@/components/common/FloatingDiscordButton";
+import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -47,22 +48,18 @@ export default function RootLayout({
       <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
         <Providers>
         <BalancerProvider>
-          <Splash />
-          <ShadToaster />
-          <Toaster position="bottom-center" toastOptions={{
-            style: {
-              background: '#333',
-              color: '#fff',
-            }
-          }}/>
-          <div className="flex flex-col min-h-screen">
-            <Navbar />
-            <main className="flex-grow pb-16 md:pb-0">{children}</main>
-            <Footer />
-          </div>
-          <MobileBottomNav />
-          <BackToTopButton />
-          <FloatingDiscordButton />
+          <NotificationProvider>
+            <Splash />
+            <ShadToaster />
+            <div className="flex flex-col min-h-screen">
+              <Navbar />
+              <main className="flex-grow pb-16 md:pb-0">{children}</main>
+              <Footer />
+            </div>
+            <MobileBottomNav />
+            <BackToTopButton />
+            <FloatingDiscordButton />
+          </NotificationProvider>
           </BalancerProvider>
         </Providers>
       </body>
