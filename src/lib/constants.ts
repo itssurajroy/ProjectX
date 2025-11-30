@@ -1,1 +1,1 @@
-export const SITE_NAME = "Kaido";
+export const SITE_NAME = "ProjectX";

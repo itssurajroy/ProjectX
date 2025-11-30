@@ -53,7 +53,7 @@ export default function LandingPage() {
                         </h1>
                         <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                             <Balancer>
-                                Kaido is the ultimate destination to watch anime online for free, with subbed or dubbed options in HD and no ads.
+                                ProjectX is the ultimate destination to watch anime online for free, with subbed or dubbed options in HD and no ads.
                             </Balancer>
                         </p>
 
@@ -109,27 +109,27 @@ export default function LandingPage() {
                         <div className="max-w-4xl mx-auto text-left space-y-8 text-muted-foreground text-sm">
                             <h2 className="text-2xl font-bold text-center text-foreground mb-10">The Best Site to Watch Anime Online for Free</h2>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-primary">What is Kaido?</h3>
-                                <p>Kaido is a free anime streaming site where you can watch anime in HD quality with both subbed and dubbed options, all without the hassle of registration or payment. And the best part? There are absolutely no ads! We're dedicated to making it the safest and most enjoyable place for anime lovers to watch anime for free.</p>
+                                <h3 className="text-xl font-semibold text-primary">What is ProjectX?</h3>
+                                <p>ProjectX is a free anime streaming site where you can watch anime in HD quality with both subbed and dubbed options, all without the hassle of registration or payment. And the best part? There are absolutely no ads! We're dedicated to making it the safest and most enjoyable place for anime lovers to watch anime for free.</p>
                             </div>
                             <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-primary">Is Kaido safe?</h3>
+                                <h3 className="text-xl font-semibold text-primary">Is ProjectX safe?</h3>
                                 <p>Yes. We are a new website, but we have a team of dedicated people who are committed to providing the best and safest anime streaming experience for our users. We do not have any ads on our website, and we do not require any registration to watch anime. You can come and watch your favorite anime without any worries.</p>
                             </div>
                              <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-primary">What makes Kaido the best site to watch anime free online?</h3>
-                                <p>Before creating Kaido, we thoroughly explored numerous other free anime sites and learned from their strengths and weaknesses. We kept only the best features and eliminated all the drawbacks, combining them into our platform. That's why we're so confident in claiming to be the best site for anime streaming. Experience it yourself and see the difference!</p>
+                                <h3 className="text-xl font-semibold text-primary">What makes ProjectX the best site to watch anime free online?</h3>
+                                <p>Before creating ProjectX, we thoroughly explored numerous other free anime sites and learned from their strengths and weaknesses. We kept only the best features and eliminated all the drawbacks, combining them into our platform. That's why we're so confident in claiming to be the best site for anime streaming. Experience it yourself and see the difference!</p>
                                 <ul className="list-disc list-inside space-y-2 pl-4">
                                     <li><strong>Safety:</strong> No ads, no redirects, and absolutely no viruses. Your safety and enjoyment are our top priorities.</li>
                                     <li><strong>Content Library:</strong> We offer an extensive collection of anime, spanning from 1980s classics to the latest releases.</li>
-                                    <li><strong>Quality/Resolution:</strong> All anime on Kaido is available in the best possible resolution, including 720p and 1080p.</li>
+                                    <li><strong>Quality/Resolution:</strong> All anime on ProjectX is available in the best possible resolution, including 720p and 1080p.</li>
                                     <li><strong>Streaming Experience:</strong> We offer faster loading speeds and a completely buffer-free experience.</li>
                                     <li><strong>User Interface:</strong> Our user-friendly UI and UX design make navigation a breeze for everyone.</li>
-                                    <li><strong>Device Compatibility:</strong> Kaido works seamlessly on both mobile and desktop devices.</li>
+                                    <li><strong>Device Compatibility:</strong> ProjectX works seamlessly on both mobile and desktop devices.</li>
                                 </ul>
                             </div>
                              <div className="space-y-2">
-                                <p>If you're searching for a reliable and safe site for anime streaming, give Kaido a try. If you enjoy your time with us, please spread the word and don't forget to bookmark our site! Your support means the world to us.</p>
+                                <p>If you're searching for a reliable and safe site for anime streaming, give ProjectX a try. If you enjoy your time with us, please spread the word and don't forget to bookmark our site! Your support means the world to us.</p>
                                 <p>Thank you!</p>
                             </div>
                         </div>
