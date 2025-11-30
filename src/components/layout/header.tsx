@@ -47,7 +47,7 @@ const SiteLogo = () => (
     <Link href="/home" className="flex items-center gap-2">
       <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-primary">
-              <path d="M12.25 2.016c-.82.01-1.63.1-2.42.24.48.17.93.39 1.35.63.4.24.78.52 1.13.84.7.64 1.25 1.44 1.63 2.34.38.9.57 1.86.57 2.84s-.2 1.94-.58 2.84c-.38.9-1 1.7-1.67 2.35-.67.64-1.45 1.15-2.3 1.5l.22.1a12.42 12.42 0 0 1-2.42 1.12 12.28 12.28 0 0 1-2.7 0c-.8-.23-1.57-.54-2.28-.9a12.42 12.42 0 0 1-2.42-1.12l.22-.1c-.85-.35-1.63-.86-2.3-1.5-.67-.65-.2-1.45-1.67-2.35-.38-.9-.58-1.85-.58-2.84s.2-1.95.58-2.85c.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 1 2.7 0c.8.22 1.57.53 2.28.9.45.2.88.45 1.3.73l.07.05c.42-.24.87-.46 1.35-.63.8-.15 1.6-.23 2.42-.24z"/>
+              <path d="M12.25 2.016c-.82.01-1.63.1-2.42.24.48.17.93.39 1.35.63.4.24.78.52 1.13.84.7.64 1.25 1.44 1.63 2.34.38.9.57 1.86.57 2.84s-.2 1.94-.58 2.84c-.38.9-1 1.7-1.67 2.35-.67.64-1.45 1.15-2.3 1.5l.22.1a12.42 12.42 0 0 1-2.42 1.12 12.28 12.28 0 0 1-2.7 0c-.8-.23-1.57-.54-2.28-.9a12.42 12.42 0 0 1-2.42-1.12l.22-.1c-.85-.35-1.63-.86-2.3-1.5-.67-.65-.2-1.45-1.67-2.35-.38-.9-.58-1.85-.58-2.84s.2-1.95.58-2.85c.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 0 2.7 0c.8.22 1.57.53 2.28.9.45.2.88.45 1.3.73l.07.05c.42-.24.87-.46 1.35-.63.8-.15 1.6-.23 2.42-.24z"/>
               <path d="M12.25 2.016c.82.01 1.63.1 2.42.24-.48.17-.93.39-1.35.63-.4.24-.78.52-1.13.84-.7.64-1.25 1.44-1.63 2.34-.38.9-.57 1.86-.57 2.84s.2 1.94.58 2.84c.38.9 1 1.7 1.67 2.35.67.64 1.45 1.15 2.3 1.5l-.22.1a12.42 12.42 0 0 0 2.42 1.12 12.28 12.28 0 0 0 2.7 0c.8-.23 1.57-.54 2.28-.9a12.42 12.42 0 0 0 2.42-1.12l-.22-.1c.85-.35 1.63-.86 2.3-1.5.67-.65 1.22-1.45 1.67-2.35.38-.9.58-1.85.58-2.84s-.2-1.95-.58-2.85c-.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 0-2.7 0c-.8.22-1.57.53-2.28.9-.45.2-.88.45-1.3.73l-.07.05c-.42-.24-.87-.46-1.35-.63-.8-.15-1.6-.23-2.42-.24z"/>
           </svg>
       </div>
@@ -92,8 +92,7 @@ export default function Header() {
   const navItems = [
     { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
-    { href: "/tv", label: "TV Series" },
-    { href: "/top-airing", label: "Top Airing" },
+    { href: "/az-list/all", label: "A-Z List" },
   ];
 
   return (
@@ -134,6 +133,14 @@ export default function Header() {
                 <SiteLogo />
             </div>
         </div>
+
+        <nav className="hidden lg:flex items-center gap-4">
+            {navItems.map(item => (
+                <Link key={item.href} href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    {item.label}
+                </Link>
+            ))}
+        </nav>
         
         <div className="flex-1 flex justify-center items-center gap-2 lg:ml-8">
             <div ref={searchContainerRef} className="w-full max-w-lg relative">
@@ -144,11 +151,10 @@ export default function Header() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => setShowSuggestions(true)}
                       placeholder="Search anime..."
-                      className="bg-card w-full rounded-full h-11 px-5 pr-28 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all"
+                      className="bg-card w-full rounded-full h-11 px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all"
                   />
-                  <button type="submit" className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-4 bg-muted rounded-full flex items-center gap-2 text-sm font-semibold hover:bg-muted/80">
-                      <Search className="w-4 h-4 text-gray-400" />
-                      Filter
+                  <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 bg-transparent rounded-full flex items-center justify-center text-muted-foreground hover:text-primary">
+                      <Search className="w-4 h-4" />
                   </button>
               </form>
                {showSuggestions && searchQuery.length > 2 && (
@@ -174,23 +180,9 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-1.5">
-            <p className="text-sm font-semibold text-muted-foreground hidden lg:block">Join now</p>
-            {socialLinks.map(link => (
-              <a key={link.name} href={link.href} target="_blank" rel="noopener noreferrer" className={cn("w-8 h-8 flex items-center justify-center rounded-full text-white transition-transform hover:scale-110", link.color)} title={link.name}>
-                <link.icon className="w-4 h-4" />
-              </a>
-            ))}
-          </div>
-
           <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
               <Shuffle className="w-4 h-4 text-primary" />
           </Link>
-          
-          <div className="hidden sm:flex items-center gap-1 bg-card rounded-full p-0.5 text-sm font-semibold">
-              <button className="px-3 py-1 rounded-full bg-primary text-primary-foreground">EN</button>
-              <button className="px-3 py-1 rounded-full text-muted-foreground hover:bg-muted">JP</button>
-          </div>
 
           <Button>Login</Button>
         </div>
