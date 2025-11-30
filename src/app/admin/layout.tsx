@@ -72,11 +72,13 @@ function AdminSidebar() {
                   className="w-full justify-start"
                 >
                   <Link href={item.href}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <Badge className="ml-auto">{item.badge}</Badge>
-                    )}
+                    <>
+                      <item.icon />
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <Badge className="ml-auto">{item.badge}</Badge>
+                      )}
+                    </>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
