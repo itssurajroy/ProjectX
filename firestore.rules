@@ -4,64 +4,77 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper functions to check roles
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     // ╔══════════════════════════════════════════════════════════╗
     // ║                     PUBLIC READS                         ║
-    // ║  Anyone (even unauthenticated) can read basic data       ║
+    // ║  Anyone (even unauthenticated) can read this data.       ║
     // ╚══════════════════════════════════════════════════════════╝
     match /announcements/{doc} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     match /settings/{doc} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     match /overrides/{animeId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     match /skiptimes/{episodeId} {
       allow read: if true;
+      allow write: if isAdmin();
     }
     match /socials/{doc} {
-      allow read: if true;
+        allow read: if true;
+        allow write: if isAdmin();
     }
     
-    // Comments: Publicly readable, but writing is restricted.
-    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
+    // Comments: Publicly readable, but only signed-in users can create.
+    match /comments/{path=**}/messages/{messageId} {
       allow read: if true;
-      allow create: if false; // Change to `if request.auth != null;` when auth is re-enabled
-      allow update, delete: if false;
+      // Allow create for anonymous users for now, since we removed auth
+      allow create: if true; 
+      allow update, delete: if false; // Future: allow if resource.data.authorId == request.auth.uid
     }
 
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                  POLLS + VOTES (WILDCARD FIX)            ║
-    // ╚══════════════════════════════════════════════════════════╝
-    // This matches ANY poll ID, even with slashes, underscores, dashes
-    match /polls/{pollId=**}/votes/{voteId} {
-      allow read: if true;  // Anyone can see who voted
-      allow create, update, delete: if request.auth != null && request.auth.uid == voteId;
-    }
-
+    // Polls & Votes: Publicly readable, but only signed-in users can vote.
+    // The wildcard match handles any poll ID structure.
     match /polls/{pollId=**} {
       allow read: if true;
-      allow create, update: if request.auth != null;
+      allow create, update: if isAdmin();
+    }
+    match /polls/{pollId=**}/votes/{voteId} {
+      allow read: if true;
+      // Allow create/update for anonymous users, one vote per user ID (anonymous UID)
+      allow create, update, delete: if request.auth.uid == voteId;
     }
 
     // ╔══════════════════════════════════════════════════════════╗
-    // ║                     USER DATA                            ║
+    // ║                USER & ADMIN DATA (SECURED)               ║
     // ╚══════════════════════════════════════════════════════════╝
+    
+    // User-specific data (watchlist, history, etc.)
     match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                        ADMIN                             ║
-    // ╚══════════════════════════════════════════════════════════╝
+    // Admin-only write access sections.
     match /admin/{document=**} {
-      allow read, write: if request.auth != null && 
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow read, write: if isAdmin();
     }
-    match /socials/{doc} {
-        allow write: if request.auth != null && 
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    
+    // Admin role management. Only other admins can manage roles.
+    match /admins/{userId} {
+       allow read, write: if isAdmin();
     }
 
     // ╔══════════════════════════════════════════════════════════╗

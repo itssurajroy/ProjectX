@@ -1,5 +1,6 @@
 
 
+
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime, EpisodeServersResponse } from "@/types/anime";
 import { env } from "./env";
 
@@ -79,7 +80,7 @@ export class AnimeService {
   }
 
   static async getMovies(page = 1) {
-    return fetchWithRetry(`${env.HIANIME_API_BASE}/api/v2/hianime/movies?page=${page}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/movies?page=${page}`);
   }
 
   static async getSearchSuggestions(query: string) {
@@ -93,7 +94,7 @@ export class AnimeService {
 
   // A-Z List
   static async getAZList(sortOption: string = "all", page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/azlist/${sortOption}?page=${page}`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/az-list/${sortOption}?page=${page}`);
   }
 
   // Episode Streaming Links

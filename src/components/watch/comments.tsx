@@ -19,8 +19,7 @@ import {
 import { sanitizeFirestoreId } from '@/lib/utils';
 import { initializeFirebase } from '@/firebase';
 
-const { firebaseApp } = initializeFirebase();
-const db = getFirestore(firebaseApp);
+const { firestore } = initializeFirebase();
 
 interface Comment {
   id: string;
@@ -43,7 +42,7 @@ export default function CommentsSection({
   const commentsRef = useMemo(() => {
     const sanitizedEpisodeId = sanitizeFirestoreId(episodeId);
     return collection(
-      db,
+      firestore,
       'comments',
       animeId,
       'episodes',
