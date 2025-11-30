@@ -92,6 +92,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           </div>
         ), { duration: 6000, position: 'top-right' });
       });
+    }, (error) => {
+      console.error("Firestore snapshot error:", error);
     });
 
     return () => unsub();
