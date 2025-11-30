@@ -12,6 +12,9 @@ import Synopsis from './Synopsis';
 import SeasonsSwiper from './SeasonsSwiper';
 import PVCarousel from './PVCarousel';
 import { extractEpisodeNumber } from '@/lib/AnimeService';
+import { getMALId } from '@/lib/anime/malResolver';
+import { MALService } from '@/lib/MALService';
+import { Badge } from '../ui/badge';
 
 const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
     <Link href={`/anime/${anime.id}`} passHref>
@@ -81,6 +84,21 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const relatedAnimes = animeResult?.relatedAnimes;
   const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
 
+  const { data: malId } = useQuery({
+    queryKey: ['malId', id],
+    queryFn: () => getMALId(id),
+    enabled: !!animeInfo,
+  });
+
+  const { data: malData } = useQuery({
+    queryKey: ['mal', malId],
+    queryFn: async () => {
+      if (!malId) return null;
+      return await MALService.getById(malId);
+    },
+    enabled: !!malId,
+    staleTime: 60 * 60 * 1000,
+  });
 
   const { data: episodesResult } = useQuery<any | { success: false, error: string }>({
     queryKey: ['episodes', id],
@@ -224,6 +242,47 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
                 </section>
              )}
+
+            {malData && (
+              <div className="mt-12 p-4 md:p-8 bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-3xl border border-purple-800">
+                <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
+                  <Image src={malData.main_picture.large} width={120} height={170} className="rounded-xl shadow-2xl" alt={`MyAnimeList poster for ${malData.title}`} />
+                  <div>
+                    <h2 className="text-2xl md:text-4xl font-black flex items-center gap-4">
+                      MyAnimeList
+                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-lg md:text-xl px-4 py-2">
+                        ★ {malData.mean || 'N/A'}
+                      </Badge>
+                    </h2>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-base md:text-lg">
+                      <span className="text-purple-300 font-semibold">Rank #{malData.rank || 'N/A'}</span>
+                      <span className="text-pink-300 font-semibold">{malData.num_episodes} episodes</span>
+                      <span className="text-yellow-300 font-semibold">{malData.start_season?.year} {malData.start_season?.season}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-base text-gray-300 leading-relaxed">
+                  {malData.synopsis?.replace(/\[Written by MAL Rewrite\]/g, '')}
+                </p>
+
+                {malData.recommendations?.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-2xl font-bold mb-4">You Might Also Like</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                      {malData.recommendations.slice(0, 6).map((rec: any) => (
+                        <Link key={rec.node.id} href={`/anime/mal-${rec.node.id}`}>
+                          <div className="group cursor-pointer">
+                            <Image src={rec.node.main_picture.medium} width={200} height={280} className="rounded-xl group-hover:scale-105 transition" alt={rec.node.title} />
+                            <p className="text-center mt-2 text-sm font-medium line-clamp-2">{rec.node.title}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="lg:col-span-3 space-y-6">
             {relatedAnimes && relatedAnimes.length > 0 && (
@@ -242,5 +301,3 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     </div>
   );
 }
-
-    

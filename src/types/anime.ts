@@ -1,4 +1,5 @@
 
+
 export interface AnimeBase {
     id: string;
     name: string;
@@ -108,7 +109,7 @@ export interface AnimeInfo {
 
 export interface AnimeAbout {
     info: AnimeInfo;
-    moreInfo: Record<string, any>;
+    moreInfo: Record<string, any> & { malId?: number };
 }
 
 export interface AnimeAboutResponse {
@@ -175,7 +176,7 @@ export interface SearchSuggestion {
     id: string;
     name: string;
     poster: string;
-    jname: string;
+jname: string;
     moreInfo: string[];
 }
 

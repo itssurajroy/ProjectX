@@ -1,4 +1,5 @@
 
+'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,8 +8,28 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { setAnimeOverride } from "@/lib/admin/overrides";
+import toast from "react-hot-toast";
+
 
 export default function OverridesPage() {
+
+    const handleLinkMal = async () => {
+        const animeId = "one-piece"; // This should be dynamic based on search
+        const malId = prompt("Enter the MyAnimeList ID for this anime:");
+        if (malId && !isNaN(Number(malId))) {
+            try {
+                // @ts-ignore
+                await setAnimeOverride(animeId, { malId: Number(malId) });
+            } catch(e) {
+                // error is handled by the global handler
+            }
+        } else if (malId) {
+            toast.error("Invalid MAL ID. Please enter a number.");
+        }
+    }
+
+
     return (
         <div className="space-y-6">
             <Card>
@@ -91,6 +112,7 @@ export default function OverridesPage() {
                     </div>
 
                     <div className="flex justify-end gap-2 pt-4">
+                         <Button variant="outline" onClick={handleLinkMal}>Link to MAL</Button>
                          <Button variant="destructive">Block Anime</Button>
                         <Button>Save Override</Button>
                     </div>
