@@ -26,7 +26,7 @@ export default function AnnouncementsPage() {
                             <Label>Color</Label>
                             <Select defaultValue="blue">
                                 <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder="Select a color" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="blue">Blue</SelectItem>
