@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarGroup,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import {
@@ -31,6 +33,7 @@ import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const adminNavItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -100,25 +103,39 @@ function AdminSidebar() {
   );
 }
 
-export default function AdminPanelLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const title = pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard';
-  const getPageTitle = (path: string) => {
-    if (path === '/admin') return 'Dashboard';
-    const segment = path.split('/').pop()?.replace('-', ' ');
-    return segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : 'Admin';
-  }
 
+function AdminPanelContainer({ children }: { children: ReactNode }) {
+    const { isExpanded } = useSidebar();
+    const pathname = usePathname();
+    const getPageTitle = (path: string) => {
+        if (path === '/admin') return 'Dashboard';
+        const segment = path.split('/').pop()?.replace('-', ' ');
+        return segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : 'Admin';
+    }
+
+    return (
+        <div
+            className={cn(
+                "transition-all duration-300 ease-in-out",
+                isExpanded ? "md:pl-64" : "md:pl-[3.35rem]"
+            )}
+        >
+            <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6">
+                <SidebarTrigger className="md:hidden"/>
+                <h1 className="text-lg font-semibold capitalize">{getPageTitle(pathname)}</h1>
+            </header>
+            <main className="p-4 sm:p-6">{children}</main>
+        </div>
+    )
+}
+
+export default function AdminPanelLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <div className="md:peer-data-[state=expanded]:peer-data-[variant=inset]:ml-[16rem] peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-[3rem]">
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6">
-            <SidebarTrigger className="md:hidden"/>
-            <h1 className="text-lg font-semibold capitalize">{getPageTitle(pathname)}</h1>
-        </header>
-        <main className="p-4 sm:p-6">{children}</main>
-      </div>
+      <AdminPanelContainer>
+        {children}
+      </AdminPanelContainer>
     </SidebarProvider>
   );
 }
