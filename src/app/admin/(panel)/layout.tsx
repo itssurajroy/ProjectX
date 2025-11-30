@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -25,33 +24,57 @@ import {
   Trash2,
   ListTodo,
   ScrollText,
-  Badge as BadgeIcon,
   Tags,
   Share2,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { initializeFirebase } from '@/firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
 
-const adminNavItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/users', label: 'Users', icon: Users },
-  { href: '/admin/overrides', label: 'Overrides', icon: PenSquare },
-  { href: '/admin/skiptimes', label: 'Skiptimes', icon: Clock },
-  { href: '/admin/reports', label: 'Reports', icon: ShieldAlert, badge: 17 },
-  { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
-  { href: '/admin/requests', label: 'Requests', icon: ListTodo, badge: 5 },
-  { href: '/admin/socials', label: 'Socials', icon: Share2 },
-  { href: '/admin/cache', label: 'Cache', icon: Trash2 },
-  { href: '/admin/seo', label: 'SEO', icon: Tags },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
-  { href: '/admin/logs', label: 'Logs', icon: ScrollText },
-];
+const { firestore } = initializeFirebase();
 
 function AdminSidebar() {
   const pathname = usePathname();
+  const [reportCount, setReportCount] = useState(0);
+  const [requestCount, setRequestCount] = useState(0);
+
+  useEffect(() => {
+    // Real-time listener for active reports
+    const reportsRef = collection(firestore, 'admin', 'reports', 'active');
+    const unsubReports = onSnapshot(reportsRef, (snap) => {
+      setReportCount(snap.size);
+    });
+
+    // Real-time listener for pending requests
+    const requestsRef = collection(firestore, 'admin', 'requests', 'pending');
+    const unsubRequests = onSnapshot(requestsRef, (snap) => {
+      setRequestCount(snap.size);
+    });
+
+    return () => {
+      unsubReports();
+      unsubRequests();
+    };
+  }, []);
+
+  const adminNavItems = [
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/overrides', label: 'Overrides', icon: PenSquare },
+    { href: '/admin/skiptimes', label: 'Skiptimes', icon: Clock },
+    { href: '/admin/reports', label: 'Reports', icon: ShieldAlert, badge: reportCount },
+    { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
+    { href: '/admin/requests', label: 'Requests', icon: ListTodo, badge: requestCount },
+    { href: '/admin/socials', label: 'Socials', icon: Share2 },
+    { href: '/admin/cache', label: 'Cache', icon: Trash2 },
+    { href: '/admin/seo', label: 'SEO', icon: Tags },
+    { href: '/admin/settings', label: 'Settings', icon: Settings },
+    { href: '/admin/logs', label: 'Logs', icon: ScrollText },
+  ];
 
   return (
     <Sidebar>
@@ -77,9 +100,9 @@ function AdminSidebar() {
                   label={item.label}
                 >
                   <Link href={item.href}>
-                     {item.badge && (
+                     {item.badge && item.badge > 0 ? (
                         <Badge className="ml-auto">{item.badge}</Badge>
-                      )}
+                      ): null}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -114,13 +137,8 @@ function AdminPanelContainer({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div
-            className={cn(
-                "transition-all duration-300 ease-in-out",
-                isExpanded ? "md:pl-64" : "md:pl-[3.35rem]"
-            )}
-        >
-            <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:px-6">
+        <div className={cn('transition-all duration-300 ease-in-out md:pl-14', isExpanded && 'md:pl-64')}>
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
                 <SidebarTrigger className="md:hidden"/>
                 <h1 className="text-lg font-semibold capitalize">{getPageTitle(pathname)}</h1>
             </header>
