@@ -27,9 +27,16 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <Providers>
-        <ShadToaster />
-        {children}
-    </Providers>
+    <html lang="en" className="dark" suppressHydrationWarning>
+       <head>
+         <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
+       </head>
+      <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
+        <Providers>
+            <ShadToaster />
+            {children}
+        </Providers>
+      </body>
+    </html>
   );
 }

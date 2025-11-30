@@ -1,9 +1,9 @@
 
 import type { Metadata, Viewport } from "next";
 import { Lexend, Space_Grotesk } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import { cn } from "@/lib/utils";
-import Providers from "./providers";
+import Providers from "../providers";
 import Navbar from "@/components/layout/header";
 import { Toaster } from "react-hot-toast";
 import Splash from "@/components/Splash";
