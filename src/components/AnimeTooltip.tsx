@@ -44,7 +44,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent className="w-80 bg-card border-border shadow-lg p-0">
+        <TooltipContent side="right" className="w-80 bg-card border-border shadow-lg p-0">
           {isLoading ? (
             <TooltipSkeleton />
           ) : isError || !anime ? (
