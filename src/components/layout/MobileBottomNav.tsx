@@ -2,13 +2,13 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, Search, LayoutGrid } from "lucide-react";
+import { Home, Clapperboard, List, Bookmark, History } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
     const pathname = usePathname();
-    const isActive = pathname.startsWith(href);
+    const isActive = pathname === href || (href !== '/home' && pathname.startsWith(href));
 
     return (
         <Link href={href} className={cn(
@@ -24,12 +24,14 @@ const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.Elemen
 export default function MobileBottomNav() {
     const navItems = [
         { href: "/home", icon: Home, label: "Home" },
-        { href: "/search", icon: Search, label: "Search" },
-        { href: "/genres", icon: LayoutGrid, label: "Genres" },
+        { href: "/movies", icon: Clapperboard, label: "Movies" },
+        { href: "/az-list/all", icon: List, label: "AZ-List" },
+        { href: "/watchlist", icon: Bookmark, label: "Watchlist" },
+        { href: "/history", icon: History, label: "History" },
     ];
     return (
-        <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/90 backdrop-blur-sm border-t border-border z-40 md:hidden">
-            <div className="grid grid-cols-3 items-center justify-around h-full">
+        <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden">
+            <div className="grid grid-cols-5 items-center justify-around h-full">
                 {navItems.map(item => (
                     <NavLink key={item.href} {...item} />
                 ))}
