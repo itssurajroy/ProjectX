@@ -11,6 +11,8 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import BackToTopButton from "@/components/common/BackToTopButton";
 import FloatingDiscordButton from "@/components/common/FloatingDiscordButton";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
+import { Suspense } from 'react';
+import Loading from '../loading';
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -45,20 +47,22 @@ export default function RootLayout({
        <head>
          <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
        </head>
-      <body className={cn("h-full w-full min-h-screen bg-background text-foreground font-sans antialiased overflow-x-hidden", fontSans.variable, fontDisplay.variable)}>
-        <Providers>
-          <NotificationProvider>
-            <ShadToaster />
-            <div className="flex flex-col min-h-screen w-full">
-              <Header />
-              <main className="flex-grow pt-16">{children}</main>
-              <Footer />
-            </div>
-            <MobileBottomNav />
-            <BackToTopButton />
-            <FloatingDiscordButton />
-          </NotificationProvider>
-        </Providers>
+      <body className={cn("h-full w-full min-h-screen bg-black text-white font-sans antialiased overflow-x-hidden", fontSans.variable, fontDisplay.variable)}>
+        <Suspense fallback={<Loading />}>
+          <Providers>
+            <NotificationProvider>
+              <ShadToaster />
+              <div className="flex flex-col min-h-screen w-full">
+                <Header />
+                <main className="flex-grow pt-16">{children}</main>
+                <Footer />
+              </div>
+              <MobileBottomNav />
+              <BackToTopButton />
+              <FloatingDiscordButton />
+            </NotificationProvider>
+          </Providers>
+        </Suspense>
       </body>
     </html>
   );

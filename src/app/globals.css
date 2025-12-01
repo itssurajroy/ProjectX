@@ -1,6 +1,53 @@
+/* src/app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #000;
+  color: white;
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ultra-fast image loading */
+img {
+  loading: lazy;
+  decoding: async;
+}
+
+/* Remove all layout shift */
+.aspect-video, .aspect-\[2\/3\] {
+  position: relative;
+}
+.aspect-video::before, .aspect-\[2\/3\]::before {
+  content: "";
+  display: block;
+  padding-bottom: 56.25%; /* 16:9 */
+}
+.aspect-\[2\/3\]::before {
+  padding-bottom: 150%; /* 2:3 ratio */
+}
+.aspect-video > *, .aspect-\[2\/3\] > * {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+}
 
 @layer base {
   :root {
@@ -66,16 +113,6 @@
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 204 100% 50%;
-  }
-}
- 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-primary);
   }
 }
 
