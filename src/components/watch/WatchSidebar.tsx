@@ -1,53 +1,77 @@
 
 'use client';
-import { AnimeInfo, AnimeBase } from "@/types/anime";
+import { AnimeAbout } from "@/types/anime";
 import Image from "next/image";
-import Link from "next/link";
-import { Button } from "../ui/button";
+import { Star } from "lucide-react";
+import { Badge } from "../ui/badge";
 
 interface WatchSidebarProps {
-    animeInfo: AnimeInfo;
-    animeId: string;
-    episodeId: string | null;
-    mostPopular: AnimeBase[];
+    anime: AnimeAbout;
+    malData: any; // MAL data can be complex
 }
 
-export default function WatchSidebar({ animeInfo, animeId, episodeId, mostPopular }: WatchSidebarProps) {
+const StatItem = ({ label, value }: { label: string, value: React.ReactNode }) => {
+    if (!value) return null;
     return (
-        <div className="space-y-6">
-            <div className="bg-card rounded-lg border border-border/50 p-4">
-                <div className="flex gap-4">
-                    <div className="w-24 flex-shrink-0">
-                        <Image src={animeInfo.poster} alt={animeInfo.name} width={96} height={144} className="rounded-md" />
-                    </div>
-                    <div>
-                        <h3 className="font-bold text-lg">{animeInfo.name}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-3" dangerouslySetInnerHTML={{ __html: animeInfo.description }} />
-                    </div>
-                </div>
-                 <Button asChild className="w-full mt-4" variant="outline">
-                    <Link href={`/anime/${animeId}`}>View Details</Link>
-                </Button>
+        <div className="text-sm">
+            <span className="font-bold text-foreground/80">{label}: </span>
+            <span className="text-muted-foreground">{value}</span>
+        </div>
+    )
+}
+
+const Rating = ({ score, reviews }: { score: number, reviews: number }) => (
+    <div className="mt-4">
+        <h3 className="font-bold mb-2">How'd you rate this anime?</h3>
+        <div className="bg-card/80 p-3 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={`w-6 h-6 ${i < Math.round(score / 2) ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/50'}`} />
+                ))}
+            </div>
+            <div className="text-right">
+                <p className="font-bold text-lg">{score}/10</p>
+                <p className="text-xs text-muted-foreground">{reviews.toLocaleString()} reviews</p>
+            </div>
+        </div>
+    </div>
+)
+
+
+export default function WatchSidebar({ anime, malData }: WatchSidebarProps) {
+    const { info, moreInfo } = anime;
+
+    return (
+        <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start sticky top-4">
+            <div className="relative aspect-[2/3] w-full max-w-[200px] mx-auto rounded-md overflow-hidden shadow-lg -mt-16 mb-4">
+                <Image src={info.poster} alt={info.name} fill className="object-cover" />
+            </div>
+            
+            <h2 className="text-xl font-bold text-center">{info.name}</h2>
+            <p className="text-xs text-muted-foreground text-center mb-3">{moreInfo.japanese}</p>
+
+            <div className="flex items-center justify-center flex-wrap gap-2 text-sm text-muted-foreground mb-4">
+                {info.stats.rating && <Badge variant="outline">{info.stats.rating}</Badge>}
+                {info.stats.episodes.sub && <Badge variant="outline">CC: {info.stats.episodes.sub}</Badge>}
+                {malData?.mean && <Badge variant="outline" className="gap-1"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {malData.mean}</Badge>}
+                <Badge variant="outline">{info.stats.type}</Badge>
             </div>
 
-            {mostPopular && mostPopular.length > 0 && (
-                <div className="bg-card rounded-lg border border-border/50 p-4">
-                    <h3 className="font-bold text-lg mb-4">Most Popular</h3>
-                    <div className="space-y-3">
-                        {mostPopular.slice(0, 5).map(anime => (
-                            <Link key={anime.id} href={`/anime/${anime.id}`} className="flex gap-3 group">
-                                <div className="w-16 flex-shrink-0">
-                                    <Image src={anime.poster} alt={anime.name} width={64} height={96} className="rounded-md" />
-                                </div>
-                                <div className="overflow-hidden">
-                                    <p className="font-semibold group-hover:text-primary transition-colors line-clamp-2">{anime.name}</p>
-                                    <p className="text-sm text-muted-foreground">{anime.type} - {anime.episodes?.sub} EPs</p>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            )}
+            <p className="text-sm text-muted-foreground line-clamp-4 leading-relaxed" dangerouslySetInnerHTML={{__html: info.description}} />
+            
+            <div className="space-y-1.5 text-sm mt-4 border-t border-border/50 pt-4">
+                <StatItem label="Country" value={moreInfo.country} />
+                <StatItem label="Genres" value={Array.isArray(moreInfo.genres) ? moreInfo.genres.join(', ') : moreInfo.genres} />
+                <StatItem label="Premiered" value={moreInfo.premiered} />
+                <StatItem label="Date aired" value={moreInfo.aired} />
+                <StatItem label="Broadcast" value={moreInfo.broadcast} />
+                <StatItem label="Episodes" value={info.stats.episodes.sub} />
+                <StatItem label="Duration" value={info.stats.duration} />
+                <StatItem label="Status" value={moreInfo.status} />
+                {malData && <StatItem label="MAL" value={`${malData.mean} by ${malData.num_list_users?.toLocaleString()} users`} />}
+            </div>
+
+            {malData?.mean && <Rating score={malData.mean} reviews={malData.num_list_users} />}
         </div>
     )
 }

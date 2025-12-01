@@ -1,44 +1,78 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { EpisodeServer } from '@/types/anime';
+import { Language } from './LanguageToggle';
 
 interface ServerToggleProps {
-  servers: EpisodeServer[];
-  activeServer: string | null;
-  onServerChange: (server: string) => void;
+  onLanguageChange: (language: Language) => void;
+  // This would come from an API in a real app
+  servers?: {
+      sub: string[],
+      dub: string[],
+  }
 }
 
-export default function ServerToggle({ servers, activeServer, onServerChange }: ServerToggleProps) {
-  const handleServerClick = (serverId: string) => {
-    onServerChange(serverId);
-  }
+export default function ServerToggle({ onLanguageChange }: ServerToggleProps) {
+  const [language, setLanguage] = useState<Language>('sub');
+  const [activeServer, setActiveServer] = useState<string>('Server 1');
 
-  if (!servers || servers.length === 0) {
-    return (
-        <div className='flex items-center gap-1 text-sm'>
-            <p className="mr-2 font-semibold">Servers:</p>
-            <p className="text-muted-foreground text-xs">No servers available.</p>
-        </div>
-    );
+  const handleLanguageClick = (lang: Language) => {
+    setLanguage(lang);
+    onLanguageChange(lang);
+    // Reset to first server of that language
+    setActiveServer('Server 1');
+  };
+  
+  const servers = {
+      sub: ['Server 1', 'Server 2'],
+      dub: ['Server 1', 'Server 2'],
   }
+  const currentServers = servers[language] || [];
 
   return (
-    <div className='flex items-center gap-1 text-sm flex-wrap'>
-        <p className="mr-2 font-semibold">Servers:</p>
-        {servers.map(server => (
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex items-center gap-1 p-1 rounded-lg bg-background border border-border">
              <Button 
-                key={server.serverName} 
                 size="sm" 
-                variant={activeServer === server.serverName ? 'default' : 'secondary'} 
-                className='font-semibold capitalize'
-                onClick={() => handleServerClick(server.serverName)}
-            >
-                {server.serverName}
+                variant={language === "sub" ? 'secondary' : 'ghost'} 
+                className='font-semibold text-xs' 
+                onClick={() => handleLanguageClick("sub")}
+             >
+                 Hard Sub
             </Button>
-        ))}
+             <Button 
+                size="sm" 
+                variant={'ghost'} 
+                className='font-semibold text-xs text-muted-foreground'
+                disabled
+             >
+                 Soft Sub
+            </Button>
+            <Button 
+                size="sm" 
+                variant={language === "dub" ? 'secondary' : 'ghost'} 
+                className='font-semibold text-xs' 
+                onClick={() => handleLanguageClick("dub")}
+            >
+                Dub
+            </Button>
+        </div>
+
+        <div className='flex items-center gap-2 text-sm flex-wrap'>
+            {currentServers.map(server => (
+                 <Button 
+                    key={server} 
+                    size="sm" 
+                    variant={activeServer === server ? 'default' : 'secondary'} 
+                    className='font-semibold capitalize'
+                    onClick={() => setActiveServer(server)}
+                >
+                    {server}
+                </Button>
+            ))}
+        </div>
     </div>
   );
 }
