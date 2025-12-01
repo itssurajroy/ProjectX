@@ -76,13 +76,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       (firebaseUser) => { // Auth state determined
         if (firebaseUser) {
           const userRef = doc(firestore, 'users', firebaseUser.uid);
-          setDocumentNonBlocking(userRef, {
+          const userData = {
             displayName: firebaseUser.displayName || 'Anonymous',
             photoURL: firebaseUser.photoURL,
             role: 'user',
             createdAt: serverTimestamp(),
             lastLogin: serverTimestamp(),
-          }, { merge: true });
+          };
+          setDocumentNonBlocking(userRef, userData, { merge: true });
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
