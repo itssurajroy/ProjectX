@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
-import AnimeService, { extractEpisodeNumber } from '@/lib/AnimeService';
+import { getAnime, getEpisodes, getEpisodeServers, extractEpisodeNumber } from '@/lib/AnimeService';
 import EpisodeList from '@/components/watch/episode-list';
 import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -44,7 +44,7 @@ function WatchPageComponent() {
   } = useQuery<{ data: AnimeAboutResponse } | { success: false; error: string }>(
     {
       queryKey: ['anime', animeId],
-      queryFn: () => AnimeService.getAnime(animeId),
+      queryFn: () => getAnime(animeId),
       enabled: !!animeId,
     }
   );
@@ -56,7 +56,7 @@ function WatchPageComponent() {
     refetch: refetchEpisodes,
   } = useQuery({
     queryKey: ['anime-episodes', animeId],
-    queryFn: () => AnimeService.getEpisodes(animeId),
+    queryFn: () => getEpisodes(animeId),
     enabled: !!animeId,
   });
 
@@ -109,7 +109,7 @@ function WatchPageComponent() {
     data: serversResponse,
   } = useQuery({
     queryKey: ['episode-servers', currentEpisode?.episodeId],
-    queryFn: () => AnimeService.getEpisodeServers(currentEpisode!.episodeId),
+    queryFn: () => getEpisodeServers(currentEpisode!.episodeId),
     enabled: !!currentEpisode,
   });
 

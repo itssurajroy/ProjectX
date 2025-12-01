@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import AnimeService from "@/lib/AnimeService";
+import { getAnimeQtip } from "@/lib/AnimeService";
 import { QtipAnime } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Tv, Clapperboard, Calendar, Clock } from "lucide-react";
@@ -29,7 +29,7 @@ const TooltipSkeleton = () => (
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
   const { data: qtipResult, isLoading, isError, error } = useQuery<{data: {anime: QtipAnime}} | { success: false; error: string; status?: number }>({
     queryKey: ['qtip', animeId],
-    queryFn: () => AnimeService.getAnimeQtip(animeId),
+    queryFn: () => getAnimeQtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: any) => {
         // Don't retry on 404s

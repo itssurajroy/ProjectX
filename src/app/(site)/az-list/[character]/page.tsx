@@ -1,7 +1,7 @@
 
 'use client';
 
-import AnimeService from '@/lib/AnimeService';
+import { getAZList, getHomeData } from '@/lib/AnimeService';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const AdvancedFilter = () => {
     const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
         queryKey: ['homeData'],
-        queryFn: AnimeService.getHomeData,
+        queryFn: getHomeData,
     });
     const genres = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.genres : [];
     
@@ -171,7 +171,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
 
   const { data: azResult, isLoading, error, refetch } = useQuery<{data: SearchResult}>({
     queryKey: ['az-list', sortOption, page],
-    queryFn: () => AnimeService.getAZList(sortOption, page),
+    queryFn: () => getAZList(sortOption, page),
   });
 
   const handlePageChange = (newPage: number) => {

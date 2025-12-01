@@ -5,7 +5,7 @@
 import { AnimeCard } from "@/components/AnimeCard";
 import ErrorDisplay from "@/components/common/ErrorDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AnimeService } from "@/lib/AnimeService";
+import { getMovies } from "@/lib/AnimeService";
 import { SearchResult } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -32,7 +32,7 @@ function MoviesPageContent() {
 
     const { data: moviesResult, isLoading, error, refetch } = useQuery<{ data: SearchResult }>({
         queryKey: ['movies', page],
-        queryFn: () => AnimeService.getMovies(page),
+        queryFn: () => getMovies(page),
     });
 
     const handlePageChange = (newPage: number) => {

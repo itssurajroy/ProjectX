@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import AnimeService from '@/lib/AnimeService';
+import { getSmartSources } from '@/lib/AnimeService';
 
 type StreamSource = {
   url: string;
@@ -16,10 +16,14 @@ export function useSmartPlayer(episodeId: string, category: "sub" | "dub" = "sub
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
+    if (!episodeId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
-    const result = await AnimeService.getSmartSources(episodeId, ["hd-1", "vidstreaming", "megacloud"], category);
+    const result = await getSmartSources(episodeId, ["hd-1", "vidstreaming", "megacloud"], category);
 
     if (result.sources.length === 0) {
       setError("All streaming servers failed. Please try again later.");
@@ -32,10 +36,8 @@ export function useSmartPlayer(episodeId: string, category: "sub" | "dub" = "sub
   }, [episodeId, category]);
 
   useEffect(() => {
-    if (episodeId) {
       load();
-    }
-  }, [episodeId, load]);
+  }, [load]);
 
   return { sources, subtitles, loading, error, retry: load };
 }

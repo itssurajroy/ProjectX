@@ -6,7 +6,7 @@ import { Search, Menu, Shuffle, Languages, Send, Twitter, Youtube, Instagram, Fa
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import AnimeService from '@/lib/AnimeService';
+import { getSearchSuggestions } from '@/lib/AnimeService';
 import { SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
 import {
@@ -65,7 +65,7 @@ export default function Header() {
   
   const { data: suggestionsResult } = useQuery<{data: SearchSuggestionResponse} | { success: false; error: string }>({
       queryKey: ['searchSuggestions', searchQuery],
-      queryFn: () => AnimeService.getSearchSuggestions(searchQuery),
+      queryFn: () => getSearchSuggestions(searchQuery),
       enabled: searchQuery.length > 2,
   });
 

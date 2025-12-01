@@ -1,6 +1,6 @@
 
 'use client';
-import AnimeService, { extractEpisodeNumber } from '@/lib/AnimeService';
+import { getAnimeAbout, getEpisodes, extractEpisodeNumber } from '@/lib/AnimeService';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users } from 'lucide-react';
@@ -70,7 +70,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     refetch,
   } = useQuery<{data: AnimeAboutResponse} | { success: false; error: string }>({
     queryKey: ['anime', id],
-    queryFn: () => AnimeService.getAnimeAbout(id),
+    queryFn: () => getAnimeAbout(id),
   });
   
   const animeResult = apiResponse && !('success' in apiResponse) ? apiResponse.data : null;
@@ -101,7 +101,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
   const { data: episodesResult } = useQuery<any | { success: false, error: string }>({
     queryKey: ['episodes', id],
-    queryFn: () => AnimeService.getEpisodes(id),
+    queryFn: () => getEpisodes(id),
     enabled: !!animeInfo
   });
 

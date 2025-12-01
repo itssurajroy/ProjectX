@@ -1,6 +1,6 @@
 
 'use client';
-import AnimeService from '@/lib/AnimeService';
+import { getHomeData } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2 } from 'lucide-react';
@@ -12,6 +12,7 @@ import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
+import { getSchedule } from '@/lib/AnimeService';
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -163,7 +164,7 @@ const ScheduleSidebar = () => {
 
     const { data: scheduleResult, isLoading, error, refetch } = useQuery<{ data: ScheduleResponse } | { success: false; error: string }>({
         queryKey: ['schedule', selectedDate.toISOString().split('T')[0]],
-        queryFn: () => AnimeService.getSchedule(selectedDate.toISOString().split('T')[0]),
+        queryFn: () => getSchedule(selectedDate.toISOString().split('T')[0]),
     });
 
     const handleDateChange = (days: number) => {
@@ -261,7 +262,7 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
 export default function MainDashboardPage() {
   const { data: apiResponse, isLoading, error, refetch } = useQuery<{data: HomeData} | { success: false; error: string }>({
     queryKey: ['homeData'],
-    queryFn: AnimeService.getHomeData,
+    queryFn: getHomeData,
   });
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;

@@ -11,7 +11,7 @@ import Balancer from "react-wrap-balancer";
 import AZList from "@/components/layout/az-list-footer";
 import { AnimeBase, HomeData } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
-import AnimeService from "@/lib/AnimeService";
+import { getHomeData } from "@/lib/AnimeService";
 
 const socialLinks = [
     { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },
@@ -26,7 +26,7 @@ export default function LandingPage() {
 
     const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
         queryKey: ['homeData'],
-        queryFn: AnimeService.getHomeData,
+        queryFn: getHomeData,
     });
     
     const trendingAnimes = homeDataResult && 'data' in homeDataResult ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
