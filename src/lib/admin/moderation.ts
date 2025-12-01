@@ -46,49 +46,44 @@ export async function resolveReport(reportId: string, resolution: string) {
     throw new AdminError('Report ID and resolution notes are required.');
   }
 
-  try {
-    const reportRef = doc(firestore, 'admin', 'reports', 'active', reportId);
-    const reportSnap = await getDoc(reportRef);
+  const reportRef = doc(firestore, 'admin', 'reports', 'active', reportId);
+  const reportSnap = await getDoc(reportRef);
 
-    if (!reportSnap.exists()) {
-      throw new AdminError('Report not found.');
-    }
+  if (!reportSnap.exists()) {
+    throw new AdminError('Report not found.');
+  }
 
-    const reportData = reportSnap.data();
-    const payload = {
-      ...reportData,
-      status: 'Resolved',
-      resolvedAt: serverTimestamp(),
-      resolvedBy: mockAuth.currentUser.uid,
-      resolutionNotes: resolution,
-    };
+  const reportData = reportSnap.data();
+  const payload = {
+    ...reportData,
+    status: 'Resolved',
+    resolvedAt: serverTimestamp(),
+    resolvedBy: mockAuth.currentUser.uid,
+    resolutionNotes: resolution,
+  };
 
-    // Create a new document in the 'resolved' collection
-    const resolvedRef = doc(firestore, 'admin', 'reports', 'resolved', reportId);
-    
-    setDoc(resolvedRef, payload)
+  // Create a new document in the 'resolved' collection
+  const resolvedRef = doc(firestore, 'admin', 'reports', 'resolved', reportId);
+  
+  setDoc(resolvedRef, payload)
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: resolvedRef.path,
+            operation: 'create',
+            requestResourceData: payload,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+    });
+
+  // Delete the original report from 'active'
+  deleteDoc(reportRef)
       .catch((serverError) => {
           const permissionError = new FirestorePermissionError({
-              path: resolvedRef.path,
-              operation: 'create',
-              requestResourceData: payload,
+              path: reportRef.path,
+              operation: 'delete',
           } satisfies SecurityRuleContext);
           errorEmitter.emit('permission-error', permissionError);
       });
 
-    // Delete the original report from 'active'
-    deleteDoc(reportRef)
-        .catch((serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: reportRef.path,
-                operation: 'delete',
-            } satisfies SecurityRuleContext);
-            errorEmitter.emit('permission-error', permissionError);
-        });
-
-    toast.success('Report has been resolved.');
-  } catch (error) {
-    handleAdminError(error, 'resolveReport');
-    throw error;
-  }
+  toast.success('Report has been resolved.');
 }

@@ -10,8 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
 import { collectionGroup, onSnapshot, query, orderBy, collection } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase";
-import { deleteComment } from "@/lib/admin/moderation";
+import { deleteComment, resolveReport } from "@/lib/admin/moderation";
 import { sanitizeFirestoreId } from "@/lib/utils";
+import toast from "react-hot-toast";
 
 const { firestore } = initializeFirebase();
 
@@ -25,7 +26,7 @@ interface Comment {
 
 interface Report {
     id: string;
-    type: 'Broken Link' | 'Wrong Info' | 'Spam' | 'DMCA';
+    type: 'Broken Link' | 'Wrong Info' | 'Spam' | 'DMCA' | 'Toxicity';
     contentId: string;
     reporter: string;
     message: string;
@@ -44,6 +45,7 @@ const typeColors: {[key: string]: string} = {
     'Wrong Info': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
     'Spam': 'bg-pink-500/20 text-pink-300 border-pink-500/30',
     'DMCA': 'bg-red-500/20 text-red-300 border-red-500/30',
+    'Toxicity': 'bg-rose-500/20 text-rose-300 border-rose-500/30',
 };
 
 const formatDate = (timestamp: any) => {
@@ -143,6 +145,18 @@ function ReportsModeration() {
         return () => unsubscribe();
     }, []);
 
+    const handleResolve = async (reportId: string) => {
+        const resolution = prompt("Enter resolution notes:");
+        if (resolution) {
+            try {
+                await resolveReport(reportId, resolution);
+            } catch(e) {
+                // error handled by global handler
+            }
+        }
+    }
+
+
     return (
         <Card>
             <CardHeader>
@@ -179,7 +193,7 @@ function ReportsModeration() {
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="w-4 h-4"/></Button></DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem>Resolve</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleResolve(report.id)}>Resolve</DropdownMenuItem>
                                             <DropdownMenuItem>Fix Content</DropdownMenuItem>
                                             <DropdownMenuItem>Ban Reporter</DropdownMenuItem>
                                             <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Report</DropdownMenuItem>
