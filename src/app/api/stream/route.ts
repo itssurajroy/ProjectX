@@ -9,7 +9,7 @@ const ALLOWED_DOMAINS = [
   "filemoon.sx",
   "streamwish.to",
   "vidoza.net",
-  "animespa.com", // Add any other domains you expect to proxy
+  "animespa.com",
 ];
 
 export async function GET(req: NextRequest) {
@@ -25,7 +25,8 @@ export async function GET(req: NextRequest) {
     return new Response("Invalid URL encoding", { status: 400 });
   }
   
-  const targetHostname = new URL(targetUrl).hostname;
+  const targetUrlObj = new URL(targetUrl);
+  const targetHostname = targetUrlObj.hostname;
 
   if (!ALLOWED_DOMAINS.some(domain => targetHostname.endsWith(domain))) {
     console.warn(`[Stream Proxy] Denied access to domain: ${targetHostname}`);
@@ -36,12 +37,15 @@ export async function GET(req: NextRequest) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
 
+    const origin = targetUrlObj.origin;
+    const referer = origin + '/';
+
     const res = await fetch(targetUrl, {
       signal: controller.signal,
       headers: {
         ...req.headers,
-        "Origin": new URL(targetUrl).origin,
-        "Referer": new URL(targetUrl).origin + '/',
+        "Origin": origin,
+        "Referer": referer,
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
       }
     });
@@ -53,12 +57,38 @@ export async function GET(req: NextRequest) {
       return new Response(res.body, { status: res.status, statusText: res.statusText });
     }
 
+    const contentType = res.headers.get('content-type') || 'application/octet-stream';
+    const isM3U8 = contentType.includes('application/x-mpegURL') || contentType.includes('application/vnd.apple.mpegurl') || targetUrl.endsWith('.m3u8');
+
+    let body: BodyInit;
+
+    if (isM3U8) {
+        let text = await res.text();
+        const baseUrl = new URL(targetUrl);
+        const proxyBaseUrl = req.nextUrl.origin + '/api/stream?url=';
+        
+        // Regex to find URLs in the manifest, handling both absolute and relative paths
+        text = text.replace(/^(?!#)(.*)$/gm, (line) => {
+            if (line.startsWith('http')) {
+                return `${proxyBaseUrl}${encodeURIComponent(line)}`;
+            } else if (line.trim() !== '') {
+                const absoluteUrl = new URL(line, baseUrl);
+                return `${proxyBaseUrl}${encodeURIComponent(absoluteUrl.href)}`;
+            }
+            return line;
+        });
+        body = text;
+    } else {
+        body = res.body;
+    }
+    
     const responseHeaders = new Headers(res.headers);
     responseHeaders.set('Access-Control-Allow-Origin', '*');
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
     responseHeaders.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
+    responseHeaders.set('Content-Type', contentType);
 
-    return new Response(res.body, {
+    return new Response(body, {
       status: res.status,
       statusText: res.statusText,
       headers: responseHeaders,
