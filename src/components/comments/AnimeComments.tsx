@@ -14,13 +14,11 @@ import {
   addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase, addDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import { cn } from '@/lib/utils';
 import Spoiler from './Spoiler';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import type { SecurityRuleContext } from '@/firebase/errors';
 
 const { firestore } = initializeFirebase();
@@ -71,13 +69,15 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
   const handlePostComment = async () => {
     if (newComment.trim() === '') return;
 
-    await addDoc(commentsRef, {
+    const commentData = {
       author: 'Anonymous', // Since auth is removed
       text: newComment,
       timestamp: serverTimestamp(),
       avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
       isSpoiler: isSpoiler,
-    });
+    };
+    
+    addDocumentNonBlocking(commentsRef, commentData);
 
     setNewComment('');
     setIsSpoiler(false);
