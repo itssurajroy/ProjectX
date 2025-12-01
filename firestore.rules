@@ -11,6 +11,12 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
     }
+    
+    // Helper function to check if a user is a moderator or admin
+    function isModeratorOrAdmin() {
+      let userRole = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return isAdmin() || userRole == 'moderator';
+    }
 
     // ╔══════════════════════════════════════════════════════════╗
     // ║                         ADMIN DATA                       ║
@@ -18,49 +24,48 @@ service cloud.firestore {
 
     // All admin collections are only accessible by admins
     match /admin/{section=**} {
-      allow read, write: if isAdmin();
+      allow read, write: if isModeratorOrAdmin();
     }
-
-    // Publicly readable announcements
-    match /admin/announcements/{docId} {
-      allow read: if resource.data.active == true;
-      allow write: if isAdmin();
+    
+    // Admins can manage other admin/moderator roles.
+    match /admins/{userId} {
+       allow read, write: if isAdmin();
     }
-
+    
     // Allow any signed-in user to create reports and requests
     match /admin/reports/{docId} {
       allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if isModeratorOrAdmin();
     }
     match /admin/requests/{docId} {
       allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if isModeratorOrAdmin();
     }
     
     // ╔══════════════════════════════════════════════════════════╗
     // ║                      USER-FACING DATA                    ║
     // ╚══════════════════════════════════════════════════════════╝
 
-    // Comments: Publicly readable, users can create their own.
+    // User Data: Users can read/write their own data. Admins can read anyone's data.
+    match /users/{userId}/{document=**} {
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isModeratorOrAdmin();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+      // Admins can update roles, ban status, etc.
+      allow update: if isModeratorOrAdmin();
+    }
+    
+    // Comments: Publicly readable, users can create their own. Mods/Admins can delete.
     match /comments/{path=**}/messages/{messageId} {
       allow read: if true;
       allow create: if isSignedIn();
-      allow update, delete: if false; // Future: allow if resource.data.authorId == request.auth.uid
+      allow delete: if isModeratorOrAdmin();
+      // Users can only edit/delete their own comments within a time limit (future)
+      allow update: if false; 
     }
     
     // Notifications: Users can only access their own.
     match /notifications/{userId}/items/{notificationId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
-    }
-
-    // User-specific data (watchlist, history, etc)
-    match /users/{userId}/{document=**} {
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
-    }
-
-    // Admin role management. Only other admins can manage roles.
-    match /admins/{userId} {
-       allow read, write: if isAdmin();
     }
   }
 }

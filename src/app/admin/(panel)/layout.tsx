@@ -26,6 +26,7 @@ import {
   ScrollText,
   Tags,
   Share2,
+  Gavel,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ReactNode, useState, useEffect } from 'react';
@@ -64,9 +65,9 @@ function AdminSidebar() {
   const adminNavItems = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/users', label: 'Users', icon: Users },
+    { href: '/admin/moderation', label: 'Moderation', icon: Gavel, badge: reportCount },
     { href: '/admin/overrides', label: 'Overrides', icon: PenSquare },
     { href: '/admin/skiptimes', label: 'Skiptimes', icon: Clock },
-    { href: '/admin/reports', label: 'Reports', icon: ShieldAlert, badge: reportCount },
     { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
     { href: '/admin/requests', label: 'Requests', icon: ListTodo, badge: requestCount },
     { href: '/admin/socials', label: 'Socials', icon: Share2 },
