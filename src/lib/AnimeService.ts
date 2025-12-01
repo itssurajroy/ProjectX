@@ -32,6 +32,7 @@ export class AnimeService {
   static getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
   static getSchedule = (date: string) => api(`/schedule?date=${date}`);
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
+  static getGenres = () => api("/genres");
   
   static async getEpisodeSources(episodeId: string, category: "sub" | "dub" = "sub") {
     const servers = ["hd-1", "vidstreaming", "megacloud", "streamwish", "filemoon"];
