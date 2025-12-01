@@ -47,6 +47,7 @@
     "framer-motion": "^11.2.10",
     "genkit": "^1.20.0",
     "hls.js": "^1.5.11",
+    "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",
     "next": "15.3.3",
     "patch-package": "^8.0.0",
@@ -65,6 +66,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

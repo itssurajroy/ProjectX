@@ -1,28 +1,28 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AnimeService } from '@/lib/AnimeService';
-import { AnimeCard } from '@/components/AnimeCard';
+import { useDebounce } from 'use-debounce';
+import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 
-interface Filters {
-  query: string;
-  type: string;
-  status: string;
-  season: string;
-  language: string;
-  rated: string;
-  score: string;
-  genres: string[];
-  sort: string;
-  page: number;
+interface AnimeResult {
+  id: string;
+  name: string;
+  poster?: string;
+  image?: string;
+  type?: string;
+  year?: string;
+  episodes?: {
+    sub: number;
+    dub: number;
+  }
 }
 
 const LoadingSkeleton = () => (
-    <div className="grid-cards">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
         {Array.from({ length: 18 }).map((_, index) => (
             <div key={index} className="space-y-2">
                 <Skeleton className="aspect-[2/3] w-full" />
@@ -32,180 +32,225 @@ const LoadingSkeleton = () => (
     </div>
 );
 
+const SearchResultCard = ({ anime }: { anime: AnimeResult }) => (
+    <div
+      onClick={() => (window.location.href = `/anime/${anime.id}`)}
+      className="group cursor-pointer transform hover:scale-105 transition-all duration-300"
+    >
+      <div className="aspect-[2/3] relative overflow-hidden rounded-xl shadow-2xl">
+        <Image
+          src={anime.poster || anime.image || '/placeholder.jpg'}
+          alt={anime.name}
+          fill
+          className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+          <p className="font-bold text-sm line-clamp-2">{anime.name}</p>
+          <div className="text-xs opacity-80 mt-1 flex items-center gap-2">
+            <span>{anime.type || 'TV'}</span>
+            {anime.episodes?.sub && <span>EP {anime.episodes.sub}</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+)
 
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const q = searchParams.get('q') || '';
+  const initialQuery = searchParams.get('q') || '';
 
-  const [filters, setFilters] = useState<Filters>({
-    query: q,
-    type: '',
-    status: '',
-    season: '',
-    language: '',
-    rated: '',
-    score: '',
-    genres: [],
-    sort: 'most_relevance',
-    page: 1
-  });
-
-  const [results, setResults] = useState<any[]>([]);
+  const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery] = useDebounce(query, 300);
+  const [suggestions, setSuggestions] = useState<AnimeResult[]>([]);
+  const [results, setResults] = useState<AnimeResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Search when query changes
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastElementRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch suggestions
   useEffect(() => {
-    if (filters.query.length > 2) {
-      const timer = setTimeout(async () => {
-        const res = await AnimeService.search(filters.query);
-        setSuggestions(res?.suggestions?.slice(0, 10).map((s: any) => s.name) || []);
-      }, 300);
-      return () => clearTimeout(timer);
-    } else {
+    if (debouncedQuery.length < 2) {
       setSuggestions([]);
+      return;
     }
-  }, [filters.query]);
+    const fetchSuggestions = async () => {
+        setLoadingSuggestions(true);
+        try {
+          const data = await AnimeService.request(`/search/suggestion?q=${encodeURIComponent(debouncedQuery)}`);
+          setSuggestions(data?.suggestions?.slice(0, 8) || []);
+        } catch {
+          setSuggestions([]);
+        }
+        setLoadingSuggestions(false);
+    };
+    fetchSuggestions();
+  }, [debouncedQuery]);
 
-  // Main search
-  const performSearch = async (page = 1) => {
-    if (!filters.query.trim()) return;
-    
+  // Main search function
+  const performSearch = useCallback(async (searchQuery: string, pageNum: number = 1) => {
+    if (!searchQuery.trim()) return;
+
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.set('q', filters.query);
-      params.set('page', page.toString());
-      if (filters.type) params.set('type', filters.type);
-      if (filters.status) params.set('status', filters.status);
-      if (filters.season) params.set('season', filters.season);
-      if (filters.language) params.set('language', filters.language);
-      if (filters.rated) params.set('rated', filters.rated);
-      if (filters.score) params.set('score', filters.score);
-      if (filters.genres.length) params.set('genres', filters.genres.join(','));
-      if (filters.sort) params.set('sort', filters.sort);
+      const res = await AnimeService.request(
+        `/search?q=${encodeURIComponent(searchQuery)}&page=${pageNum}`
+      );
 
-      const res = await AnimeService.search(params.toString());
-      
-      if (page === 1) {
-        setResults(res.animes || []);
+      const newResults = res.animes || [];
+
+      if (pageNum === 1) {
+        setResults(newResults);
       } else {
-        setResults(prev => [...prev, ...(res.animes || [])]);
+        setResults(prev => [...prev, ...newResults]);
       }
-      
+
       setHasMore(res.hasNextPage || false);
-      setFilters(prev => ({ ...prev, page }));
+      setPage(pageNum);
     } catch (err) {
       console.error("Search failed:", err);
+      setResults([]);
+      setHasMore(false);
     }
     setLoading(false);
+  }, []);
+
+  // Initial load from URL
+  useEffect(() => {
+    performSearch(initialQuery, 1);
+  }, [initialQuery, performSearch]);
+
+  // Infinite scroll
+  useEffect(() => {
+    if (loading || !hasMore) return;
+
+    observer.current = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          performSearch(query, page + 1);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (lastElementRef.current) {
+      observer.current.observe(lastElementRef.current);
+    }
+
+    return () => {
+      if (observer.current) observer.current.disconnect();
+    };
+  }, [loading, hasMore, page, query, performSearch]);
+  
+   // Click outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSuggestionClick = (suggestionQuery: string) => {
+    setQuery(suggestionQuery);
+    setShowSuggestions(false);
+    router.push(`/search?q=${encodeURIComponent(suggestionQuery)}`);
   };
 
-  useEffect(() => {
-    const initialQuery = searchParams.get('q');
-    if (initialQuery) {
-      setFilters(prev => ({ ...prev, query: initialQuery }));
-      performSearch(1);
+  const handleSearch = () => {
+    if (query.trim()) {
+      setShowSuggestions(false);
+      router.push(`/search?q=${encodeURIComponent(query)}`);
     }
-  }, [searchParams]);
-
-  const loadMore = () => {
-    performSearch(filters.page + 1);
   };
 
   return (
-    <div className="min-h-screen pt-20">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8">Search Anime</h1>
+    <div className="min-h-screen pt-16 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center mb-10 text-glow">
+          Search Anime
+        </h1>
 
-        {/* Search Bar */}
-        <div className="relative mb-8">
-          <input
-            type="text"
-            value={filters.query}
-            onChange={(e) => setFilters(prev => ({ ...prev, query: e.target.value, page: 1 }))}
-            onKeyDown={(e) => e.key === 'Enter' && performSearch(1)}
-            placeholder="Search anime, movies, OVA..."
-            className="w-full px-6 py-4 bg-card/50 rounded-xl text-lg focus:outline-none focus:ring-2 focus:ring-primary border border-border"
-          />
-          {suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-card rounded-xl shadow-2xl z-50 border border-border">
-              {suggestions.map((s, i) => (
+        <div ref={searchContainerRef} className="relative max-w-3xl mx-auto mb-12">
+          <div className="relative">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setShowSuggestions(true)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Search for anime, movies, characters..."
+              className="w-full px-6 py-4 text-base bg-card border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300 shadow-lg"
+              autoFocus
+            />
+            <Button
+              onClick={handleSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-6"
+            >
+              Search
+            </Button>
+          </div>
+
+          {showSuggestions && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-2xl overflow-hidden z-50">
+              {loadingSuggestions && (
+                <div className="px-6 py-4 text-muted-foreground">Loading suggestions...</div>
+              )}
+              {!loadingSuggestions && suggestions.length > 0 && suggestions.map((anime, i) => (
                 <div
                   key={i}
-                  onClick={() => {
-                    setFilters(prev => ({ ...prev, query: s }));
-                    setSuggestions([]);
-                    performSearch(1);
-                  }}
-                  className="px-6 py-3 hover:bg-muted cursor-pointer"
+                  onClick={() => handleSuggestionClick(anime.name)}
+                  className="px-4 py-3 hover:bg-muted cursor-pointer transition-colors border-b border-border last:border-0"
                 >
-                  {s}
+                  <div className="flex items-center gap-3">
+                     <div className="relative w-10 h-14 flex-shrink-0">
+                       <Image src={anime.poster || '/placeholder.jpg'} alt={anime.name} fill className="rounded-md object-cover" />
+                     </div>
+                     <div>
+                       <p className="font-semibold text-foreground text-sm">{anime.name}</p>
+                       <p className="text-xs text-muted-foreground">{anime.type}</p>
+                     </div>
+                  </div>
                 </div>
               ))}
+              {!loadingSuggestions && suggestions.length === 0 && debouncedQuery.length > 1 && (
+                  <div className="px-6 py-4 text-muted-foreground">No suggestions found.</div>
+              )}
             </div>
           )}
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 p-4 bg-card/50 rounded-lg border border-border">
-          <select onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))} className="px-4 py-3 bg-muted rounded-lg border-none focus:ring-2 focus:ring-primary">
-            <option value="">All Types</option>
-            <option value="tv">TV</option>
-            <option value="movie">Movie</option>
-            <option value="ova">OVA</option>
-            <option value="special">Special</option>
-          </select>
-
-          <select onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))} className="px-4 py-3 bg-muted rounded-lg border-none focus:ring-2 focus:ring-primary">
-            <option value="">All Status</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="completed">Completed</option>
-          </select>
-
-          <select onChange={(e) => setFilters(prev => ({ ...prev, season: e.target.value }))} className="px-4 py-3 bg-muted rounded-lg border-none focus:ring-2 focus:ring-primary">
-            <option value="">All Seasons</option>
-            <option value="spring">Spring</option>
-            <option value="summer">Summer</option>
-            <option value="fall">Fall</option>
-            <option value="winter">Winter</option>
-          </select>
-
-          <select onChange={(e) => setFilters(prev => ({ ...prev, sort: e.target.value }))} className="px-4 py-3 bg-muted rounded-lg border-none focus:ring-2 focus:ring-primary">
-            <option value="most_relevance">Most Relevant</option>
-            <option value="recently_updated">Recently Updated</option>
-            <option value="recently_added">Recently Added</option>
-            <option value="most_popular">Most Popular</option>
-            <option value="score">Score</option>
-          </select>
-
-          <Button onClick={() => performSearch(1)} className="col-span-2 md:col-span-4 lg:col-span-2 px-8 py-3 rounded-lg font-bold text-base h-auto">
-            Apply Filters
-          </Button>
-        </div>
-
-        {/* Results */}
-        {loading && results.length === 0 ? <LoadingSkeleton /> 
-        : results.length > 0 ? (
-            <>
-                <div className="grid-cards">
-                    {results.map((anime: any) => (
-                        <AnimeCard key={anime.id} anime={anime} />
-                    ))}
-                </div>
-                {hasMore && (
-                    <div className="text-center py-10">
-                        <Button onClick={loadMore} disabled={loading} size="lg">
-                            {loading ? "Loading..." : "Load More"}
-                        </Button>
-                    </div>
-                )}
-            </>
-        ) : q && !loading ? (
-             <div className="text-center py-20 text-muted-foreground">No results found for "{q}"</div>
+        {loading && results.length === 0 ? <LoadingSkeleton /> :
+         results.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+            {results.map((anime, index) => (
+               <SearchResultCard key={`${anime.id}-${index}`} anime={anime} />
+            ))}
+            {/* Invisible element to trigger loading more */}
+            <div ref={lastElementRef} />
+          </div>
+        ) : !loading && initialQuery ? (
+          <div className="text-center py-20">
+            <p className="text-2xl text-muted-foreground">No anime found for "{initialQuery}"</p>
+            <p className="text-gray-600 mt-4">Try searching with different keywords.</p>
+          </div>
         ) : null}
+
+        {loading && results.length > 0 && (
+          <div className="text-center py-10">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-primary"></div>
+          </div>
+        )}
       </div>
     </div>
   );
