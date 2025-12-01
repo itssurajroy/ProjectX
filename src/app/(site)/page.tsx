@@ -8,10 +8,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Balancer from "react-wrap-balancer";
-import AZList from "@/components/layout/az-list-footer";
 import { AnimeBase, HomeData } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
+import Image from "next/image";
 
 const socialLinks = [
     { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },
@@ -44,7 +44,7 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <img src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage" alt="Anime Collage" className="object-cover w-full h-full opacity-10 blur-sm" />
+                        <Image src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage" alt="Anime Collage" fill priority className="object-cover opacity-10 blur-sm" />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
                     <div className="relative z-10 container mx-auto px-4">

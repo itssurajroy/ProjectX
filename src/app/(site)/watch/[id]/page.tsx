@@ -21,10 +21,17 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import WatchSidebar from '@/components/watch/WatchSidebar';
-import CommentsSection from '@/components/watch/comments';
 import { useSmartPlayer } from '@/hooks/useSmartPlayer';
 import { AnimeService } from '@/lib/AnimeService';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
+const CommentsSection = dynamic(() => import('@/components/watch/comments'), {
+  loading: () => <Skeleton className="w-full h-64" />,
+  ssr: false
+});
+
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 

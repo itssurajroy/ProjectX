@@ -85,7 +85,7 @@ function MoviesPageContent() {
     <>
       <div className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center overflow-hidden -mt-16">
         <div className="absolute inset-0 z-0">
-            <Image src="https://picsum.photos/seed/movies-hero/1920/1080" data-ai-hint="epic movie cinematic" alt="Movies Background" fill className="object-cover opacity-20 blur-sm scale-110" />
+            <Image src="https://picsum.photos/seed/movies-hero/1920/1080" data-ai-hint="epic movie cinematic" alt="Movies Background" fill priority className="object-cover opacity-20 blur-sm scale-110" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
         </div>
         <motion.div 
