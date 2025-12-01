@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
 import EpisodeList from '@/components/watch/episode-list';
-import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse, EpisodeServer } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
 import ServerToggle from '@/components/watch/ServerToggle';
@@ -110,10 +110,6 @@ function WatchPageComponent() {
     );
   }, [episodes, episodeParam]);
 
-  const { sources, loading: isLoadingSources, error: sourcesError, retry } = useSmartPlayer(currentEpisode?.episodeId || '', language);
-  
-  const [selectedServer, setSelectedServer] = useState<string | null>(null);
-
   const {
     data: serversResponse,
   } = useQuery({
@@ -122,16 +118,25 @@ function WatchPageComponent() {
     enabled: !!currentEpisode,
   });
 
-  const availableServers = useMemo(() => {
+  const availableServers: EpisodeServer[] = useMemo(() => {
     if (!serversResponse) return [];
     return serversResponse[language] || [];
   }, [serversResponse, language]);
+  
+  const [selectedServer, setSelectedServer] = useState<string | null>(null);
 
   useEffect(() => {
     if (availableServers.length > 0 && !selectedServer) {
       setSelectedServer(availableServers[0].serverName);
     }
   }, [availableServers, selectedServer]);
+
+  const { sources, loading: isLoadingSources, error: sourcesError, retry } = useSmartPlayer(
+    currentEpisode?.episodeId || '',
+    language,
+    selectedServer || availableServers[0]?.serverName,
+    availableServers.map(s => s.serverName)
+  );
 
   useEffect(() => {
     if (isLoadingEpisodes || !episodes) return;
