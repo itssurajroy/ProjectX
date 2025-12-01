@@ -1,155 +1,231 @@
 {
   "entities": {
+    "WatchTogetherRoom": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WatchTogetherRoom",
+      "type": "object",
+      "description": "Represents a Watch Together room where users can watch content together.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Watch Together room."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the Watch Together room."
+        },
+        "animeId": {
+          "type": "string",
+          "description": "Reference to Anime. (Relationship: WatchTogetherRoom 1:N Anime)"
+        },
+        "episode": {
+          "type": "number",
+          "description": "Episode number being watched in the room."
+        },
+        "password": {
+          "type": "string",
+          "description": "Optional password to protect the room.  Should be hashed before storing."
+        },
+        "maxUsers": {
+          "type": "number",
+          "description": "Maximum number of users allowed in the room."
+        },
+        "hostId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: WatchTogetherRoom 1:N User) User ID of the room host."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Date and time the room was created.",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "Date and time the room expires due to inactivity.",
+          "format": "date-time"
+        },
+        "backgroundImageUrl": {
+          "type": "string",
+          "description": "URL of a custom background image for the room.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "animeId",
+        "episode",
+        "maxUsers",
+        "hostId",
+        "createdAt",
+        "expiresAt"
+      ]
+    },
     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user of the application.  This entity stores user-specific data, but not authentication credentials.",
+      "description": "Represents a user in the system.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the User entity."
+          "description": "Unique identifier for the user."
         },
-        "firebaseUid": {
+        "username": {
           "type": "string",
-          "description": "The Firebase User ID associated with this user. This is used to link the local user data with the Firebase authentication system."
+          "description": "Username of the user."
         },
-        "watchlist": {
-          "type": "array",
-          "description": "References to Media items in the user's watchlist. (Relationship: User 1:N Media)",
-          "items": {
-            "type": "string"
-          }
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
         },
-        "history": {
-          "type": "array",
-          "description": "References to Media items in the user's viewing history. (Relationship: User 1:N Media)",
-          "items": {
-            "type": "string"
-          }
+        "avatarUrl": {
+          "type": "string",
+          "description": "URL of the user's avatar image.",
+          "format": "uri"
         }
       },
       "required": [
         "id",
-        "firebaseUid"
+        "username",
+        "email"
       ]
     },
-    "Media": {
+    "ChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Media",
+      "title": "ChatMessage",
       "type": "object",
-      "description": "Represents a video, tv show episode, or movie.",
+      "description": "Represents a chat message within a Watch Together room.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Media entity."
+          "description": "Unique identifier for the chat message."
         },
-        "title": {
+        "roomId": {
           "type": "string",
-          "description": "The title of the media."
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of media (e.g., 'movie', 'episode')."
-        },
-        "sources": {
-          "type": "array",
-          "description": "A list of available media sources.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "genres": {
-          "type": "array",
-          "description": "A list of genre names.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "year": {
-          "type": "number",
-          "description": "The year the media was released."
-        },
-        "season": {
-          "type": "string",
-          "description": "The season of this media. (Only relevant for episodes)"
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the media (e.g., 'airing', 'completed')."
-        },
-        "studio": {
-          "type": "string",
-          "description": "The studio that produced the media."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "type"
-      ]
-    },
-    "Comment": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Comment",
-      "type": "object",
-      "description": "Represents a comment on a media item.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Comment entity."
+          "description": "Reference to WatchTogetherRoom. (Relationship: WatchTogetherRoom 1:N ChatMessage) ID of the room the message belongs to."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the User who created the comment. (Relationship: User 1:N Comment)"
+          "description": "Reference to User. (Relationship: User 1:N ChatMessage) ID of the user who sent the message."
         },
-        "mediaId": {
+        "content": {
           "type": "string",
-          "description": "Reference to the Media item the comment is on. (Relationship: Media 1:N Comment)"
-        },
-        "text": {
-          "type": "string",
-          "description": "The content of the comment."
+          "description": "Text content of the chat message."
         },
         "timestamp": {
           "type": "string",
-          "description": "The timestamp of when the comment was created.",
+          "description": "Timestamp of when the message was sent.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
+        "roomId",
         "userId",
-        "mediaId",
-        "text",
+        "content",
         "timestamp"
       ]
     },
-    "Admin": {
+    "Anime": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Admin",
+      "title": "Anime",
       "type": "object",
-      "description": "Represents an administrator user with elevated privileges.",
+      "description": "Represents an anime series or movie.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the Admin entity."
+          "description": "Unique identifier for the anime."
         },
-        "firebaseUid": {
+        "title": {
           "type": "string",
-          "description": "The Firebase User ID associated with this admin user.  Used to link with the Firebase authentication system."
+          "description": "Title of the anime."
         },
-        "permissions": {
-          "type": "array",
-          "description": "A list of permissions granted to the admin user.",
-          "items": {
-            "type": "string"
-          }
+        "posterUrl": {
+          "type": "string",
+          "description": "URL of the anime's poster image.",
+          "format": "uri"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the anime."
         }
       },
       "required": [
         "id",
-        "firebaseUid"
+        "title",
+        "posterUrl"
+      ]
+    },
+    "QueueItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "QueueItem",
+      "type": "object",
+      "description": "Represents an item in the Watch Together room's queue.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the queue item."
+        },
+        "roomId": {
+          "type": "string",
+          "description": "Reference to WatchTogetherRoom. (Relationship: WatchTogetherRoom 1:N QueueItem) ID of the room the queue item belongs to."
+        },
+        "animeId": {
+          "type": "string",
+          "description": "Reference to Anime. (Relationship: Anime 1:N QueueItem) ID of the anime in the queue."
+        },
+        "episode": {
+          "type": "number",
+          "description": "Episode number in the queue."
+        },
+        "addedByUserId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N QueueItem) ID of the user who added the item to the queue."
+        }
+      },
+      "required": [
+        "id",
+        "roomId",
+        "animeId",
+        "episode",
+        "addedByUserId"
+      ]
+    },
+    "RoomUser": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RoomUser",
+      "type": "object",
+      "description": "Represents the relationship between a user and a Watch Together room, including the user's role.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the RoomUser relationship."
+        },
+        "roomId": {
+          "type": "string",
+          "description": "Reference to WatchTogetherRoom. (Relationship: WatchTogetherRoom 1:N RoomUser) ID of the Watch Together room."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N RoomUser) ID of the user in the room."
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the user in the room (e.g., host, co-host, viewer)."
+        },
+        "mutedUntil": {
+          "type": "string",
+          "description": "Timestamp until the user is muted in the room, if applicable.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "roomId",
+        "userId",
+        "role"
       ]
     }
   },
@@ -162,74 +238,110 @@
   "firestore": {
     "structure": [
       {
+        "path": "/watch_together_rooms/{roomId}",
+        "definition": {
+          "entityName": "WatchTogetherRoom",
+          "schema": {
+            "$ref": "#/backend/entities/WatchTogetherRoom"
+          },
+          "description": "Stores Watch Together rooms. Includes denormalized 'members' map for authorization independence.",
+          "params": [
+            {
+              "name": "roomId",
+              "description": "Unique identifier for the Watch Together room."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/watch_together_rooms/{roomId}/chat_messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores chat messages for a specific Watch Together room.",
+          "params": [
+            {
+              "name": "roomId",
+              "description": "Unique identifier for the Watch Together room."
+            },
+            {
+              "name": "messageId",
+              "description": "Unique identifier for the chat message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/watch_together_rooms/{roomId}/queue_items/{queueItemId}",
+        "definition": {
+          "entityName": "QueueItem",
+          "schema": {
+            "$ref": "#/backend/entities/QueueItem"
+          },
+          "description": "Stores queue items for a specific Watch Together room.",
+          "params": [
+            {
+              "name": "roomId",
+              "description": "Unique identifier for the Watch Together room."
+            },
+            {
+              "name": "queueItemId",
+              "description": "Unique identifier for the queue item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/room_users/{roomUserId}",
+        "definition": {
+          "entityName": "RoomUser",
+          "schema": {
+            "$ref": "#/backend/entities/RoomUser"
+          },
+          "description": "Stores user roles within a specific room. Used for setting roles, but authorization relies on the denormalized 'members' map in the watch_together_rooms collection.",
+          "params": [
+            {
+              "name": "roomUserId",
+              "description": "Unique identifier for the RoomUser relationship."
+            }
+          ]
+        }
+      },
+      {
         "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user data. Path-based ownership ensures that only the authenticated user can access their own data.",
+          "description": "Stores user information.",
           "params": [
             {
               "name": "userId",
-              "description": "The Firebase User ID."
+              "description": "Unique identifier for the user."
             }
           ]
         }
       },
       {
-        "path": "/media/{mediaId}",
+        "path": "/anime/{animeId}",
         "definition": {
-          "entityName": "Media",
+          "entityName": "Anime",
           "schema": {
-            "$ref": "#/backend/entities/Media"
+            "$ref": "#/backend/entities/Anime"
           },
-          "description": "Stores media metadata. Accessible to all users for reading. Write access restricted based on role.",
+          "description": "Stores information about anime series and movies.",
           "params": [
             {
-              "name": "mediaId",
-              "description": "The unique identifier for the media item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/media/{mediaId}/comments/{commentId}",
-        "definition": {
-          "entityName": "Comment",
-          "schema": {
-            "$ref": "#/backend/entities/Comment"
-          },
-          "description": "Stores comments for each media item. Includes denormalized 'userId' and 'mediaId' for authorization independence.",
-          "params": [
-            {
-              "name": "mediaId",
-              "description": "The unique identifier for the media item."
-            },
-            {
-              "name": "commentId",
-              "description": "The unique identifier for the comment."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "Admin",
-          "schema": {
-            "$ref": "#/backend/entities/Admin"
-          },
-          "description": "Stores admin roles. Existence of a document grants admin privileges. Authorization relies on document existence, not content.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase User ID of the administrator."
+              "name": "animeId",
+              "description": "Unique identifier for the anime."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support ProjectX's core features, focusing on scalability, security, and real-time updates. It leverages path-based ownership for user-specific data, a membership map for collaborative data, and dedicated collections for global roles (admin). Denormalization is heavily employed to ensure authorization independence and efficient read operations.\n\n*   **Users:** User data is stored under `/users/{userId}`, enabling easy management and securing of user-specific information like watchlist and history.\n*   **Media:** Media metadata is stored in a top-level `/media/{mediaId}` collection. This allows for efficient searching, filtering, and retrieval of media data, and simplifies indexing.\n*   **Comments:** Comments are stored in a subcollection `/media/{mediaId}/comments/{commentId}`.  The `userId` is denormalized into each comment document, along with the `mediaId`, ensuring that list operations are secure (QAPs - rules are not filters).  This eliminates the need for `get()` calls in security rules.\n*   **Admin Roles:** Admin roles are managed via the `/roles_admin/{userId}` collection. Existence of a document in this collection grants admin privileges, simplifying role-based access control.\n\n**Authorization Independence (CRITICAL):**\nAuthorization independence is achieved by denormalizing authorization-relevant data. For example, the `comments` subcollection includes the `userId`. This avoids the need to `get()` the parent document in security rules, which would break atomic operations and increase complexity. Similarly, for any collaborative entities (if they existed), the membership map would be denormalized into subcollections where access depends on that membership.\n\n**QAPs (Rules are not Filters):**\nSecure list operations are supported using structural segregation and denormalization.\n*   User-owned data (watchlist, history) is stored under the `/users/{userId}` path, allowing rules to easily filter based on `request.auth.uid`.\n*   Comments, despite being tied to media items, denormalize user IDs, enabling secure listing. An admin can list all comments (after checking their role in `/roles_admin`) without filtering based on comment content.\n\nThis structure prioritizes security, scalability, and maintainability by adhering to the core design principles and strategy mandates."
+    "reasoning": "The Firestore data structure is designed to support a collaborative anime watching experience similar to Watch2Gether, prioritizing real-time interactions, user roles, and scalability. The design emphasizes authorization independence by denormalizing relevant user role information into subcollections where necessary, which is crucial for maintaining data consistency and simplifying security rules. The structure is segregated into collections based on entity type to ensure uniform security postures within each collection. The membership map pattern is employed to handle collaborative access control in WatchTogetherRoom objects.\n\n*Rooms and Messages*:  Watch rooms are stored in `/watch_together_rooms/{roomId}`. Each room contains information about the anime being watched, the current episode, and room settings. Chat messages for each room are stored in a subcollection `/watch_together_rooms/{roomId}/chat_messages/{messageId}`.  This structure keeps chat messages closely associated with their respective rooms.\n\n*User Roles*:  The `/room_users/{roomUserId}` collection tracks user roles within specific rooms. To avoid authorization dependencies, the `role` attribute is duplicated (denormalized) to the `watch_together_rooms/{roomId}` documents as part of a `members` map.  This map contains the `userId` and `role` of each user in the room, enabling efficient security rules that verify user roles without needing additional `get()` calls.  This denormalization is critical for Authorization Independence.\n\n*Queues*:  The `queue_items` subcollection, `/watch_together_rooms/{roomId}/queue_items/{queueItemId}`, stores items in the watch queue for each room. This ensures that the queue is tied to the room and allows users to add, vote, and skip episodes.\n\n*Security and QAPs*: The data structure achieves Authorization Independence by denormalizing the 'members' map into the `watch_together_rooms` documents and nested collections. This ensures that all security rules within `chat_messages` and `queue_items` can be evaluated without fetching parent documents. Segregation ensures the `list` operation QAP. For instance, listing `watch_together_rooms` requires no filtering based on access, as different access levels would be in different collections, if necessary. If certain trending rooms should be world-readable, they could be stored in `watch_together_rooms_public`. All `list` operations are secure by default without needing to implement filtering logic in rules.\n\n*Invariants*:  The structure ensures that the ownership of rooms is always maintained through the `hostId` field in the `watch_together_rooms` collection. Timestamps (`createdAt`, `expiresAt`) capture relevant dates for room management. The `members` map enforces the invariant that only users with explicitly defined roles can access certain room resources."
   }
 }
