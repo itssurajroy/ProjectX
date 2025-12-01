@@ -1,5 +1,35 @@
+
 {
   "entities": {
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a user's public and private profile data.",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's public display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the user's profile picture."
+        },
+        "role": {
+          "type": "string",
+          "description": "User role for permissions.",
+          "enum": ["user", "moderator", "admin"],
+          "default": "user"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the user account was created."
+        }
+      },
+      "required": ["displayName", "role", "createdAt"]
+    },
     "WatchTogetherRoom": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "WatchTogetherRoom",
@@ -143,47 +173,26 @@
         "title",
         "posterUrl"
       ]
-    },
-     "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
-      "type": "object",
-      "description": "Represents a user in the system.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "username": {
-          "type": "string",
-          "description": "Username of the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
-        },
-        "avatarUrl": {
-          "type": "string",
-          "description": "URL of the user's avatar image.",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "id",
-        "username",
-        "email"
-      ]
     }
   },
   "auth": {
     "providers": [
-      "password",
+      "email",
       "anonymous"
     ]
   },
   "firestore": {
     "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores public user profile information."
+        }
+      },
       {
         "path": "/watch2gether_rooms/{roomId}",
         "definition": {
@@ -212,16 +221,6 @@
             "$ref": "#/backend/entities/ChatMessage"
           },
           "description": "Stores chat messages for a specific room."
-        }
-      },
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user information."
         }
       },
       {

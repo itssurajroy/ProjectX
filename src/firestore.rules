@@ -1,0 +1,99 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // In a real app, you would check for a custom claim or a document in an admins collection.
+      // For now, this is a placeholder.
+      return request.auth != null && request.auth.token.admin == true;
+    }
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                       USER DATA                         ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow create: if isSignedIn();
+      
+      // Subcollections for user-specific data like watchlist, history, notifications
+      match /{collection}/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                   WATCH2GETHER ROOMS                     ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /watch2gether_rooms/{roomId} {
+      // Anyone can read room details to see what's playing
+      allow read: if true;
+      // Logged-in users can create rooms
+      allow create: if isSignedIn();
+      // Only the host can update or delete the room
+      allow update, delete: if isSignedIn() && resource.data.hostId == request.auth.uid;
+
+      // Room Users subcollection
+      match /users/{userId} {
+        // Any signed-in user can read the list of participants
+        allow read: if isSignedIn();
+        // A user can only add or remove themselves from the room
+        allow create, delete: if isOwner(userId);
+      }
+      
+      // Chat Messages subcollection
+      match /messages/{messageId} {
+        // Any member of the room can read messages
+        allow read: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
+        // A member can only create messages as themselves
+        allow create: if isSignedIn() 
+                      && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid))
+                      && request.resource.data.userId == request.auth.uid;
+        // Disallow editing/deleting for simplicity
+        allow update, delete: if false; 
+      }
+    }
+    
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                      COMMENTS SYSTEM                     ║
+    // ╚══════════════════════════════════════════════════════════╝
+    // General anime comments
+    match /comments/{animeId}/general/{messageId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if false; // Future: allow if user is author
+    }
+    // Episode-specific comments
+    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
+         allow read: if true;
+         allow create: if isSignedIn();
+         allow update, delete: if false; // Future: allow if user is author
+    }
+    
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                 REPORTS, ADMIN, ETC.                     ║
+    // ╚══════════════════════════════════════════════════════════╝
+    // Secure admin collections
+    match /admin/{document=**} {
+      allow read, write: if isAdmin();
+    }
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                   PUBLIC ANIME DATA                      ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /anime/{animeId} {
+      allow read: if true;
+      allow write: if false; // Should only be updated by a backend process
+    }
+  }
+}
