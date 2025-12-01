@@ -246,7 +246,7 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                         alt={anime.name}
                         fill
                         sizes="200px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-30"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-60"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
                     
