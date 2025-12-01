@@ -8,20 +8,15 @@ import { Loader2, ServerCrash, Tv } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { AnimeService } from '@/lib/AnimeService';
 import { sanitizeFirestoreId } from '@/lib/utils';
-import { EpisodeServer } from '@/types/anime';
-
-interface Source {
-  url: string;
-  quality?: string;
-  isM3U8?: boolean;
-}
-
-interface Subtitle {
-  lang: string;
-  url:string;
-}
+import { EpisodeServer, Source, Subtitle } from '@/types/anime';
 
 const M3U8_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
+
+function extractEpisodeNumber(episodeId: string): string | null {
+    const match = episodeId.match(/ep=(\d+)/);
+    return match ? match[1] : null;
+}
+
 
 export default function AnimePlayer({ episodeId, animeId }: { episodeId: string; animeId: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -31,14 +26,14 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
   const [error, setError] = useState<string | null>(null);
   const [availableServers, setAvailableServers] = useState<EpisodeServer[]>([]);
   const [selectedServer, setSelectedServer] = useState<EpisodeServer | null>(null);
-
-  // Sanitize episodeId to remove any query params that might have been passed
-  const cleanEpisodeId = sanitizeFirestoreId(episodeId.split('?')[0]);
+  const [useIframeFallback, setUseIframeFallback] = useState(false);
+  
+  const episodeNumber = extractEpisodeNumber(episodeId);
 
   const loadStream = useCallback(async (server: EpisodeServer) => {
     setStatus(`Contacting server: ${server.serverName}...`);
     try {
-      const data = await AnimeService.getEpisodeSources(cleanEpisodeId, server.serverName);
+      const data = await AnimeService.getEpisodeSources(episodeId, server.serverName);
        if (data && data.sources && data.sources.length > 0) {
               setStatus(`Source found on ${server.serverName}! Loading player...`);
               
@@ -54,8 +49,8 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
               setSources(proxiedSources);
               setSubtitles(proxiedSubtitles);
               setSelectedServer(server);
+              setUseIframeFallback(false);
 
-              // Save last working server for this specific anime
               localStorage.setItem(`last-working-server:${animeId}`, server.serverName);
               return true;
             } else {
@@ -66,23 +61,31 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         setStatus(`Server ${server.serverName} failed...`);
         return false;
     }
-  }, [cleanEpisodeId, animeId]);
+  }, [episodeId, animeId]);
 
   const findWorkingServer = useCallback(async (serverList: EpisodeServer[]) => {
       setError(null);
       for (const server of serverList) {
           const success = await loadStream(server);
-          if (success) return; // Exit loop if a working server is found
+          if (success) return; 
       }
-      setError('All servers are busy or unavailable. Please try again in 5 minutes.');
-      setStatus('Playback Failed');
+      
+      setStatus('All servers busy — loading backup player...');
+      console.warn('All M3U8 servers failed. Switching to MegaPlay iframe fallback.');
+      setUseIframeFallback(true);
+      
   }, [loadStream]);
 
   useEffect(() => {
+    setSources([]);
+    setSubtitles([]);
+    setUseIframeFallback(false);
+    setError(null);
+
     const fetchServersAndPlay = async () => {
         try {
             setStatus('Fetching available servers...');
-            const serverData = await AnimeService.getEpisodeServers(cleanEpisodeId);
+            const serverData = await AnimeService.getEpisodeServers(episodeId);
             const subServers = serverData.sub || [];
             const dubServers = serverData.dub || [];
             const rawServers = serverData.raw || [];
@@ -91,8 +94,9 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
             setAvailableServers(allServers);
 
             if (allServers.length === 0) {
-                setError('Episode not available yet.');
-                setStatus('Error');
+                console.log("No M3U8 servers found, trying MegaPlay directly.");
+                setStatus('No servers found. Loading backup player...');
+                setUseIframeFallback(true);
                 return;
             }
             
@@ -102,7 +106,6 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
             if (lastWorkingServerName) {
                 const lastWorkingServer = reorderedServers.find(s => s.serverName === lastWorkingServerName);
                 if (lastWorkingServer) {
-                    // Move last working server to the front of the list for faster loading
                     reorderedServers.splice(reorderedServers.indexOf(lastWorkingServer), 1);
                     reorderedServers.unshift(lastWorkingServer);
                 }
@@ -110,19 +113,18 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
             await findWorkingServer(reorderedServers);
 
         } catch (err: any) {
-            console.error("Failed to fetch servers list:", err);
-            setError("Could not retrieve server list. Please refresh.");
-            setStatus('Error');
+            console.error("Failed to fetch servers list, falling back to iframe:", err);
+            setStatus('Server list unavailable. Loading backup player...');
+            setUseIframeFallback(true);
         }
     }
     fetchServersAndPlay();
-  }, [cleanEpisodeId, animeId, findWorkingServer]);
+  }, [episodeId, animeId, findWorkingServer]);
   
   useEffect(() => {
-    if (!videoRef.current || sources.length === 0) return;
+    if (!videoRef.current || sources.length === 0 || useIframeFallback) return;
 
     const video = videoRef.current;
-    // Prefer the highest quality source if multiple are provided
     const mainSource = sources.find(s => s.quality === '1080p') || sources.find(s => s.quality === 'default') || sources[0];
     const sourceUrl = mainSource.url;
 
@@ -153,7 +155,6 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         setStatus('Playing');
     }
     
-     // Clear old tracks before adding new ones
     while (video.textTracks.length > 0) {
         video.textTracks[0].mode = 'disabled';
     }
@@ -171,55 +172,79 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
     return () => {
         if (hls) hls.destroy();
     };
-  }, [sources, subtitles]);
+  }, [sources, subtitles, useIframeFallback]);
 
   const handleServerChange = (serverName: string) => {
       const server = availableServers.find(s => s.serverName === serverName);
       if (server) {
-          setSources([]); // Reset player
+          setSources([]); 
           setSubtitles([]);
           loadStream(server);
       }
   };
 
-  const renderOverlay = () => {
-    if (error) {
-      return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-center p-4 z-10">
-          <ServerCrash className="w-16 h-16 text-destructive mb-4" />
-          <h3 className="text-xl font-bold text-destructive">Playback Failed</h3>
-          <p className="text-muted-foreground mt-2">{error}</p>
-        </div>
-      );
-    }
-    if (sources.length === 0) {
+  const renderContent = () => {
+    if (useIframeFallback) {
+        if (!episodeNumber) {
+            return (
+                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-center p-4 z-10">
+                  <ServerCrash className="w-16 h-16 text-destructive mb-4" />
+                  <h3 className="text-xl font-bold text-destructive">Could Not Load Backup</h3>
+                  <p className="text-muted-foreground mt-2">Invalid episode ID for the backup player.</p>
+                </div>
+            )
+        }
+        const iframeUrl = `https://megaplay.buzz/stream/s-2/${episodeNumber}/sub`;
         return (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
-              <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-              <p className="text-lg font-semibold">{status}</p>
-            </div>
+             <iframe
+                src={iframeUrl}
+                allowFullScreen
+                className="w-full h-full border-0"
+                scrolling="no"
+                title="Backup Player"
+            ></iframe>
         )
     }
-    return null;
+
+    return (
+        <>
+            <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" />
+            {(error || sources.length === 0) && (
+                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
+                    {error ? (
+                        <>
+                             <ServerCrash className="w-16 h-16 text-destructive mb-4" />
+                             <h3 className="text-xl font-bold text-destructive">Playback Failed</h3>
+                             <p className="text-muted-foreground mt-2">{error}</p>
+                        </>
+                    ) : (
+                        <>
+                           <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+                           <p className="text-lg font-semibold">{status}</p>
+                        </>
+                    )}
+                </div>
+            )}
+            <div className="absolute bottom-4 right-4 z-20">
+              <Select onValueChange={handleServerChange} value={selectedServer?.serverName}>
+                  <SelectTrigger className="w-[180px] bg-card/80 border-border/50 text-white backdrop-blur-sm">
+                      <Tv className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Select Server" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      {availableServers.map(server => (
+                          <SelectItem key={server.serverId} value={server.serverName}>{server.serverName}</SelectItem>
+                      ))}
+                  </SelectContent>
+              </Select>
+           </div>
+        </>
+    )
   }
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
-      <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" />
-      {renderOverlay()}
-       <div className="absolute bottom-4 right-4 z-20">
-          <Select onValueChange={handleServerChange} value={selectedServer?.serverName}>
-              <SelectTrigger className="w-[180px] bg-card/80 border-border/50 text-white backdrop-blur-sm">
-                  <Tv className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Select Server" />
-              </SelectTrigger>
-              <SelectContent>
-                  {availableServers.map(server => (
-                      <SelectItem key={server.serverId} value={server.serverName}>{server.serverName}</SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
-       </div>
+      {renderContent()}
     </div>
   );
 }
