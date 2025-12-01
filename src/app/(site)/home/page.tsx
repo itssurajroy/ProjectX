@@ -162,7 +162,7 @@ const SmallListSection = ({ title, animes, qtips }: { title: string, animes: Ani
 }
 
 
-const ScheduleSidebar = () => {
+const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
 
     const { data: scheduleData, isLoading, error, refetch } = useQuery<ScheduleResponse>({
@@ -178,7 +178,8 @@ const ScheduleSidebar = () => {
         });
     }
 
-    const scheduledAnimes = scheduleData?.scheduledAnimes;
+    const topAiringIds = topAiringAnimes.map(a => a.id);
+    const scheduledAnimes = scheduleData?.scheduledAnimes.filter(s => topAiringIds.includes(s.id));
     
     return (
         <section className='bg-card/50 p-4 rounded-lg border border-border/50'>
@@ -214,7 +215,7 @@ const ScheduleSidebar = () => {
                         </Link>
                     )
                 }) : (
-                    <p className="text-sm text-center text-muted-foreground py-8">No schedule for this day. 😴</p>
+                    <p className="text-sm text-center text-muted-foreground py-8">No releases scheduled today. 😴</p>
                 )}
             </div>
         </section>
@@ -343,7 +344,7 @@ export default function MainDashboardPage() {
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar top10Animes={top10Animes} qtips={qtips} />
-                <ScheduleSidebar />
+                <ScheduleSidebar topAiringAnimes={topAiringAnimes || []} />
             </div>
         </div>
       </div>
