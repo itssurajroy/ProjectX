@@ -89,7 +89,7 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
     <div className="space-y-4 mt-6">
       <div className="flex gap-4 items-center">
          <p className="text-sm font-semibold">Comments for Episode:</p>
-         <Select onValueChange={handleEpisodeChange} defaultValue={currentEpNumber || undefined}>
+         <Select onValueChange={handleEpisodeChange} value={currentEpNumber || ''}>
             <SelectTrigger className="w-[120px]">
                 <SelectValue placeholder="Select EP" />
             </SelectTrigger>
