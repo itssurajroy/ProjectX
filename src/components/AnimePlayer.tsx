@@ -8,8 +8,7 @@ import { Loader2, ServerCrash, Tv } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { cn } from '@/lib/utils';
 import { AnimeEpisode } from '@/types/anime';
-
-const M3U8_PROXY = 'https://m3u8proxy-kohl-one.vercel.app/?url=';
+import { AnimeService } from '@/lib/AnimeService';
 
 interface Source {
   url: string;
@@ -28,17 +27,12 @@ const servers = [
   { name: "MegaCloud", id: "megacloud" },
   { name: "StreamWish", id: "streamwish" },
   { name: "FileMoon", id: "filemoon" },
+  { name: "StreamTape", id: "streamtape" },
+  { name: "Mp4Upload", id: "mp4upload" },
+  { name: "DoodStream", id: "doodstream" },
+  { name: "Kwik", id: "kwik" },
 ];
 
-async function getSources(episodeId: string, serverId: string, category: 'sub' | 'dub') {
-    const res = await fetch(`/api/stream/episode/sources?animeEpisodeId=${episodeId}&server=${serverId}&category=${category}`);
-    if (!res.ok) throw new Error(`Server ${serverId} failed with status ${res.status}`);
-    const json = await res.json();
-    if (json.success === false || !json.data?.sources?.length) {
-        throw new Error(json.message || `No sources found on ${serverId}`);
-    }
-    return json.data;
-}
 
 export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { episodeId: string; category?: 'sub' | 'dub', animeId: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -55,27 +49,21 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
     for (const server of serverList) {
         try {
             setStatus(`Contacting server: ${server.name}...`);
-            const data = await getSources(cleanEpisodeId, server.id, category);
+            const data = await AnimeService.getEpisodeSources(cleanEpisodeId, server.id, category);
             
-            setStatus(`Source found on ${server.name}! Loading player...`);
-            
-            const proxiedSources = data.sources.map((s: Source) => ({
-                ...s,
-                url: s.isM3U8 || s.url.includes('.m3u8') ? `${M3U8_PROXY}${encodeURIComponent(s.url)}` : s.url,
-            }));
-            
-            const proxiedSubtitles = (data.subtitles || []).map((sub: Subtitle) => ({
-                ...sub,
-                url: `${M3U8_PROXY}${encodeURIComponent(sub.url)}`
-            }));
+            if (data && data.sources && data.sources.length > 0) {
+              setStatus(`Source found on ${server.name}! Loading player...`);
+              
+              setSources(data.sources);
+              setSubtitles(data.subtitles || []);
+              setSelectedServer(server.id);
 
-            setSources(proxiedSources);
-            setSubtitles(proxiedSubtitles);
-            setSelectedServer(server.id);
-
-            // Save last working server
-            localStorage.setItem(`last-working-server:${animeId}`, server.id);
-            return; // Success, exit loop
+              // Save last working server
+              localStorage.setItem(`last-working-server:${animeId}`, server.id);
+              return; // Success, exit loop
+            } else {
+              throw new Error("No sources found in data");
+            }
         } catch (err: any) {
             console.warn(`Server ${server.name} failed:`, err.message);
             setStatus(`Server ${server.name} failed, trying next...`);

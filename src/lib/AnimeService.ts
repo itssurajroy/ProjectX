@@ -34,53 +34,16 @@ export class AnimeService {
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   static getGenres = () => api("/genres");
   
-  static async getEpisodeSources(episodeId: string, category: "sub" | "dub" = "sub") {
-    const servers = ["hd-1", "vidstreaming", "megacloud", "streamwish", "filemoon"];
-    
-    for (const server of servers) {
-      try {
-        const res = await fetch(`${STREAM_PROXY_BASE}/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`);
-        
-        if (!res.ok) {
-          console.log(`Server ${server} returned non-OK status: ${res.status}, trying next...`);
-          continue;
-        }
-        
-        const json = await res.json();
-
-        // Handle cases where the API returns a success-like status code (200) but with an error message in the body
-        if (json.status === 500 || json.success === false) {
-          console.log(`Server ${server} returned an error message: ${json.message}. Trying next...`);
-          continue;
-        }
-        
-        if (json.success && json.data?.sources?.length > 0) {
-          // Auto proxy all m3u8 and subtitles
-          return {
-            ...json.data,
-            sources: json.data.sources.map((s: any) => ({
-              ...s,
-              url: s.isM3U8 || s.url.includes(".m3u8")
-                ? `https://m3u8proxy-kohl-one.vercel.app/?url=${encodeURIComponent(s.url)}`
-                : s.url
-            })),
-            subtitles: (json.data.subtitles || []).map((s: any) => ({
-              ...s,
-              url: `https://m3u8proxy-kohl-one.vercel.app/?url=${encodeURIComponent(s.url)}`
-            }))
-          };
-        }
-      } catch (err) {
-        console.log(`Server ${server} failed with an exception, trying next...`, err);
-        continue;
-      }
+  static async getEpisodeSources(episodeId: string, server: string, category: "sub" | "dub" = "sub") {
+    const res = await fetch(`${STREAM_PROXY_BASE}/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`);
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(error.message || `Server ${server} failed with status ${res.status}`);
     }
-
-    // Final fallback
-    return {
-      sources: [],
-      subtitles: [],
-      message: "All servers failed. Please try again later."
-    };
+    const json = await res.json();
+    if (!json.success) {
+        throw new Error(json.message || `No sources found on ${server}`);
+    }
+    return json.data;
   }
 }
