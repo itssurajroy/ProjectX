@@ -15,8 +15,7 @@ import { usePlayerSettings } from '@/store/player-settings';
 
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
-    // This will handle both `...id?ep=123` and `...id&ep=123`
-    const cleanedId = episodeIdWithParam.split('?')[0];
+    if (!episodeIdWithParam) return null;
     const match = episodeIdWithParam.match(/[?&]ep=(\d+)/);
     return match ? match[1] : null;
 }
@@ -33,7 +32,6 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const [useIframeFallback, setUseIframeFallback] = useState(false);
   
   const episodeNumber = extractEpisodeNumber(episodeId);
-  const cleanedEpisodeId = episodeId.split('?')[0];
 
   const { autoNext, autoPlay } = usePlayerSettings();
 
@@ -57,21 +55,12 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const loadStream = useCallback(async (server: EpisodeServer) => {
     setStatus(`Contacting server: ${server.serverName}...`);
     try {
-      const data = await AnimeService.getEpisodeSources(cleanedEpisodeId, server.serverName);
+      const data = await AnimeService.getEpisodeSources(episodeId, server.serverName);
        if (data && data.sources && data.sources.length > 0) {
               setStatus(`Source found on ${server.serverName}! Loading player...`);
               
-              const proxiedSources = data.sources.map((s: any) => ({
-                ...s,
-                url: s.isM3U8 ? `${M3U8_PROXY}${encodeURIComponent(s.url)}` : s.url,
-              }));
-              const proxiedSubtitles = (data.subtitles || []).map((sub: any) => ({
-                  ...sub,
-                  url: `${M3U8_PROXY}${encodeURIComponent(sub.url)}`,
-              }));
-
-              setSources(proxiedSources);
-              setSubtitles(proxiedSubtitles);
+              setSources(data.sources);
+              setSubtitles(data.subtitles || []);
               setSelectedServer(server);
               setUseIframeFallback(false);
 
@@ -85,7 +74,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
         setStatus(`Server ${server.serverName} failed...`);
         return false;
     }
-  }, [cleanedEpisodeId, animeId]);
+  }, [episodeId, animeId]);
 
   const findWorkingServer = useCallback(async (serverList: EpisodeServer[]) => {
       setError(null);
@@ -101,6 +90,8 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   }, [loadStream]);
 
   useEffect(() => {
+    if (!episodeId) return;
+    
     setSources([]);
     setSubtitles([]);
     setUseIframeFallback(false);
@@ -109,7 +100,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     const fetchServersAndPlay = async () => {
         try {
             setStatus('Fetching available servers...');
-            const serverData = await AnimeService.getEpisodeServers(cleanedEpisodeId);
+            const serverData = await AnimeService.getEpisodeServers(episodeId);
             const subServers = serverData.sub || [];
             const dubServers = serverData.dub || [];
             const rawServers = serverData.raw || [];
@@ -143,7 +134,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
         }
     }
     fetchServersAndPlay();
-  }, [cleanedEpisodeId, animeId, findWorkingServer]);
+  }, [episodeId, animeId, findWorkingServer]);
   
   useEffect(() => {
     if (!videoRef.current || sources.length === 0 || useIframeFallback) return;
@@ -186,7 +177,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     }
     
     while (video.textTracks.length > 0) {
-        video.textTracks[0].mode = 'disabled';
+        (video.textTracks[0] as TextTrack).mode = 'disabled';
     }
 
     subtitles.forEach(sub => {
@@ -283,3 +274,5 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     </div>
   );
 }
+
+    
