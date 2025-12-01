@@ -48,12 +48,14 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
   const [error, setError] = useState<string | null>(null);
   const [selectedServer, setSelectedServer] = useState<string>('');
 
+  const cleanEpisodeId = episodeId.split('?')[0];
+
   const loadPlayer = useCallback(async (serverList: typeof servers) => {
     setError(null);
     for (const server of serverList) {
         try {
             setStatus(`Contacting server: ${server.name}...`);
-            const data = await getSources(episodeId, server.id, category);
+            const data = await getSources(cleanEpisodeId, server.id, category);
             
             setStatus(`Source found on ${server.name}! Loading player...`);
             
@@ -81,7 +83,7 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
     }
     setError('All servers failed to provide a video source. Please try again later.');
     setStatus('Playback Failed');
-  }, [episodeId, category, animeId]);
+  }, [cleanEpisodeId, category, animeId]);
 
   useEffect(() => {
     const lastWorkingServerId = localStorage.getItem(`last-working-server:${animeId}`);
@@ -96,7 +98,7 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
         }
     }
     loadPlayer(reorderedServers);
-  }, [episodeId, animeId, loadPlayer]);
+  }, [cleanEpisodeId, animeId, loadPlayer]);
   
   useEffect(() => {
     if (!videoRef.current || sources.length === 0) return;
