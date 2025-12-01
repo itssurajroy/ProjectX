@@ -178,8 +178,8 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
         });
     }
 
-    const topAiringIds = topAiringAnimes.map(a => a.id);
-    const scheduledAnimes = scheduleData?.scheduledAnimes.filter(s => topAiringIds.includes(s.id));
+    const topAiringIds = new Set(topAiringAnimes.map(a => a.id));
+    const scheduledAnimes = scheduleData?.scheduledAnimes || [];
     
     return (
         <section className='bg-card/50 p-4 rounded-lg border border-border/50'>
@@ -205,11 +205,21 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
                 ) : error ? (
                      <ErrorDisplay description='Could not load schedule.' onRetry={refetch} isCompact/>
                 ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
+                    const isTopAiring = topAiringIds.has(anime.id);
                     return (
-                        <Link key={anime.id} href={`/anime/${anime.id}`} className="flex justify-between items-center group p-2 rounded-md hover:bg-muted/50 border-b border-border/50 last:border-b-0">
+                        <Link key={anime.id} href={`/anime/${anime.id}`} className={cn(
+                            "flex justify-between items-center group p-2 rounded-md hover:bg-muted/50 border-b border-border/50 last:border-b-0",
+                             isTopAiring && "bg-primary/10 hover:bg-primary/20"
+                        )}>
                             <div className="flex items-center gap-3 overflow-hidden">
-                                <span className="text-sm font-bold text-primary w-10 text-center">{anime.time}</span>
-                                <p className="truncate font-semibold text-sm group-hover:text-primary transition-colors">{anime.name}</p>
+                                <span className={cn(
+                                    "text-sm font-bold w-10 text-center",
+                                    isTopAiring ? "text-primary" : "text-muted-foreground"
+                                )}>{anime.time}</span>
+                                <p className={cn(
+                                    "truncate font-semibold text-sm group-hover:text-primary transition-colors",
+                                     isTopAiring && "text-primary"
+                                )}>{anime.name}</p>
                             </div>
                             <span className='text-xs text-muted-foreground'>EP {anime.episode || '?'}</span>
                         </Link>
@@ -351,3 +361,5 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
