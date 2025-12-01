@@ -1,5 +1,6 @@
 
 
+
 export interface AnimeBase {
     id: string;
     name: string;
@@ -109,7 +110,14 @@ export interface AnimeInfo {
 
 export interface AnimeAbout {
     info: AnimeInfo;
-    moreInfo: Record<string, any> & { malId?: number };
+    moreInfo: Record<string, any> & { 
+        malId?: number;
+        nextAiringEpisode?: {
+            airingTime: number;
+            timeUntilAiring: number;
+            episode: number;
+        };
+     };
 }
 
 export interface AnimeAboutResponse {

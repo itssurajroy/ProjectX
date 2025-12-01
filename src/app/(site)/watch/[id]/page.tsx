@@ -114,7 +114,7 @@ function WatchPageComponent() {
     retry: false, // Let the player handle retries
   });
   
-  const nextAiringTime = sourcesData?.anilistID;
+  const nextAiringTime = aboutResponse?.anime.moreInfo.nextAiringEpisode?.airingTime;
 
 
   useEffect(() => {

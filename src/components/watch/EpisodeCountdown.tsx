@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { differenceInSeconds, format, formatDistanceToNowStrict } from 'date-fns';
+import { ScrollText } from 'lucide-react';
 
 interface EpisodeCountdownProps {
   airingTime: number | null | undefined;
@@ -37,7 +38,7 @@ export default function EpisodeCountdown({ airingTime }: EpisodeCountdownProps) 
 
   return (
     <div className="bg-primary/10 border border-primary/20 text-primary/90 p-3 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-2 text-sm">
-        <p className="font-semibold">The next episode is expected to be released on {format(targetDate, 'yyyy/MM/dd HH:mm:ss')}</p>
+        <p className="font-semibold flex items-center gap-2"><ScrollText className="w-4 h-4"/>The next episode is expected to be released on {format(targetDate, 'yyyy/MM/dd HH:mm:ss')}</p>
         <p className="font-bold text-base bg-primary/20 px-3 py-1 rounded-md">
             {`${days} days, ${String(hours).padStart(2, '0')} hours, ${String(minutes).padStart(2, '0')} minutes, ${String(seconds).padStart(2, '0')} seconds`}
         </p>
