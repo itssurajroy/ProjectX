@@ -113,21 +113,19 @@ function WatchPageComponent() {
  } = useQuery<SourcesData>({
     queryKey: ['episode-sources', currentEpisode?.episodeId, language],
     queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, language),
-    enabled: !!currentEpisode
+    enabled: !!currentEpisode,
+    retry: false, // Let the player handle retries
   });
-
-  const sources = sourcesData?.sources || [];
-  const subtitles = sourcesData?.subtitles || [];
-  const sourcesErrorMessage = sourcesData?.message;
-  const nextAiringTime = sourcesData?.anilistID; // Assuming this is where the airing time comes from
+  
+  const nextAiringTime = sourcesData?.anilistID;
 
 
   useEffect(() => {
     if (isLoadingEpisodes || !episodes) return;
 
     if (episodes.length > 0 && !episodeParam) {
-      const targetEpId =
-        extractEpisodeNumber(episodes[0].episodeId) || episodes[0].number;
+      const firstEpisode = episodes[0];
+      const targetEpId = extractEpisodeNumber(firstEpisode.episodeId) || firstEpisode.number;
       if (targetEpId) {
         router.replace(`/watch/${animeId}?ep=${targetEpId}`);
       }
@@ -188,25 +186,19 @@ function WatchPageComponent() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-4">
         {/* Left Sidebar */}
         <div className="hidden lg:block lg:col-span-3">
-          <WatchSidebar anime={about} malData={malData} />
+          { about && <WatchSidebar anime={about} malData={malData} /> }
         </div>
 
         {/* Main Content */}
         <div className="lg:col-span-6 space-y-4">
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                {isLoadingSources ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                </div>
-                ) : sourcesError || sources.length === 0 ? (
-                <ErrorDisplay
-                        isCompact
-                        onRetry={refetchSources}
-                        title="Stream Failed"
-                        description={(sourcesError as Error)?.message || sourcesErrorMessage || "Could not load video source."}
-                    />
-                ): (
-                <AnimePlayer sources={sources} subtitles={subtitles} />
+                {currentEpisode ? (
+                    <AnimePlayer episodeId={currentEpisode.episodeId} animeId={animeId} />
+                ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        <p className="mt-4 text-muted-foreground">Selecting episode...</p>
+                    </div>
                 )}
             </div>
             <PlayerOverlayControls
