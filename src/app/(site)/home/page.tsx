@@ -281,7 +281,7 @@ export default function MainDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
-                <AnimeSection title="Trending" animes={trendingAnimes} category="trending" />
+                <AnimeSection title="Trending" animes={trendingAnimes} category="trending" isSpecial="trending" />
                 <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} category="latest-episodes" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <SmallListSection title="Top Airing" animes={topAiringAnimes} />
