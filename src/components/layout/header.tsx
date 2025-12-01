@@ -6,7 +6,7 @@ import { Search, Menu, Shuffle, Languages, Send, Twitter, Youtube, Instagram, Fa
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
+import AnimeService from '@/lib/AnimeService';
 import { SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
 import {

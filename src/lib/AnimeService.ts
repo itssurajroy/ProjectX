@@ -1,149 +1,156 @@
 
-import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime, EpisodeServersResponse } from "@/types/anime";
-import { env } from "./env";
+// src/lib/AnimeService.ts
+const API_PROXY = "/api/proxy";
+const STREAM_PROXY = "/api/stream";
 
-const HIANIME_API_BASE = "/api/proxy"
+// Types
+type StreamSource = {
+  url: string;
+  quality?: string;
+  isM3U8: boolean;
+  status?: "ok" | "failed" | "loading";
+};
+
+type StreamResult = {
+  sources: StreamSource[];
+  subtitles: { lang: string; url: string }[];
+  backupSources?: StreamSource[];
+};
+
+class AnimeService {
+  private static async safeFetch<T>(endpoint: string, retries = 3): Promise<{ success: true; data: T } | { success: false; error: string }> {
+    for (let i = 0; i < retries; i++) {
+      try {
+        const controller = new AbortController ? new AbortController() : null;
+        const timeout = setTimeout(() => controller?.abort(), 15000);
+
+        const res = await fetch(`${API_PROXY}${endpoint}`, {
+          signal: controller?.signal,
+          headers: {
+            "User-Agent": "ProjectX/1.0",
+            Accept: "application/json",
+          },
+          next: { revalidate: 300 },
+        });
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          if (res.status === 404) return { success: false, error: "Not found" };
+          if (res.status === 429) return { success: false, error: "Rate limited" };
+          continue;
+        }
+
+        const json = await res.json();
+        if (!json.success && json.data === undefined) return { success: false, error: json.message || "API error" };
+        if (!json.success) return { success: false, error: json.message || "API error" };
+
+        return { success: true, data: json.data };
+      } catch (err: any) {
+        if (i === retries - 1) {
+          return { success: false, error: err.message || "Network failed" };
+        }
+        await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+      }
+    }
+    return { success: false, error: "All retries failed" };
+  }
+
+  // Core Endpoints
+  static getHomeData = () => this.safeFetch<any>("/home");
+  static getMovies = (page = 1) => this.safeFetch<any>(`/movies?page=${page}`);
+  static getTV = (page = 1) => this.safeFetch<any>(`/tv?page=${page}`);
+  static getAnime = (id: string) => this.safeFetch<any>(`/anime/${id}`);
+  static getAnimeAbout = (id: string) => this.safeFetch<any>(`/info/${id}`);
+  static getAnimeQtip = (id: string) => this.safeFetch<any>(`/qtip/${id}`);
+  static getEpisodes = (animeId: string) => this.safeFetch<any>(`/anime/${animeId}/episodes`);
+  static search = (q: string, page = 1) => this.safeFetch<any>(`/search?q=${encodeURIComponent(q)}&page=${page}`);
+  static getSearchSuggestions = (q: string) => this.safeFetch<any>(`/search/suggest?q=${encodeURIComponent(q)}`);
+  static getAZList = (char: string, page=1) => this.safeFetch<any>(`/az-list/${char}?page=${page}`);
+  static getCategory = (category: string, page=1) => this.safeFetch<any>(`/category/${category}?page=${page}`);
+  static getSchedule = (date: string) => this.safeFetch<any>(`/schedule?date=${date}`);
+
+
+  // Episode Servers
+  static async getEpisodeServers(episodeId: string) {
+    return this.safeFetch<any>(`/episode/servers?animeEpisodeId=${episodeId}`);
+  }
+
+  // GOD-TIER: Smart Stream Loader with Fallbacks
+  static async getSmartSources(
+    episodeId: string,
+    preferredServers = ["hd-1", "vidstreaming", "megacloud"],
+    category: "sub" | "dub" = "sub"
+  ): Promise<StreamResult> {
+    const result: StreamResult = {
+      sources: [],
+      subtitles: [],
+      backupSources: [],
+    };
+
+    // Try each server until one works
+    for (const server of preferredServers) {
+      const res = await this.safeFetch<any>(
+        `/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`
+      );
+
+      if (!res.success) continue;
+
+      const { sources = [], subtitles = [] } = res.data;
+
+      // Proxy + validate each source
+      const validSources: StreamSource[] = [];
+      const backup: StreamSource[] = [];
+
+      for (const source of sources) {
+        const proxiedUrl = `${STREAM_PROXY}?url=${encodeURIComponent(source.url)}`;
+        const streamObj: StreamSource = {
+          url: proxiedUrl,
+          quality: source.quality || "auto",
+          isM3U8: source.isM3U8 || source.url.includes(".m3u8"),
+          status: "loading",
+        };
+
+        // Primary if HD or M3U8, else backup
+        if (source.quality?.includes("1080") || source.isM3U8) {
+          validSources.unshift(streamObj); // Best first
+        } else {
+          backup.push(streamObj);
+        }
+      }
+
+      result.sources = validSources;
+      result.backupSources = backup;
+      result.subtitles = subtitles.map((s: any) => ({
+        lang: s.lang,
+        url: `${STREAM_PROXY}?url=${encodeURIComponent(s.url)}`,
+      }));
+
+      if (validSources.length > 0) {
+        console.log(`[SmartStream] Success with server: ${server}`);
+        return result;
+      }
+    }
+
+    return result; // All failed → empty but safe
+  }
+}
+
+export default AnimeService;
 
 // Helper: Extract clean episode number from "one-piece-100?ep=12345" → "12345"
 export const extractEpisodeNumber = (episodeId: string): string | null => {
   if (!episodeId) return null;
-  const match = episodeId.match(/[\?&]ep[=:]?(\d+)/i);
-  return match ? match[1] : episodeId.split('/').pop() || "1";
-};
-
-// Advanced fetch with timeout + retry + proper headers
-async function fetchWithRetry(url: string, retries = 3): Promise<any> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-
-      const response = await fetch(url, {
-        signal: controller.signal,
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "User-Agent": "ProjectX/1.0 (+https://projectx.to)",
-        },
-        cache: "default",
-      });
-
-      clearTimeout(timeout);
-
-      if (!response.ok) {
-        if (response.status === 404) {
-            return { success: false, error: 'Not Found', status: 404 };
-        }
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error: any) {
-      if (i === retries - 1) {
-        console.error(`[AnimeService] Final fail after ${retries} retries:`, url, error);
-        return { success: false, error: error.message || "Network error" };
-      }
-      await new Promise(r => setTimeout(r, 1000 * (i + 1)));
-    }
-  }
-}
-
-export class AnimeService {
-  // Home Page
-  static async getHomeData() {
-    return fetchWithRetry(`${HIANIME_API_BASE}/home`);
-  }
-
-  // Anime Detail Page
-  static async getAnimeAbout(id: string) {
-    const response = await fetchWithRetry(`${HIANIME_API_BASE}/anime/${id}`);
-    if (response.success) {
-      return { data: response.data };
-    }
-    return response;
-  }
-
-  // Quick Tooltip
-  static async getAnimeQtip(id: string) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/qtip/${id}`);
-  }
-
-  // Episodes List
-  static async getEpisodes(animeId: string) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/anime/${animeId}/episodes`);
-  }
-
-  // Search
-  static async searchAnime(query: string, page = 1) {
-    const url = this.buildSearchUrl({ query, page });
-    return fetchWithRetry(url);
-  }
-
-  static async getMovies(page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/movies?page=${page}`);
-  }
-
-  static async getSearchSuggestions(query: string) {
-    if (!query.trim()) return { success: true, data: { suggestions: [] } };
-    return fetchWithRetry(`${HIANIME_API_BASE}/search/suggestion?q=${encodeURIComponent(query)}`);
-  }
+  // Case 1: "one-piece-episode-1111"
+  const standardMatch = episodeId.match(/-episode-(\d+)$/i);
+  if (standardMatch) return standardMatch[1];
   
-  static async getSchedule(date: string): Promise<{data: ScheduleResponse} | { success: false; error: string }> {
-    return await fetchWithRetry(`${HIANIME_API_BASE}/schedule?date=${date}`);
-  }
+  // Case 2: "?ep=1111 or &ep=1111"
+  const queryMatch = episodeId.match(/[?&]ep[=:]?(\d+)/i);
+  if (queryMatch) return queryMatch[1];
 
-  // A-Z List
-  static async getAZList(sortOption: string = "all", page = 1) {
-    return fetchWithRetry(`${HIANIME_API_BASE}/az-list/${sortOption}?page=${page}`);
-  }
-
-  // Episode Streaming Links
-  static async getEpisodeSources(animeEpisodeId: string, server: string, category: "sub" | "dub" | "raw" = "sub") {
-     return fetchWithRetry(`${HIANIME_API_BASE}/episode/sources?animeEpisodeId=${animeEpisodeId}&server=${server}&category=${category}`);
-  }
-
-  // Episode Servers
-  static async getEpisodeServers(animeEpisodeId: string): Promise<{ success: boolean, data: EpisodeServersResponse }> {
-    return fetchWithRetry(`${HIANIME_API_BASE}/episode/servers?animeEpisodeId=${animeEpisodeId}`);
-  }
-
-  // Advanced Search (ALL filters)
-  static buildSearchUrl(filters: {
-    query?: string;
-    page?: number;
-    genres?: string[];
-    type?: string;
-    status?: string;
-    season?: string;
-    language?: string;
-    rated?: string;
-    score?: string;
-    start_date?: string;
-    end_date?: string;
-    sort?: string;
-  }) {
-    const params = new URLSearchParams();
-    if (filters.query) {
-      params.set("q", filters.query);
-    }
-    if (filters.page) params.set("page", filters.page.toString());
-    if (filters.genres?.length) params.set("genres", filters.genres.join(","));
-    if (filters.type) params.set("type", filters.type);
-    if (filters.status) params.set("status", filters.status);
-    if (filters.season) params.set("season", filters.season);
-    if (filters.language) params.set("language", filters.language);
-    if (filters.rated) params.set("rated", filters.rated);
-    if (filters.score) params.set("score", filters.score);
-    if (filters.start_date) params.set("start_date", filters.start_date);
-    if (filters.end_date) params.set("end_date", filters.end_date);
-    if (filters.sort) params.set("sort", filters.sort);
-
-    return `${HIANIME_API_BASE}/search?${params.toString()}`;
-  }
-
-  static async advancedSearch(filters: Parameters<typeof this.buildSearchUrl>[0]) {
-    const url = this.buildSearchUrl(filters);
-    return fetchWithRetry(url);
-  }
-}
+  // Case 3: Simple number "1111"
+  if (/^\d+$/.test(episodeId.trim())) return episodeId.trim();
+  
+  return episodeId.split('/').pop() || "1";
+};

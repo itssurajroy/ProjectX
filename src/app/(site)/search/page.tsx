@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { genres, seasons, sortOptions, types, years } from "@/lib/data";
-import { AnimeService } from "@/lib/AnimeService";
+import AnimeService from "@/lib/AnimeService";
 import { Search as SearchIcon } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
@@ -24,7 +24,7 @@ function SearchPageContent() {
 
   const { data: searchResult, isLoading, error, refetch } = useQuery({
       queryKey: ['search', debouncedQuery],
-      queryFn: () => AnimeService.searchAnime(debouncedQuery),
+      queryFn: () => AnimeService.search(debouncedQuery),
       enabled: !!debouncedQuery,
   });
 

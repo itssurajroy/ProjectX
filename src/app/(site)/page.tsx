@@ -11,7 +11,7 @@ import Balancer from "react-wrap-balancer";
 import AZList from "@/components/layout/az-list-footer";
 import { AnimeBase, HomeData } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
-import { AnimeService } from "@/lib/AnimeService";
+import AnimeService from "@/lib/AnimeService";
 
 const socialLinks = [
     { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },

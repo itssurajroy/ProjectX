@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { AnimeService } from "@/lib/AnimeService";
+import AnimeService from "@/lib/AnimeService";
 import { QtipAnime } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Tv, Clapperboard, Calendar, Clock } from "lucide-react";

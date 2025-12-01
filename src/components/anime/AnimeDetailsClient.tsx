@@ -1,6 +1,6 @@
 
 'use client';
-import { AnimeService } from '@/lib/AnimeService';
+import AnimeService, { extractEpisodeNumber } from '@/lib/AnimeService';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users } from 'lucide-react';
@@ -11,7 +11,6 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
 import SeasonsSwiper from './SeasonsSwiper';
 import PVCarousel from './PVCarousel';
-import { extractEpisodeNumber } from '@/lib/AnimeService';
 import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
 import { Badge } from '../ui/badge';

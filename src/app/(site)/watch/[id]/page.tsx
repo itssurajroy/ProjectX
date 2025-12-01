@@ -4,9 +4,9 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
-import { AnimeService, extractEpisodeNumber } from '@/lib/AnimeService';
+import AnimeService, { extractEpisodeNumber } from '@/lib/AnimeService';
 import EpisodeList from '@/components/watch/episode-list';
-import { AnimeEpisode, AnimeAboutResponse, EpisodeServer } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
 import ServerToggle from '@/components/watch/ServerToggle';
@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import WatchSidebar from '@/components/watch/WatchSidebar';
 import CommentsSection from '@/components/watch/comments';
+import { useSmartPlayer } from '@/hooks/useSmartPlayer';
 
 function WatchPageComponent() {
   const params = useParams();
@@ -34,8 +35,7 @@ function WatchPageComponent() {
   const episodeParam = searchParams.get('ep');
 
   const [language, setLanguage] = useState<Language>('sub');
-  const [selectedServer, setSelectedServer] = useState<string | null>(null);
-
+  
   const {
     data: aboutResponse,
     isLoading: isLoadingAbout,
@@ -44,7 +44,7 @@ function WatchPageComponent() {
   } = useQuery<{ data: AnimeAboutResponse } | { success: false; error: string }>(
     {
       queryKey: ['anime', animeId],
-      queryFn: () => AnimeService.getAnimeAbout(animeId),
+      queryFn: () => AnimeService.getAnime(animeId),
       enabled: !!animeId,
     }
   );
@@ -62,7 +62,7 @@ function WatchPageComponent() {
 
   const episodes: AnimeEpisode[] = useMemo(
     () =>
-      episodesResponse && 'data' in episodesResponse
+      episodesResponse && episodesResponse.success
         ? episodesResponse.data.episodes
         : [],
     [episodesResponse]
@@ -70,21 +70,21 @@ function WatchPageComponent() {
   
   const about = useMemo(
     () =>
-      aboutResponse && 'data' in aboutResponse
+      aboutResponse && aboutResponse.success
         ? aboutResponse.data.anime
         : null,
     [aboutResponse]
   );
   const recommendedAnimes = useMemo(
     () =>
-      aboutResponse && 'data' in aboutResponse
+      aboutResponse && aboutResponse.success
         ? aboutResponse.data.recommendedAnimes
         : [],
     [aboutResponse]
   );
   const mostPopularAnimes = useMemo(
     () =>
-      aboutResponse && 'data' in aboutResponse
+      aboutResponse && aboutResponse.success
         ? aboutResponse.data.mostPopularAnimes
         : [],
     [aboutResponse]
@@ -101,9 +101,12 @@ function WatchPageComponent() {
     );
   }, [episodes, episodeParam]);
 
+  const { sources, loading: isLoadingSources, error: sourcesError, retry } = useSmartPlayer(currentEpisode?.episodeId || '', language);
+  
+  const [selectedServer, setSelectedServer] = useState<string | null>(null);
+
   const {
     data: serversResponse,
-    isLoading: isLoadingServers,
   } = useQuery({
     queryKey: ['episode-servers', currentEpisode?.episodeId],
     queryFn: () => AnimeService.getEpisodeServers(currentEpisode!.episodeId),
@@ -116,30 +119,10 @@ function WatchPageComponent() {
   }, [serversResponse, language]);
 
   useEffect(() => {
-    if (availableServers.length > 0) {
-      const currentServerExists = availableServers.some(s => s.serverName === selectedServer);
-      if (!currentServerExists) {
-        setSelectedServer(availableServers[0].serverName);
-      }
-    } else {
-      setSelectedServer(null);
+    if (availableServers.length > 0 && !selectedServer) {
+      setSelectedServer(availableServers[0].serverName);
     }
   }, [availableServers, selectedServer]);
-
-
-  const {
-    data: sourcesResponse,
-    isLoading: isLoadingSources,
-    error: sourcesError,
-  } = useQuery<{ data: { sources: { url: string }[] } } | { success: false; error: string }>(
-    {
-      queryKey: ['episode-sources', currentEpisode?.episodeId, language, selectedServer],
-      queryFn: () =>
-        AnimeService.getEpisodeSources(currentEpisode!.episodeId, selectedServer!, language),
-      enabled: !!currentEpisode && !!selectedServer,
-    }
-  );
-
 
   useEffect(() => {
     if (isLoadingEpisodes || !episodes) return;
@@ -167,11 +150,7 @@ function WatchPageComponent() {
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
   };
 
-  const iframeSrc =
-    sourcesResponse && 'data' in sourcesResponse && sourcesResponse.data.sources.length > 0
-      ? sourcesResponse.data.sources[0].url
-      : `https://megaplay.buzz/stream/s-2/${extractEpisodeNumber(currentEpisode?.episodeId || '')}/${language}`;
-
+  const iframeSrc = sources.length > 0 ? sources[0].url : '';
 
   if (isLoadingAbout || isLoadingEpisodes) {
     return (
@@ -260,8 +239,9 @@ function WatchPageComponent() {
             ) : sourcesError ? (
               <ErrorDisplay
                     isCompact
-                    onRetry={() => {}}
-                    description="Could not load video sources."
+                    onRetry={retry}
+                    title="Stream Failed"
+                    description={sourcesError}
                   />
             ): (
               <iframe

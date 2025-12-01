@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeService } from '@/lib/AnimeService';
+import AnimeService from '@/lib/AnimeService';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';

@@ -1,6 +1,6 @@
 
 'use client';
-import { AnimeService } from '@/lib/AnimeService';
+import AnimeService from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2 } from 'lucide-react';
