@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
 import EpisodeList from '@/components/watch/episode-list';
@@ -28,6 +28,8 @@ import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
 import ServerToggle from '@/components/watch/ServerToggle';
 import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
+import { cn } from '@/lib/utils';
+import { usePlayerSettings } from '@/store/player-settings';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
 const CommentsSection = dynamic(() => import('@/components/watch/comments'), {
@@ -54,6 +56,7 @@ function WatchPageComponent() {
   const episodeParam = searchParams.get('ep');
 
   const [language, setLanguage] = useState<Language>('sub');
+  const { isFocusMode, toggleFocusMode } = usePlayerSettings();
   
   const {
     data: aboutResponse,
@@ -107,9 +110,6 @@ function WatchPageComponent() {
 
   const { 
     data: sourcesData, 
-    isLoading: isLoadingSources,
-    error: sourcesError,
-    refetch: refetchSources
  } = useQuery<SourcesData>({
     queryKey: ['episode-sources', currentEpisode?.episodeId, language],
     queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, 'hd-1', language), // default to hd-1
@@ -132,7 +132,7 @@ function WatchPageComponent() {
     }
   }, [animeId, router, episodeParam, episodes, isLoadingEpisodes]);
 
-  const navigateEpisode = (dir: 'next' | 'prev') => {
+  const navigateEpisode = useCallback((dir: 'next' | 'prev') => {
     if (!episodes.length || !currentEpisode) return;
     const currentIndex = episodes.findIndex(
       (ep) => ep.episodeId === currentEpisode.episodeId
@@ -144,7 +144,7 @@ function WatchPageComponent() {
       extractEpisodeNumber(episodes[newIndex].episodeId) ||
       episodes[newIndex].number;
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
-  };
+  }, [episodes, currentEpisode, animeId, router]);
 
   if (isLoadingAbout || isLoadingEpisodes) {
     return (
@@ -174,6 +174,12 @@ function WatchPageComponent() {
   
   return (
     <div className="container mx-auto space-y-4 px-2 py-4 sm:px-4 lg:px-6">
+        {isFocusMode && (
+            <div 
+                className="fixed inset-0 z-30 bg-black/80 backdrop-blur-sm"
+                onClick={toggleFocusMode}
+            />
+        )}
       <Breadcrumb
         items={[
           { label: 'Home', href: '/home' },
@@ -183,17 +189,21 @@ function WatchPageComponent() {
         ]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6">
         {/* Left Sidebar */}
         <div className="hidden lg:block lg:col-span-3">
           { about && <WatchSidebar anime={about} malData={malData} /> }
         </div>
 
         {/* Main Content */}
-        <div className="lg:col-span-6 space-y-4">
+        <div className={cn("lg:col-span-9 space-y-4", isFocusMode && "relative z-40")}>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
                 {currentEpisode ? (
-                    <AnimePlayer episodeId={currentEpisode.episodeId} animeId={animeId} />
+                    <AnimePlayer 
+                        episodeId={currentEpisode.episodeId} 
+                        animeId={animeId}
+                        onNext={() => navigateEpisode('next')}
+                    />
                 ) : (
                     <div className="flex flex-col items-center justify-center h-full text-center">
                         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -224,20 +234,7 @@ function WatchPageComponent() {
           )}
         </div>
 
-        {/* Right sidebar for episodes */}
-        <div className="lg:col-span-3">
-            <EpisodeList
-                episodes={episodes}
-                currentEpisodeId={currentEpisode?.number.toString() || null}
-                onEpisodeSelect={(ep) =>
-                router.push(
-                    `/watch/${animeId}?ep=${
-                    extractEpisodeNumber(ep.episodeId) || ep.number
-                    }`
-                )
-                }
-            />
-        </div>
+        {/* Right sidebar for episodes - This seems to have been removed in favor of the 3-col layout */}
       </div>
     </div>
   );

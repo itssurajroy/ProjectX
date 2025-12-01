@@ -11,16 +11,18 @@ import { sanitizeFirestoreId } from '@/lib/utils';
 import { EpisodeServer, Source, Subtitle } from '@/types/anime';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
+import { usePlayerSettings } from '@/store/player-settings';
 
-const M3U8_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
 
-function extractEpisodeNumber(episodeId: string): string | null {
-    const match = episodeId.match(/ep=(\d+)/);
+function extractEpisodeNumber(episodeIdWithParam: string): string | null {
+    // This will handle both `...id?ep=123` and `...id&ep=123`
+    const cleanedId = episodeIdWithParam.split('?')[0];
+    const match = episodeIdWithParam.match(/[?&]ep=(\d+)/);
     return match ? match[1] : null;
 }
 
 
-export default function AnimePlayer({ episodeId, animeId }: { episodeId: string; animeId: string }) {
+export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId: string; animeId: string; onNext: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sources, setSources] = useState<Source[]>([]);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
@@ -31,11 +33,31 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
   const [useIframeFallback, setUseIframeFallback] = useState(false);
   
   const episodeNumber = extractEpisodeNumber(episodeId);
+  const cleanedEpisodeId = episodeId.split('?')[0];
+
+  const { autoNext, autoPlay } = usePlayerSettings();
+
+  const handleEpisodeEnd = useCallback(() => {
+    if (autoNext) {
+        onNext();
+    }
+  }, [autoNext, onNext]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.addEventListener('ended', handleEpisodeEnd);
+    return () => {
+        video.removeEventListener('ended', handleEpisodeEnd);
+    }
+  }, [handleEpisodeEnd]);
+
 
   const loadStream = useCallback(async (server: EpisodeServer) => {
     setStatus(`Contacting server: ${server.serverName}...`);
     try {
-      const data = await AnimeService.getEpisodeSources(episodeId, server.serverName);
+      const data = await AnimeService.getEpisodeSources(cleanedEpisodeId, server.serverName);
        if (data && data.sources && data.sources.length > 0) {
               setStatus(`Source found on ${server.serverName}! Loading player...`);
               
@@ -63,7 +85,7 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         setStatus(`Server ${server.serverName} failed...`);
         return false;
     }
-  }, [episodeId, animeId]);
+  }, [cleanedEpisodeId, animeId]);
 
   const findWorkingServer = useCallback(async (serverList: EpisodeServer[]) => {
       setError(null);
@@ -87,7 +109,7 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
     const fetchServersAndPlay = async () => {
         try {
             setStatus('Fetching available servers...');
-            const serverData = await AnimeService.getEpisodeServers(episodeId);
+            const serverData = await AnimeService.getEpisodeServers(cleanedEpisodeId);
             const subServers = serverData.sub || [];
             const dubServers = serverData.dub || [];
             const rawServers = serverData.raw || [];
@@ -121,7 +143,7 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         }
     }
     fetchServersAndPlay();
-  }, [episodeId, animeId, findWorkingServer]);
+  }, [cleanedEpisodeId, animeId, findWorkingServer]);
   
   useEffect(() => {
     if (!videoRef.current || sources.length === 0 || useIframeFallback) return;
@@ -135,10 +157,12 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         hls = new Hls();
         hls.loadSource(sourceUrl);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(e => console.error("Autoplay was prevented:", e));
-            setStatus('Playing');
-        });
+        if (autoPlay) {
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                video.play().catch(e => console.error("Autoplay was prevented:", e));
+                setStatus('Playing');
+            });
+        }
         hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
                 console.error("HLS Fatal Error:", data);
@@ -147,13 +171,17 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = sourceUrl;
-        video.addEventListener('loadedmetadata', () => {
-            video.play().catch(e => console.error("Autoplay was prevented:", e));
-            setStatus('Playing');
-        });
+        if (autoPlay) {
+            video.addEventListener('loadedmetadata', () => {
+                video.play().catch(e => console.error("Autoplay was prevented:", e));
+                setStatus('Playing');
+            });
+        }
     } else {
         video.src = sourceUrl;
-        video.play().catch(e => console.error("Autoplay was prevented:", e));
+        if (autoPlay) {
+            video.play().catch(e => console.error("Autoplay was prevented:", e));
+        }
         setStatus('Playing');
     }
     
@@ -174,7 +202,7 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
     return () => {
         if (hls) hls.destroy();
     };
-  }, [sources, subtitles, useIframeFallback]);
+  }, [sources, subtitles, useIframeFallback, autoPlay]);
 
   const handleServerChange = (serverName: string) => {
       const server = availableServers.find(s => s.serverName === serverName);
@@ -215,7 +243,7 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
 
     return (
         <>
-            <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" />
+            <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" autoPlay={autoPlay} />
             {(error || sources.length === 0) && (
                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
                     {error ? (
