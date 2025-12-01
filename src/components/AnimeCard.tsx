@@ -56,34 +56,6 @@ export function AnimeCard({ anime, qtip, rank }: AnimeCardProps) {
                 </span>
              )}
           </div>
-
-          {/* Bottom Info Area (Floating Glass Effect) */}
-          <div className="absolute bottom-3 right-3 flex items-center justify-end z-10">
-             
-             {/* Sub / Dub / Ep Count Row */}
-             <div className="flex flex-wrap items-center justify-end gap-1.5">
-                {anime.episodes?.sub && (
-                   <div className="flex items-center gap-1 bg-red-600/80 backdrop-blur-sm border border-red-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                      <Clapperboard className="w-3 h-3" />
-                      {anime.episodes.sub}
-                   </div>
-                )}
-                
-                {anime.episodes?.dub && (
-                   <div className="flex items-center gap-1 bg-green-600/80 backdrop-blur-sm border border-green-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                      <Mic className="w-3 h-3" />
-                      {anime.episodes.dub}
-                   </div>
-                )}
-                
-                {/* Fallback if no specific sub/dub data, show total */}
-                {!anime.episodes?.sub && !anime.episodes?.dub && anime.totalEpisodes && (
-                   <div className="bg-white/10 backdrop-blur-md text-white/90 text-[10px] font-medium px-2 py-0.5 rounded border border-white/10">
-                      Ep {anime.totalEpisodes}
-                   </div>
-                )}
-             </div>
-          </div>
         </div>
 
         {/* --- Title & Meta (Below Card) --- */}
@@ -91,21 +63,47 @@ export function AnimeCard({ anime, qtip, rank }: AnimeCardProps) {
           <h3 className="font-bold text-sm leading-tight text-gray-100 truncate group-hover:text-primary transition-colors duration-300">
             {anime.name}
           </h3>
-          
-          <div className="flex items-center gap-2 text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
-            {anime.type && (
-                <span className="capitalize">{anime.type}</span>
-            )}
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
+              {anime.type && (
+                  <span className="capitalize">{anime.type}</span>
+              )}
+              
+              {anime.duration && (
+                  <>
+                      <span className="w-0.5 h-0.5 bg-gray-600 rounded-full" />
+                      <span className="flex items-center gap-1">
+                         <Clock className="w-3 h-3" />
+                         {anime.duration}
+                      </span>
+                  </>
+              )}
+            </div>
             
-            {anime.duration && (
-                <>
-                    <span className="w-0.5 h-0.5 bg-gray-600 rounded-full" />
-                    <span className="flex items-center gap-1">
-                       <Clock className="w-3 h-3" />
-                       {anime.duration}
-                    </span>
-                </>
-            )}
+            {/* Sub / Dub / Ep Count Row */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {anime.episodes?.sub && (
+                  <div className="flex items-center gap-1 bg-red-600/80 backdrop-blur-sm border border-red-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    <Clapperboard className="w-3 h-3" />
+                    {anime.episodes.sub}
+                  </div>
+              )}
+              
+              {anime.episodes?.dub && (
+                  <div className="flex items-center gap-1 bg-green-600/80 backdrop-blur-sm border border-green-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                    <Mic className="w-3 h-3" />
+                    {anime.episodes.dub}
+                  </div>
+              )}
+              
+              {/* Fallback if no specific sub/dub data, show total */}
+              {!anime.episodes?.sub && !anime.episodes?.dub && anime.totalEpisodes && (
+                  <div className="bg-white/10 backdrop-blur-md text-white/90 text-[10px] font-medium px-2 py-0.5 rounded border border-white/10">
+                    Ep {anime.totalEpisodes}
+                  </div>
+              )}
+            </div>
           </div>
         </div>
 
