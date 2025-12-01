@@ -8,12 +8,22 @@ import Link from 'next/link';
 import { AnimeCard } from '@/components/AnimeCard';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
-import SeasonsSwiper from './SeasonsSwiper';
-import PVCarousel from './PVCarousel';
 import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
 import { Badge } from '../ui/badge';
 import { AnimeService } from '@/lib/AnimeService';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '../ui/skeleton';
+
+const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
+  loading: () => <Skeleton className="h-48 w-full" />,
+  ssr: false
+});
+const PVCarousel = dynamic(() => import('@/components/anime/PVCarousel'), {
+  loading: () => <Skeleton className="h-48 w-full" />,
+  ssr: false
+});
+
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
@@ -21,7 +31,7 @@ const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
     <Link href={`/anime/${anime.id}`} passHref>
         <div className="flex gap-4 items-center group cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
             <div className="relative w-16 h-24 flex-shrink-0">
-                <Image src={anime.poster} alt={anime.name} fill className="rounded-md object-cover shadow-md" />
+                <Image src={anime.poster} alt={anime.name} fill loading="lazy" className="rounded-md object-cover shadow-md" />
             </div>
             <div className="overflow-hidden">
                 <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">{anime.name}</h3>
@@ -40,7 +50,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
         {/* Character */}
         <div className="w-1/2 flex items-center gap-3 p-3">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
-                <Image src={cv.character.poster} alt={cv.character.name} fill className="object-cover rounded-md" />
+                <Image src={cv.character.poster} alt={cv.character.name} fill loading="lazy" className="object-cover rounded-md" />
             </div>
             <div className="overflow-hidden">
                 <h4 className="font-bold text-sm text-primary truncate">{cv.character.name}</h4>
@@ -56,7 +66,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
                 </div>
                 <div className="relative aspect-square w-12 flex-shrink-0">
-                    <Image src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill className="rounded-full object-cover" />
+                    <Image src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill loading="lazy" className="rounded-full object-cover" />
                 </div>
             </div>
         )}
@@ -246,7 +256,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
             {malData && (
               <div className="mt-12 p-4 md:p-8 bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-3xl border border-purple-800">
                 <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                  <Image src={malData.main_picture.large} width={120} height={170} className="rounded-xl shadow-2xl" alt={`MyAnimeList poster for ${malData.title}`} />
+                  <Image src={malData.main_picture.large} width={120} height={170} loading="lazy" className="rounded-xl shadow-2xl" alt={`MyAnimeList poster for ${malData.title}`} />
                   <div>
                     <h2 className="text-2xl md:text-4xl font-black flex items-center gap-4">
                       MyAnimeList
@@ -273,7 +283,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                       {malData.recommendations.slice(0, 6).map((rec: any) => (
                         <Link key={rec.node.id} href={`/anime/mal-${rec.node.id}`}>
                           <div className="group cursor-pointer">
-                            <Image src={rec.node.main_picture.medium} width={200} height={280} className="rounded-xl group-hover:scale-105 transition" alt={rec.node.title} />
+                            <Image src={rec.node.main_picture.medium} width={200} height={280} loading="lazy" className="rounded-xl group-hover:scale-105 transition" alt={rec.node.title} />
                             <p className="text-center mt-2 text-sm font-medium line-clamp-2">{rec.node.title}</p>
                           </div>
                         </Link>
