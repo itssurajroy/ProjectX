@@ -1,6 +1,5 @@
 
 
-
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime, EpisodeServersResponse } from "@/types/anime";
 import { env } from "./env";
 
@@ -51,7 +50,7 @@ async function fetchWithRetry(url: string, retries = 3): Promise<any> {
 export class AnimeService {
   // Home Page
   static async getHomeData() {
-    return fetchWithRetry(`${HIANIME_API_BASE}/home`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/trending`);
   }
 
   // Anime Detail Page
