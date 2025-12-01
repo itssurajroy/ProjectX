@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import WatchSidebar from '@/components/watch/WatchSidebar';
 import CommentsSection from '@/components/watch/comments';
 import { useSmartPlayer } from '@/hooks/useSmartPlayer';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 

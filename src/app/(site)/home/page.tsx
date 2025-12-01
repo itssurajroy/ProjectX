@@ -11,7 +11,7 @@ import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);

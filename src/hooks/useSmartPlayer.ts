@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 import type { Source, Subtitle } from '@/types/anime';
 
 export function useSmartPlayer(episodeId: string, category: "sub" | "dub" = "sub") {

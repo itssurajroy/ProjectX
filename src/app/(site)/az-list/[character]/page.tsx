@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { HomeData, SearchResult } from '@/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 
 
 const AdvancedFilter = () => {

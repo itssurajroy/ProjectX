@@ -13,7 +13,7 @@ import PVCarousel from './PVCarousel';
 import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
 import { Badge } from '../ui/badge';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 

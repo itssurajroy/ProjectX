@@ -12,7 +12,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import ErrorDisplay from "@/components/common/ErrorDisplay";
-import * as AnimeService from "@/lib/AnimeService";
+import { AnimeService } from "@/lib/AnimeService";
 import { SearchResult } from "@/types/anime";
 
 function SearchPageContent() {

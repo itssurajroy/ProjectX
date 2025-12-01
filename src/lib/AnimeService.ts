@@ -1,3 +1,4 @@
+
 // src/lib/AnimeService.ts — FINAL 100% WORKING VERSION
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
 const PROXY = process.env.NEXT_PUBLIC_CORS_PROXY!;
@@ -18,19 +19,20 @@ async function api<T>(endpoint: string): Promise<any> {
   return json.data;
 }
 
-export const home = () => api("/home");
-export const movies = (page = 1) => api(`/category/movie?page=${page}`);
-export const tv = (page = 1) => api(`/category/tv?page=${page}`);
-export const search = (q: string, page = 1) => api(`/search?q=${encodeURIComponent(q)}&page=${page}`);
-export const anime = (id: string) => api(`/anime/${id}`);
-export const qtip = (id: string) => api(`/qtip/${id}`);
-export const episodes = (id: string) => api(`/anime/${id}/episodes`);
-export const servers = (epId: string) => api(`/episode/servers?animeEpisodeId=${epId}`);
-export const getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
-export const getSchedule = (date: string) => api(`/schedule?date=${date}`);
-export const getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
-
-export async function sources(epId: string, server = "hd-1", category: "sub" | "dub" = "sub") {
+export class AnimeService {
+  static home = () => api("/home");
+  static movies = (page = 1) => api(`/category/movie?page=${page}`);
+  static tv = (page = 1) => api(`/category/tv?page=${page}`);
+  static search = (q: string, page = 1) => api(`/search?q=${encodeURIComponent(q)}&page=${page}`);
+  static anime = (id: string) => api(`/anime/${id}`);
+  static qtip = (id: string) => api(`/qtip/${id}`);
+  static episodes = (id: string) => api(`/anime/${id}/episodes`);
+  static servers = (epId: string) => api(`/episode/servers?animeEpisodeId=${epId}`);
+  static getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
+  static getSchedule = (date: string) => api(`/schedule?date=${date}`);
+  static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
+  
+  static async sources(epId: string, server = "hd-1", category: "sub" | "dub" = "sub") {
     const data = await api(`/episode/sources?animeEpisodeId=${epId}&server=${server}&category=${category}`);
     
     return {
@@ -44,4 +46,5 @@ export async function sources(epId: string, server = "hd-1", category: "sub" | "
         url: `${PROXY}${encodeURIComponent(s.url)}`
       })) || []
     };
+  }
 }

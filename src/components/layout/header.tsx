@@ -23,7 +23,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import NotificationBell from '../notifications/NotificationBell';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 
 
 const socialIcons = {

@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Star, Tv, Clapperboard, Calendar, Clock } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
-import * as AnimeService from "@/lib/AnimeService";
+import { AnimeService } from "@/lib/AnimeService";
 
 const TooltipSkeleton = () => (
     <div className="p-2 space-y-3">

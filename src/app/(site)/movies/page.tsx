@@ -10,7 +10,7 @@ import { Film, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import * as AnimeService from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/AnimeService';
 import { SearchResult } from '@/types/anime';
 
 function MoviesPageContent() {
