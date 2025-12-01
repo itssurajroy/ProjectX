@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -48,13 +49,14 @@ function AdminSidebar() {
     const reportsRef = collection(firestore, 'admin', 'reports', 'active');
     const unsubReports = onSnapshot(reportsRef, (snap) => {
       setReportCount(snap.size);
-    });
+    }, () => {}); // Add empty error handler
 
     // Real-time listener for pending requests
     const requestsRef = collection(firestore, 'admin', 'requests', 'pending');
     const unsubRequests = onSnapshot(requestsRef, (snap) => {
       setRequestCount(snap.size);
-    });
+    }, () => {}); // Add empty error handler
+
 
     return () => {
       unsubReports();
@@ -95,7 +97,7 @@ function AdminSidebar() {
               <SidebarMenuItem key={item.label}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/admin')}
+                  isActive={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))}
                   className="w-full justify-start"
                   icon={<item.icon />}
                   label={item.label}

@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -7,8 +8,10 @@ import { MoreHorizontal, MessageSquare, ShieldAlert } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, useEffect } from "react";
-import { collectionGroup, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collectionGroup, onSnapshot, query, orderBy, collection } from "firebase/firestore";
 import { initializeFirebase } from "@/firebase";
+import { deleteComment } from "@/lib/admin/moderation";
+import { sanitizeFirestoreId } from "@/lib/utils";
 
 const { firestore } = initializeFirebase();
 
@@ -27,6 +30,7 @@ interface Report {
     reporter: string;
     message: string;
     status: 'Pending' | 'In Progress' | 'Resolved';
+    timestamp?: any;
 }
 
 const statusColors: {[key: string]: string} = {
@@ -36,10 +40,10 @@ const statusColors: {[key: string]: string} = {
 };
 
 const typeColors: {[key: string]: string} = {
-    'Broken Link': 'bg-orange-500/20',
-    'Wrong Info': 'bg-purple-500/20',
-    'Spam': 'bg-pink-500/20',
-    'DMCA': 'bg-red-500/20',
+    'Broken Link': 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+    'Wrong Info': 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    'Spam': 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+    'DMCA': 'bg-red-500/20 text-red-300 border-red-500/30',
 };
 
 const formatDate = (timestamp: any) => {
@@ -62,16 +66,25 @@ function CommentsModeration() {
             } as Comment));
             setComments(commentsData);
             setLoading(false);
+        }, (error) => {
+            console.error("Error fetching comments:", error);
+            setLoading(false);
         });
 
         return () => unsubscribe();
     }, []);
 
+    const handleDelete = async (path: string) => {
+        if(window.confirm("Are you sure you want to delete this comment? This cannot be undone.")) {
+            await deleteComment(path);
+        }
+    }
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Recent Comments</CardTitle>
-                <CardDescription>{comments.length} comments found.</CardDescription>
+                <CardDescription>{comments.length} comments found across all episodes.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -91,7 +104,7 @@ function CommentsModeration() {
                             <TableRow key={comment.id}>
                                 <TableCell className="font-medium">{comment.author}</TableCell>
                                 <TableCell className="max-w-md truncate">{comment.text}</TableCell>
-                                <TableCell className="text-xs text-muted-foreground">{comment.path.split('/')[1]}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{comment.path.split('/')[1]}/{sanitizeFirestoreId(comment.path.split('/')[3])}</TableCell>
                                 <TableCell>{formatDate(comment.timestamp)}</TableCell>
                                 <TableCell className="text-right">
                                      <DropdownMenu>
@@ -99,7 +112,7 @@ function CommentsModeration() {
                                         <DropdownMenuContent>
                                             <DropdownMenuItem>View Context</DropdownMenuItem>
                                             <DropdownMenuItem>Warn User</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Delete Comment</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleDelete(comment.path)} className="text-destructive focus:text-destructive">Delete Comment</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
@@ -120,11 +133,11 @@ function ReportsModeration() {
      useEffect(() => {
         const q = query(collection(firestore, 'admin/reports/active'), orderBy('timestamp', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const reportsData: Report[] = [];
-            snapshot.forEach(doc => {
-                reportsData.push({ id: doc.id, ...doc.data() } as Report);
-            });
+            const reportsData: Report[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Report));
             setReports(reportsData);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching reports:", error);
             setLoading(false);
         });
         return () => unsubscribe();
@@ -146,19 +159,21 @@ function ReportsModeration() {
                             <TableHead>Content ID</TableHead>
                             <TableHead>Message</TableHead>
                             <TableHead>Reporter</TableHead>
+                            <TableHead>Date</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                          {loading ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-8">Loading reports...</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={7} className="text-center py-8">Loading reports...</TableCell></TableRow>
                         ) : reports.map(report => (
                             <TableRow key={report.id}>
                                 <TableCell><Badge variant="outline" className={typeColors[report.type]}>{report.type}</Badge></TableCell>
                                 <TableCell className="font-mono text-xs">{report.contentId}</TableCell>
                                 <TableCell className="max-w-xs truncate">{report.message}</TableCell>
                                 <TableCell>{report.reporter}</TableCell>
+                                <TableCell>{formatDate(report.timestamp)}</TableCell>
                                 <TableCell><Badge className={statusColors[report.status]}>{report.status}</Badge></TableCell>
                                 <TableCell className="text-right">
                                     <DropdownMenu>
@@ -167,12 +182,15 @@ function ReportsModeration() {
                                             <DropdownMenuItem>Resolve</DropdownMenuItem>
                                             <DropdownMenuItem>Fix Content</DropdownMenuItem>
                                             <DropdownMenuItem>Ban Reporter</DropdownMenuItem>
-                                            <DropdownMenuItem className="text-destructive">Delete Report</DropdownMenuItem>
+                                            <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Report</DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
                                 </TableCell>
                             </TableRow>
                         ))}
+                         {reports.length === 0 && !loading && (
+                             <TableRow><TableCell colSpan={7} className="text-center py-8">No pending reports.</TableCell></TableRow>
+                         )}
                     </TableBody>
                 </Table>
             </CardContent>
