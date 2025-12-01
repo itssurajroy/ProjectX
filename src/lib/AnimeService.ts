@@ -1,5 +1,4 @@
 
-
 import { AnimeAboutResponse, AnimeEpisode, EpisodeServer, EpisodeSourcesResponse, HomeData, SearchResult, ScheduleResponse, SearchSuggestionResponse, QtipAnime, EpisodeServersResponse } from "@/types/anime";
 import { env } from "./env";
 
@@ -32,6 +31,9 @@ async function fetchWithRetry(url: string, retries = 3): Promise<any> {
       clearTimeout(timeout);
 
       if (!response.ok) {
+        if (response.status === 404) {
+            return { success: false, error: 'Not Found', status: 404 };
+        }
         throw new Error(`HTTP ${response.status}`);
       }
 
@@ -50,7 +52,7 @@ async function fetchWithRetry(url: string, retries = 3): Promise<any> {
 export class AnimeService {
   // Home Page
   static async getHomeData() {
-    return fetchWithRetry(`${HIANIME_API_BASE}/trending`);
+    return fetchWithRetry(`${HIANIME_API_BASE}/home`);
   }
 
   // Anime Detail Page

@@ -301,5 +301,3 @@ export default function MainDashboardPage() {
     </div>
   );
 }
-
-    
