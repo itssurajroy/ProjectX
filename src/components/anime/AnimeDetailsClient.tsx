@@ -2,7 +2,7 @@
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users, ShieldAlert } from 'lucide-react';
+import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import RecommendedSidebar from './RecommendedSidebar';
+import RankedAnimeSidebar from './RecommendedSidebar';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -274,18 +274,11 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
              <CommentsContainer animeId={id} availableEpisodes={episodes} />
           </div>
           <div className="lg:col-span-3 space-y-6">
-            {relatedAnimes && relatedAnimes.length > 0 && (
-                <div className='bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border'>
-                    <h2 className="text-xl font-bold mb-4 border-l-4 border-primary pl-3">🔀 Related Anime</h2>
-                    <div className="flex flex-col gap-2">
-                    {relatedAnimes?.slice(0, 7).map((rec: AnimeBase) => (
-                        <SidebarAnimeCard key={rec.id} anime={rec} />
-                    ))}
-                    </div>
-                </div>
-            )}
+             {relatedAnimes && relatedAnimes.length > 0 && (
+                <RankedAnimeSidebar title="Related Anime" animes={relatedAnimes} icon={<GitBranch className="w-5 h-5"/>} />
+             )}
              {recommendedAnimes && recommendedAnimes.length > 0 && (
-                <RecommendedSidebar animes={recommendedAnimes} />
+                <RankedAnimeSidebar title="Recommended" animes={recommendedAnimes} icon={<Star className="w-5 h-5"/>} />
              )}
           </div>
         </div>

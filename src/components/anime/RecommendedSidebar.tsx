@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { AnimeBase } from "@/types/anime";
@@ -6,13 +7,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { Clapperboard } from "lucide-react";
 
-export default function RecommendedSidebar({ animes }: { animes: AnimeBase[] }) {
+export default function RankedAnimeSidebar({ title, animes, icon }: { title: string, animes: AnimeBase[], icon?: React.ReactNode }) {
     if (!animes || animes.length === 0) return null;
 
     return (
         <div className='bg-card/50 p-4 rounded-lg border border-border/50'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                <h2 className="text-lg font-bold flex items-center gap-2">✨ Recommended</h2>
+                <h2 className="text-lg font-bold flex items-center gap-2">{icon} {title}</h2>
             </div>
             <div className="space-y-2">
             {animes.slice(0, 10).map((anime, index) => (
@@ -49,5 +50,3 @@ export default function RecommendedSidebar({ animes }: { animes: AnimeBase[] }) 
         </div>
     );
 };
-
-    
