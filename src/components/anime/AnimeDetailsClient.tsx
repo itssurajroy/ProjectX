@@ -2,7 +2,7 @@
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users } from 'lucide-react';
+import { Play, Clapperboard, Users, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimeCard } from '@/components/AnimeCard';
@@ -17,6 +17,19 @@ import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { Bookmark } from 'lucide-react';
 import CommentsContainer from '../comments/CommentsContainer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
   loading: () => <Skeleton className="h-48 w-full" />,
@@ -78,6 +91,9 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 
 
 export default function AnimeDetailsClient({ id }: { id: string }) {
+  const router = useRouter();
+  const [showAgeGate, setShowAgeGate] = useState(false);
+  
   const {
     data: animeResult,
     isLoading: isLoadingAnime,
@@ -96,6 +112,12 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const recommendedAnimes = animeResult?.recommendedAnimes;
   const relatedAnimes = animeResult?.relatedAnimes;
   const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
+
+  useEffect(() => {
+    if (animeInfo?.stats.rating === "R") {
+        setShowAgeGate(true);
+    }
+  }, [animeInfo]);
 
   const { data: episodesResult } = useQuery<any>({
     queryKey: ['episodes', id],
@@ -123,6 +145,24 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   
   return (
     <div className="min-h-screen bg-background text-foreground">
+        <AlertDialog open={showAgeGate} onOpenChange={setShowAgeGate}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                        <ShieldAlert className="w-6 h-6 text-destructive" />
+                        Age-Restricted Content
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This anime is rated for mature audiences only. Please confirm you are 18 years or older to proceed.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => router.push('/home')}>Leave</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => setShowAgeGate(false)}>Enter</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
         <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
           <div className="absolute inset-0 z-0">
             <Image
@@ -153,7 +193,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
               <h1 className="text-title font-bold mt-2 text-glow">{animeInfo.name}</h1>
               
               <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
-                  {stats.rating && stats.rating !== 'N/A' && <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</span>}
+                  {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'default'} className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</Badge>}
                   <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">{stats.quality}</span>
                   {stats.episodes.sub && (
                       <span className="flex items-center gap-1 px-2 py-1 bg-card/50 rounded-md border border-border/50">
