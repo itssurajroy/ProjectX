@@ -2,7 +2,7 @@
 'use client';
 
 import { getAZList, getHomeData } from '@/lib/AnimeService';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Suspense, useState, useRef, useEffect } from 'react';
@@ -169,41 +169,48 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
   const sortOption = decodeURIComponent(params.character);
   const displayCharacter = sortOption === 'all' ? 'All' : sortOption === 'other' ? '#' : sortOption.toUpperCase();
 
-  const { data: azResult, isLoading, error, refetch } = useQuery<{data: SearchResult}>({
-    queryKey: ['az-list', sortOption, page],
-    queryFn: () => getAZList(sortOption, page),
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery<{data: SearchResult}, Error>({
+    queryKey: ['az-list', sortOption],
+    queryFn: async ({ pageParam = 1 }) => {
+        const res = await getAZList(sortOption, pageParam);
+        if (!res.success) throw new Error(res.error);
+        return res;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+        return lastPage.data.hasNextPage ? lastPage.data.currentPage + 1 : undefined
+    },
   });
 
+  const animes = data?.pages.flatMap(page => page.data.animes) ?? [];
+
   const handlePageChange = (newPage: number) => {
-    router.push(`${pathname}?page=${newPage}`);
+    // This is a bit tricky with infinite query, for now we just fetch next page.
+    if (newPage > (data?.pages.length || 0) && hasNextPage) {
+        fetchNextPage();
+    }
+    // We can't really go "back" a page in the infinite query model easily
+    // without more complex state management.
   };
 
   const Pagination = ({ currentPage, totalPages, hasNextPage }: { currentPage: number, totalPages: number, hasNextPage: boolean}) => {
-    const pages = [];
-    const maxPagesToShow = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-    if(endPage - startPage + 1 < maxPagesToShow) {
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-    }
-
     return (
         <div className="flex justify-center items-center gap-2 mt-12">
-            <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={() => {}} disabled={true} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
                 <ChevronLeft className="w-4 h-4" />
             </button>
-            {pages.map(p => (
-                 <button key={p} onClick={() => handlePageChange(p)} className={cn("px-4 py-2 text-sm rounded-md", p === currentPage ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>
-                    {p}
-                </button>
-            ))}
-            <button onClick={() => handlePageChange(currentPage + 1)} disabled={!hasNextPage} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
-                <ChevronRight className="w-4 h-4" />
+            <button className={cn("px-4 py-2 text-sm rounded-md", 'bg-primary text-primary-foreground')}>
+                {currentPage}
+            </button>
+            <button onClick={() => fetchNextPage()} disabled={!hasNextPage || isFetchingNextPage} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
+                {isFetchingNextPage ? "Loading..." : <ChevronRight className="w-4 h-4" />}
             </button>
         </div>
     )
@@ -211,15 +218,12 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
 
   const renderContent = () => {
     if (isLoading) return <LoadingSkeleton />;
-    if (error || (azResult && 'success' in azResult && !azResult.success)) return <ErrorDisplay title="Failed to load anime list" description={(error as Error)?.message || (azResult as any)?.error} onRetry={refetch} />;
+    if (error) return <ErrorDisplay title="Failed to load anime list" description={error.message} />;
     
-    const azData = azResult?.data;
-    if (!azData || !azData.animes || azData.animes.length === 0) {
+    if (!animes || animes.length === 0) {
         return <p className="text-center text-muted-foreground mt-16">No anime found for this filter.</p>;
     }
   
-    const { animes, currentPage, totalPages, hasNextPage } = azData;
-    
     return (
       <>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
@@ -227,7 +231,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
               <AnimeCard key={anime.id} anime={anime} />
           ))}
           </div>
-          <Pagination currentPage={currentPage} totalPages={totalPages} hasNextPage={hasNextPage} />
+          <Pagination currentPage={data?.pages.length || 1} totalPages={data?.pages[0].data.totalPages || 1} hasNextPage={!!hasNextPage} />
       </>
     );
   }
@@ -237,7 +241,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
     <div className="px-4 sm:px-6 lg:px-8 py-8 pt-24 min-h-[60vh]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">AZ-LIST</h1>
-        <p className="text-sm text-muted-foreground">{azResult?.data?.totalAnimes?.toLocaleString() || '...'} anime</p>
+        <p className="text-sm text-muted-foreground">{data?.pages[0].data.totalAnimes?.toLocaleString() || '...'} anime</p>
       </div>
       <AdvancedFilter />
       <AZNav activeChar={displayCharacter} />

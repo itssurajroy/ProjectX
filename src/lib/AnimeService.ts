@@ -1,6 +1,6 @@
-// src/lib/AnimeService.ts — FINAL 2025 VERSION
 
-const API_BASE = "/api/v2/hianime";
+
+const API_BASE = "https://api.hianime.to/api/v2/hianime";
 
 // Universal fetch (v2-ready with retry)
 async function fetchFromApi(endpoint: string, options: RequestInit = {}): Promise<any> {
@@ -20,7 +20,7 @@ async function fetchFromApi(endpoint: string, options: RequestInit = {}): Promis
     }
 
     const data = await res.json();
-    return data; // The external API wraps its response in a `data` property and a `success` flag.
+    return data; 
   } catch (e: any) {
     console.error(`[AnimeService] Network/Fetch Error for ${url}:`, e);
     return { success: false, error: e.message || 'Network failed' };
@@ -81,7 +81,6 @@ export async function getAnimeQtip(id: string) {
 // --- STREAMING & EPISODE ENDPOINTS ---
 
 export async function getEpisodeServers(episodeId: string) {
-  // Ensure the episodeId is properly encoded for the query parameter
   const params = new URLSearchParams({ animeEpisodeId: episodeId });
   return fetchFromApi(`/episode/servers?${params.toString()}`);
 }
