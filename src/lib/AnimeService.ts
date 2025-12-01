@@ -28,12 +28,14 @@ export class AnimeService {
   static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);
   static episodes = (id: string) => api(`/anime/${id}/episodes`);
-  static getEpisodeServers = (epId: string) => api(`/episode/servers?episodeId=${encodeURIComponent(epId)}`);
-  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/episode/sources?episodeId=${encodeURIComponent(epId)}&server=${server}&category=${category}`);
+  static getEpisodeServers = (epId: string) => api(`/episode/servers?episodeId=${epId}`);
+  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/episode/sources?episodeId=${epId}&server=${server}&category=${category}`);
   static getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
   static getSchedule = (date: string) => api(`/schedule?date=${date}`);
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   static getGenres = () => api("/genres");
 }
+
+    
 
     
