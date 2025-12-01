@@ -193,14 +193,15 @@ function WatchPageComponent() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 lg:gap-6">
-        <div className="lg:col-span-3 lg:hidden">
+        {/* Mobile Episode List Trigger */}
+        <div className="lg:hidden mb-4">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" className="w-full">
                 <Menu className="mr-2 h-4 w-4" /> Show Episode List
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="p-0">
+            <SheetContent side="left" className="p-0">
               <SheetHeader className="border-b p-3">
                 <h2 className="text-lg font-bold">Episodes</h2>
               </SheetHeader>
@@ -220,6 +221,8 @@ function WatchPageComponent() {
             </SheetContent>
           </Sheet>
         </div>
+        
+        {/* Left Column: Episode List (Desktop) */}
         <div className="hidden lg:col-span-3 lg:block">
           <EpisodeList
             episodes={episodes}
@@ -233,7 +236,9 @@ function WatchPageComponent() {
             }
           />
         </div>
-        <div className="lg:col-span-9">
+
+        {/* Middle Column: Player and Comments */}
+        <div className="lg:col-span-6 space-y-6">
           <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
             {isLoadingSources ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
@@ -273,10 +278,6 @@ function WatchPageComponent() {
               />
             </div>
           </div>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-9">
           {currentEpisode && (
             <CommentsSection
               animeId={animeId}
@@ -284,6 +285,8 @@ function WatchPageComponent() {
             />
           )}
         </div>
+
+        {/* Right Column: Sidebar */}
         <div className="lg:col-span-3">
           {about && (
             <WatchSidebar
@@ -295,6 +298,7 @@ function WatchPageComponent() {
           )}
         </div>
       </div>
+      
       {recommendedAnimes && recommendedAnimes.length > 0 && (
         <section className="pt-8">
           <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">

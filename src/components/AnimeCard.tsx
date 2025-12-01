@@ -8,7 +8,7 @@ import { AnimeTooltip } from "./AnimeTooltip"
 
 type AnimeCardProps = {
   anime: AnimeBase;
-  qtip: QtipAnime | undefined;
+  qtip?: QtipAnime;
 }
 
 export function AnimeCard({ anime, qtip }: AnimeCardProps) {
