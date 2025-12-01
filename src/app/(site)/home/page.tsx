@@ -239,9 +239,18 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                 <Link
                     key={anime.id}
                     href={`/anime/${anime.id}`}
-                    className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
+                    className="relative block p-3 rounded-lg overflow-hidden group transition-all duration-300"
                 >
-                    <div className="flex items-center gap-4">
+                    <Image
+                        src={anime.poster}
+                        alt={anime.name}
+                        fill
+                        sizes="200px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110 opacity-10"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-card/80 via-card/70 to-transparent"></div>
+                    
+                    <div className="relative flex items-center gap-4">
                         <div className="relative flex-shrink-0">
                             {index === 0 && (
                                 <svg viewBox="0 0 100 100" className="absolute -top-3.5 -left-3.5 w-11 h-11 text-amber-400 opacity-80 -z-0 filter blur-[1px]">
@@ -262,16 +271,6 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                                 {anime.episodes?.dub && <span className="px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
                                 <span className='hidden sm:inline'>{anime.type}</span>
                             </div>
-                        </div>
-                        <div className="relative w-16 h-10 flex-shrink-0 ml-2">
-                             <Image
-                                src={anime.poster}
-                                alt={anime.name}
-                                fill
-                                sizes="64px"
-                                className="object-cover rounded-md"
-                            />
-                             <div className="absolute inset-0 bg-gradient-to-l from-card/0 via-card/60 to-card/80 group-hover:to-muted/70 transition-colors"></div>
                         </div>
                     </div>
                 </Link>
