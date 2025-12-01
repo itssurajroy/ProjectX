@@ -1,23 +1,5 @@
 
 import type { Metadata } from "next";
-import "../globals.css";
-import Providers from "../providers";
-import { Toaster as ShadToaster } from "@/components/ui/toaster";
-import { Lexend, Space_Grotesk } from "next/font/google";
-import { cn } from "@/lib/utils";
-import {
-  SidebarProvider,
-} from '@/components/ui/sidebar';
-
-const fontSans = Lexend({ 
-  subsets: ["latin"],
-  variable: '--font-primary',
-});
-
-const fontDisplay = Space_Grotesk({
-  subsets: ["latin"],
-  variable: '--font-display',
-});
 
 export const metadata: Metadata = {
   title: "ProjectX Admin",
@@ -29,19 +11,5 @@ export default function AdminRootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-       <head>
-         <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
-       </head>
-      <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
-        <Providers>
-            <SidebarProvider>
-              <ShadToaster />
-              {children}
-            </SidebarProvider>
-        </Providers>
-      </body>
-    </html>
-  );
+  return <>{children}</>;
 }
