@@ -26,7 +26,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
-const CommentsSection = dynamic(() => import('@components/watch/comments'), {
+const CommentsSection = dynamic(() => import('@/components/watch/comments'), {
   loading: () => <Skeleton className="w-full h-64" />,
   ssr: false
 });
