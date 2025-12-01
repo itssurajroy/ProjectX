@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  HIANIME_API_BASE: z.string().url(),
+  NEXT_PUBLIC_CORS_PROXY: z.string().url().optional(),
 });
 
 export const env = envSchema.parse({
-  HIANIME_API_BASE: process.env.NEXT_PUBLIC_HIANIME_API_BASE,
+  NEXT_PUBLIC_CORS_PROXY: process.env.NEXT_PUBLIC_CORS_PROXY,
 });

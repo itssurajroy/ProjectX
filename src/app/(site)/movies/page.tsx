@@ -1,104 +1,121 @@
 
-
 'use client';
 
-import { AnimeCard } from "@/components/AnimeCard";
-import ErrorDisplay from "@/components/common/ErrorDisplay";
-import { Skeleton } from "@/components/ui/skeleton";
-import { getMovies } from "@/lib/AnimeService";
-import { SearchResult } from "@/types/anime";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { AnimeCard } from '@/components/AnimeCard';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Film, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { getMovies } from '@/lib/AnimeService';
 import { Suspense } from 'react';
-import { cn } from "@/lib/utils";
-
-const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
-        {Array.from({ length: 18 }).map((_, index) => (
-            <div key={index} className="space-y-2">
-                <Skeleton className="aspect-[2/3] w-full" />
-                <Skeleton className="h-4 w-4/5" />
-            </div>
-        ))}
-    </div>
-);
 
 function MoviesPageContent() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
-    const page = Number(searchParams.get('page') || '1');
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useInfiniteQuery({
+    queryKey: ['movies'],
+    queryFn: async ({ pageParam = 1 }) => {
+      const result = await getMovies(pageParam);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch movies');
+      }
+      return result.data;
+    },
+    getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
+    initialPageParam: 1,
+    staleTime: 15 * 60 * 1000, // 15 minutes
+    retry: 2,
+  });
 
-    const { data: moviesResult, isLoading, error, refetch } = useQuery<{ data: SearchResult }>({
-        queryKey: ['movies', page],
-        queryFn: () => getMovies(page),
-    });
+  const movies = data?.pages.flatMap(p => p.animes).filter(Boolean) || [];
 
-    const handlePageChange = (newPage: number) => {
-        router.push(`${pathname}?page=${newPage}`);
-    };
-
-    const Pagination = ({ currentPage, totalPages, hasNextPage }: { currentPage: number, totalPages: number, hasNextPage: boolean}) => {
-        const pages = [];
-        const maxPagesToShow = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-        let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-        if(endPage - startPage + 1 < maxPagesToShow) {
-            startPage = Math.max(1, endPage - maxPagesToShow + 1);
-        }
-        
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
-
-        return (
-            <div className="flex justify-center items-center gap-2 mt-12">
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage <= 1} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
-                    <ChevronLeft className="w-4 h-4" />
-                </button>
-                {pages.map(p => (
-                     <button key={p} onClick={() => handlePageChange(p)} className={cn("px-4 py-2 text-sm rounded-md", p === currentPage ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>
-                        {p}
-                    </button>
-                ))}
-                <button onClick={() => handlePageChange(currentPage + 1)} disabled={!hasNextPage} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
-                    <ChevronRight className="w-4 h-4" />
-                </button>
-            </div>
-        )
-    }
-
-    const renderContent = () => {
-        if (isLoading) return <LoadingSkeleton />;
-        if (error || (moviesResult && 'success' in moviesResult && !moviesResult.success)) return <ErrorDisplay title="Failed to load movies" description={(error as Error)?.message || (moviesResult as any)?.error} onRetry={refetch} />;
-        
-        const moviesData = moviesResult?.data;
-        if (!moviesData || !moviesData.animes || moviesData.animes.length === 0) {
-            return <p className="text-center text-muted-foreground mt-16">No movies found.</p>;
-        }
-    
-        const { animes, currentPage, totalPages, hasNextPage } = moviesData;
-        
-        return (
-          <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
-              {animes.map((anime: any) => (
-                  <AnimeCard key={anime.id} anime={anime} />
-              ))}
-              </div>
-              <Pagination currentPage={currentPage} totalPages={totalPages} hasNextPage={hasNextPage} />
-          </>
-        );
-    }
-
-    return (
-        <div className="min-h-screen px-4 py-8 pt-24 sm:px-6 lg:px-8">
-            <h1 className="mb-8 text-3xl font-bold">Movies</h1>
-            {renderContent()}
+  return (
+    <>
+      <div className="relative h-96 bg-gradient-to-br from-purple-900 via-black to-pink-900">
+        <div className="absolute inset-0 bg-black/70" />
+        <div className="container mx-auto px-6 h-full flex items-center">
+          <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }}>
+            <Badge className="mb-6 text-2xl px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600">
+              <Film className="w-8 h-8 mr-3" /> ANIME MOVIES
+            </Badge>
+            <h1 className="text-8xl font-black bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent">
+              Cinema Collection
+            </h1>
+            <p className="text-2xl text-gray-300 mt-6">All full-length anime films in one place.</p>
+            {movies.length > 0 && (
+                <div className="mt-8 text-xl text-gray-300">
+                <Sparkles className="inline w-8 h-8 text-yellow-400 mr-2" />
+                <strong>{movies.length.toLocaleString()}+</strong> movies loaded
+                </div>
+            )}
+          </motion.div>
         </div>
-    )
+      </div>
+
+      <div className="container mx-auto px-6 py-16">
+        {isLoading && <MoviesSkeleton />}
+
+        {isError && (
+          <div className="text-center py-32 text-red-400">
+            <p className="text-2xl mb-4">Failed to load movies</p>
+            <p className="text-gray-500">Error: {(error as any)?.message}</p>
+          </div>
+        )}
+
+        {movies.length > 0 && (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
+              {movies.map((movie: any, i: number) => (
+                <motion.div key={`${movie.id}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}>
+                  <Link href={`/anime/${movie.id}`}>
+                    <div className="group relative rounded-2xl overflow-hidden">
+                      <AnimeCard anime={movie} />
+                      {movie.duration && (
+                        <Badge className="absolute top-3 right-3 bg-black/80 backdrop-blur text-xs font-bold">
+                          {movie.duration}
+                        </Badge>
+                      )}
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            {hasNextPage && (
+              <div className="flex justify-center mt-20">
+                <Button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-24 py-8 text-2xl font-bold rounded-full shadow-2xl"
+                >
+                  {isFetchingNextPage ? 'Loading...' : 'Load More Movies'}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+function MoviesSkeleton() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
+      {Array.from({ length: 32 }).map((_, i) => (
+        <Skeleton key={i} className="aspect-[2/3] rounded-2xl bg-gray-900/70" />
+      ))}
+    </div>
+  );
 }
 
 export default function MoviesPage() {
