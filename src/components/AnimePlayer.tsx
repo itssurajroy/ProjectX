@@ -8,6 +8,7 @@ import { Loader2, ServerCrash, Tv } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { AnimeService } from '@/lib/AnimeService';
 import { sanitizeFirestoreId } from '@/lib/utils';
+import { EpisodeServer } from '@/types/anime';
 
 interface Source {
   url: string;
@@ -20,91 +21,115 @@ interface Subtitle {
   url:string;
 }
 
-const SERVERS = [
-  { name: "HD-1", id: "hd-1" },
-  { name: "VidStreaming", id: "vidstreaming" },
-  { name: "MegaCloud", id: "megacloud" },
-  { name: "StreamWish", id: "streamwish" },
-  { name: "FileMoon", id: "filemoon" },
-  { name: "StreamTape", id: "streamtape" },
-  { name: "Mp4Upload", id: "mp4upload" },
-  { name: "DoodStream", id: "doodstream" },
-  { name: "Kwik", id: "kwik" },
-];
+const M3U8_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
 
-
-export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { episodeId: string; category?: 'sub' | 'dub', animeId: string }) {
+export default function AnimePlayer({ episodeId, animeId }: { episodeId: string; animeId: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sources, setSources] = useState<Source[]>([]);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [status, setStatus] = useState<string>('Initializing...');
   const [error, setError] = useState<string | null>(null);
-  const [selectedServerId, setSelectedServerId] = useState<string>('');
+  const [availableServers, setAvailableServers] = useState<EpisodeServer[]>([]);
+  const [selectedServer, setSelectedServer] = useState<EpisodeServer | null>(null);
 
   // Sanitize episodeId to remove any query params that might have been passed
   const cleanEpisodeId = sanitizeFirestoreId(episodeId.split('?')[0]);
 
-  const loadPlayer = useCallback(async (serverList: typeof SERVERS) => {
-    setError(null);
-    for (const server of serverList) {
-        try {
-            setStatus(`Contacting server: ${server.name}...`);
-            const data = await AnimeService.getEpisodeSources(cleanEpisodeId, server.id, category);
-            
-            if (data && data.sources && data.sources.length > 0) {
-              setStatus(`Source found on ${server.name}! Loading player...`);
+  const loadStream = useCallback(async (server: EpisodeServer) => {
+    setStatus(`Contacting server: ${server.serverName}...`);
+    try {
+      const data = await AnimeService.getEpisodeSources(cleanEpisodeId, server.serverName);
+       if (data && data.sources && data.sources.length > 0) {
+              setStatus(`Source found on ${server.serverName}! Loading player...`);
               
-              setSources(data.sources);
-              setSubtitles(data.subtitles || []);
-              setSelectedServerId(server.id);
+              const proxiedSources = data.sources.map((s: any) => ({
+                ...s,
+                url: s.isM3U8 ? `${M3U8_PROXY}${encodeURIComponent(s.url)}` : s.url,
+              }));
+              const proxiedSubtitles = (data.subtitles || []).map((sub: any) => ({
+                  ...sub,
+                  url: `${M3U8_PROXY}${encodeURIComponent(sub.url)}`,
+              }));
+
+              setSources(proxiedSources);
+              setSubtitles(proxiedSubtitles);
+              setSelectedServer(server);
 
               // Save last working server for this specific anime
-              localStorage.setItem(`last-working-server:${animeId}`, server.id);
-              return; // Success, exit loop
+              localStorage.setItem(`last-working-server:${animeId}`, server.serverName);
+              return true;
             } else {
               throw new Error("No sources returned from data");
             }
-        } catch (err: any) {
-            console.warn(`Server ${server.name} failed:`, err.message);
-            setStatus(`Server ${server.name} failed, trying next...`);
-        }
+    } catch (err: any) {
+        console.warn(`Server ${server.serverName} failed:`, err.message);
+        setStatus(`Server ${server.serverName} failed...`);
+        return false;
     }
-    setError('All servers are busy or unavailable. Please try again in 5 minutes.');
-    setStatus('Playback Failed');
-  }, [cleanEpisodeId, category, animeId]);
+  }, [cleanEpisodeId, animeId]);
+
+  const findWorkingServer = useCallback(async (serverList: EpisodeServer[]) => {
+      setError(null);
+      for (const server of serverList) {
+          const success = await loadStream(server);
+          if (success) return; // Exit loop if a working server is found
+      }
+      setError('All servers are busy or unavailable. Please try again in 5 minutes.');
+      setStatus('Playback Failed');
+  }, [loadStream]);
 
   useEffect(() => {
-    const lastWorkingServerId = localStorage.getItem(`last-working-server:${animeId}`);
-    const reorderedServers = [...SERVERS];
+    const fetchServersAndPlay = async () => {
+        try {
+            setStatus('Fetching available servers...');
+            const serverData = await AnimeService.getEpisodeServers(cleanEpisodeId);
+            const subServers = serverData.sub || [];
+            const dubServers = serverData.dub || [];
+            const rawServers = serverData.raw || [];
 
-    if (lastWorkingServerId) {
-        const lastWorkingServer = reorderedServers.find(s => s.id === lastWorkingServerId);
-        if (lastWorkingServer) {
-            // Move last working server to the front of the list for faster loading
-            reorderedServers.splice(reorderedServers.indexOf(lastWorkingServer), 1);
-            reorderedServers.unshift(lastWorkingServer);
+            const allServers = [...subServers, ...dubServers, ...rawServers];
+            setAvailableServers(allServers);
+
+            if (allServers.length === 0) {
+                setError('Episode not available yet.');
+                setStatus('Error');
+                return;
+            }
+            
+            const lastWorkingServerName = localStorage.getItem(`last-working-server:${animeId}`);
+            const reorderedServers = [...allServers];
+
+            if (lastWorkingServerName) {
+                const lastWorkingServer = reorderedServers.find(s => s.serverName === lastWorkingServerName);
+                if (lastWorkingServer) {
+                    // Move last working server to the front of the list for faster loading
+                    reorderedServers.splice(reorderedServers.indexOf(lastWorkingServer), 1);
+                    reorderedServers.unshift(lastWorkingServer);
+                }
+            }
+            await findWorkingServer(reorderedServers);
+
+        } catch (err: any) {
+            console.error("Failed to fetch servers list:", err);
+            setError("Could not retrieve server list. Please refresh.");
+            setStatus('Error');
         }
     }
-    loadPlayer(reorderedServers);
-  }, [cleanEpisodeId, animeId, loadPlayer]);
+    fetchServersAndPlay();
+  }, [cleanEpisodeId, animeId, findWorkingServer]);
   
   useEffect(() => {
     if (!videoRef.current || sources.length === 0) return;
 
     const video = videoRef.current;
     // Prefer the highest quality source if multiple are provided
-    const mainSource = sources.find(s => s.quality === '1080p') || sources[0];
-    const hlsUrl = mainSource.url;
+    const mainSource = sources.find(s => s.quality === '1080p') || sources.find(s => s.quality === 'default') || sources[0];
+    const sourceUrl = mainSource.url;
 
     let hls: Hls;
     if (mainSource.isM3U8 && Hls.isSupported()) {
-        hls = new Hls({
-            xhrSetup: (xhr) => {
-              // The proxy should handle this, but adding for robustness
-              xhr.setRequestHeader("Referer", "https://hianime.to");
-            },
-        });
-        hls.loadSource(hlsUrl);
+        hls = new Hls();
+        hls.loadSource(sourceUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
             video.play().catch(e => console.error("Autoplay was prevented:", e));
@@ -113,18 +138,17 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
         hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
                 console.error("HLS Fatal Error:", data);
-                setError("A fatal error occurred with the video stream. Please try another server.");
+                setError("Video stream failed. Trying another server or check your connection.");
             }
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = hlsUrl;
+        video.src = sourceUrl;
         video.addEventListener('loadedmetadata', () => {
             video.play().catch(e => console.error("Autoplay was prevented:", e));
             setStatus('Playing');
         });
     } else {
-        // Fallback for non-M3U8 sources (e.g., MP4)
-        video.src = hlsUrl;
+        video.src = sourceUrl;
         video.play().catch(e => console.error("Autoplay was prevented:", e));
         setStatus('Playing');
     }
@@ -149,12 +173,12 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
     };
   }, [sources, subtitles]);
 
-  const handleServerChange = (serverId: string) => {
-      const server = SERVERS.find(s => s.id === serverId);
+  const handleServerChange = (serverName: string) => {
+      const server = availableServers.find(s => s.serverName === serverName);
       if (server) {
           setSources([]); // Reset player
           setSubtitles([]);
-          loadPlayer([server]);
+          loadStream(server);
       }
   };
 
@@ -184,14 +208,14 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
       <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" />
       {renderOverlay()}
        <div className="absolute bottom-4 right-4 z-20">
-          <Select onValueChange={handleServerChange} value={selectedServerId}>
+          <Select onValueChange={handleServerChange} value={selectedServer?.serverName}>
               <SelectTrigger className="w-[180px] bg-card/80 border-border/50 text-white backdrop-blur-sm">
                   <Tv className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Select Server" />
               </SelectTrigger>
               <SelectContent>
-                  {SERVERS.map(server => (
-                      <SelectItem key={server.id} value={server.id}>{server.name}</SelectItem>
+                  {availableServers.map(server => (
+                      <SelectItem key={server.serverId} value={server.serverName}>{server.serverName}</SelectItem>
                   ))}
               </SelectContent>
           </Select>

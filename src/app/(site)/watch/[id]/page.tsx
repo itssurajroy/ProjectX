@@ -112,7 +112,7 @@ function WatchPageComponent() {
     refetch: refetchSources
  } = useQuery<SourcesData>({
     queryKey: ['episode-sources', currentEpisode?.episodeId, language],
-    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, language),
+    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, 'hd-1', language), // default to hd-1
     enabled: !!currentEpisode,
     retry: false, // Let the player handle retries
   });
