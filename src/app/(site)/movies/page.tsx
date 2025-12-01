@@ -83,7 +83,7 @@ function MoviesPageContent() {
 
   return (
     <>
-      <div className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center overflow-hidden">
+      <div className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center overflow-hidden -mt-16">
         <div className="absolute inset-0 z-0">
             <Image src="https://picsum.photos/seed/movies-hero/1920/1080" data-ai-hint="epic movie cinematic" alt="Movies Background" fill className="object-cover opacity-20 blur-sm scale-110" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
@@ -109,7 +109,7 @@ function MoviesPageContent() {
         </motion.div>
       </div>
 
-      <div className="container mx-auto px-6 py-12 -mt-16 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 relative z-10">
         <MoviesFilter />
 
         {isLoading && <MoviesSkeleton />}
@@ -123,7 +123,7 @@ function MoviesPageContent() {
         {movies.length > 0 && (
           <>
             <motion.div 
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-4 gap-y-8"
+                className="grid-cards"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ staggerChildren: 0.05 }}
@@ -163,8 +163,8 @@ function MoviesPageContent() {
 
 function MoviesSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-4 gap-y-8">
-      {Array.from({ length: 21 }).map((_, i) => (
+    <div className="grid-cards">
+      {Array.from({ length: 18 }).map((_, i) => (
         <div key={i} className="space-y-2">
             <Skeleton className="aspect-[2/3] rounded-md" />
             <Skeleton className="h-4 w-4/5" />

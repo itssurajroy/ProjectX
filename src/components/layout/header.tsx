@@ -2,60 +2,65 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, Languages, Send, Twitter, Youtube, Instagram, Facebook, Twitch, Share2, Rss, Info } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { Search, Menu, Shuffle, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { genres } from '@/lib/data';
-import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import NotificationBell from '../notifications/NotificationBell';
 import { AnimeService } from '@/lib/AnimeService';
 
-
-const socialIcons = {
-    Twitter: Twitter,
-    Send: Send,
-    Youtube: Youtube,
-    Instagram: Instagram,
-    Facebook: Facebook,
-    Twitch: Twitch,
-    Rss: Rss,
-    Info: Info,
-    Default: Share2,
-};
-
-const socialLinks = [
-    { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: 'Send', color: 'bg-blue-600' },
-    { name: 'Telegram', href: '#', icon: 'Send', color: 'bg-sky-500' },
-    { name: 'Reddit', href: '#', icon: 'Rss', color: 'bg-orange-600' },
-    { name: 'Twitter', href: 'https://x.com', icon: 'Twitter', color: 'bg-sky-400' },
-];
-
 const SiteLogo = () => (
     <Link href="/home" className="flex items-center gap-2">
       <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center border-2 border-primary">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 text-primary">
-              <path d="M12.25 2.016c-.82.01-1.63.1-2.42.24.48.17.93.39 1.35.63.4.24.78.52 1.13.84.7.64 1.25 1.44 1.63 2.34.38.9.57 1.86.57 2.84s-.2 1.94-.58 2.84c-.38.9-1 1.7-1.67 2.35-.67.64-1.45 1.15-2.3 1.5l.22.1a12.42 12.42 0 0 1-2.42 1.12 12.28 12.28 0 0 1-2.7 0c-.8-.23-1.57-.54-2.28-.9a12.42 12.42 0 0 1-2.42-1.12l.22-.1c-.85-.35-1.63-.86-2.3-1.5-.67-.65-.2-1.45-1.67-2.35-.38-.9-.58-1.85-.58-2.84s.2-1.95.58-2.85c.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 0 2.7 0c-.8.22-1.57.53-2.28.9-.45.2-.88.45-1.3.73l.07.05c.42-.24.87-.46 1.35-.63.8-.15 1.6-.23 2.42-.24z"/>
+              <path d="M12.25 2.016c-.82.01-1.63.1-2.42.24.48.17.93.39 1.35.63.4.24.78.52 1.13.84.7.64 1.25 1.44 1.63 2.34.38.9.57 1.86.57 2.84s-.2 1.94-.58 2.84c-.38.9-1 1.7-1.67 2.35-.67.64-1.45 1.15-2.3 1.5l.22.1a12.42 12.42 0 0 1-2.42 1.12 12.28 12.28 0 0 1-2.7 0c-.8-.23-1.57-.54-2.28-.9a12.42 12.42 0 0 1-2.42-1.12l.22-.1c-.85-.35-1.63-.86-2.3-1.5-.67-.65-.2-1.45-1.67-2.35-.38-.9-.58-1.85-.58-2.84s.2-1.95.58-2.85c-.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 0 2.7 0c-.8.22-1.57.53-2.28.9-.45.2-.88.45-1.3.73l-.07.05c.42-.24-.87-.46-1.35-.63-.8-.15-1.6-.23-2.42-.24z"/>
               <path d="M12.25 2.016c.82.01 1.63.1 2.42.24-.48.17-.93.39-1.35.63-.4.24-.78.52-1.13.84-.7.64-1.25 1.44-1.63 2.34-.38.9-.57 1.86-.57 2.84s.2 1.94.58 2.84c.38.9 1 1.7 1.67 2.35.67.64 1.45 1.15 2.3 1.5l-.22.1a12.42 12.42 0 0 0 2.42 1.12 12.28 12.28 0 0 0 2.7 0c.8-.23 1.57-.54 2.28-.9a12.42 12.42 0 0 0 2.42-1.12l-.22-.1c.85-.35 1.63-.86 2.3-1.5.67-.65 1.22-1.45 1.67-2.35.38-.9.58-1.85.58-2.84s-.2-1.95-.58-2.85c-.38-.9-1-1.7-1.67-2.34-.67-.65-1.45-1.16-2.3-1.5a12.28 12.28 0 0 0-2.7 0c-.8.22-1.57.53-2.28.9-.45.2-.88.45-1.3.73l-.07.05c-.42-.24-.87-.46-1.35-.63-.8-.15-1.6-.23-2.42-.24z"/>
           </svg>
       </div>
       <span className="text-2xl font-bold text-white hidden sm:inline">ProjectX</span>
     </Link>
 )
+
+const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const navItems = [
+      { href: "/home", label: "Home" },
+      { href: "/movies", label: "Movies" },
+      { href: "/az-list/all", label: "A-Z List" },
+    ];
+    
+    return (
+        <div className={cn("fixed inset-0 z-50 bg-background/95 backdrop-blur-sm transition-transform duration-300 ease-in-out lg:hidden", isOpen ? "translate-x-0" : "-translate-x-full")}>
+            <div className="p-4 border-b border-border flex items-center justify-between">
+                <SiteLogo />
+                <Button variant="ghost" size="icon" onClick={onClose}>
+                    <X className="w-5 h-5" />
+                </Button>
+            </div>
+            <nav className="flex flex-col gap-2 mt-4 p-4">
+               {navItems.map(item => (
+                 <Link key={item.href} href={item.href} className="text-lg font-medium p-2 rounded-md hover:bg-muted" onClick={onClose}>
+                   {item.label}
+                 </Link>
+               ))}
+                <div className="space-y-1 pt-4">
+                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
+                    <div className="max-h-64 overflow-y-auto">
+                        {genres.map(genre => (
+                        <Link key={genre} href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} onClick={onClose} className="block p-2 text-base font-medium rounded-md hover:bg-muted">
+                            {genre}
+                        </Link>
+                        ))}
+                    </div>
+                </div>
+            </nav>
+        </div>
+    )
+}
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -98,39 +103,13 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/90 backdrop-blur-sm border-b border-border">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
+    <header className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/90 backdrop-blur-sm border-b border-border">
+      <div className="container mx-auto flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-2">
-            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild className="lg:hidden">
-                <Button variant="ghost" size="icon">
-                  <Menu className="w-5 h-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                <SheetHeader className="border-b pb-4">
-                  <SiteLogo />
-                </SheetHeader>
-                <nav className="flex flex-col gap-2 mt-4">
-                   {navItems.map(item => (
-                     <Link key={item.href} href={item.href} className="flex items-center gap-2 text-base font-medium p-2 rounded-md hover:bg-muted" onClick={() => setIsMobileMenuOpen(false)}>
-                       {item.label}
-                     </Link>
-                   ))}
-                    <div className="space-y-1">
-                        <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
-                        <div className="max-h-64 overflow-y-auto">
-                            {genres.map(genre => (
-                            <Link key={genre} href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} onClick={() => setIsMobileMenuOpen(false)} className="block p-2 text-base font-medium rounded-md hover:bg-muted">
-                                {genre}
-                            </Link>
-                            ))}
-                        </div>
-                    </div>
-                </nav>
-              </SheetContent>
-            </Sheet>
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu className="w-5 h-5" />
+            </Button>
             <div className="hidden lg:block">
                 <SiteLogo />
             </div>
@@ -190,6 +169,7 @@ export default function Header() {
           <Button>Login</Button>
         </div>
       </div>
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
     </header>
   );
 }

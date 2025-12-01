@@ -150,8 +150,8 @@ const AZNav = ({ activeChar }: { activeChar: string }) => {
 }
 
 const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
-        {Array.from({ length: 12 }).map((_, index) => (
+    <div className="grid-cards">
+        {Array.from({ length: 18 }).map((_, index) => (
             <div key={index} className="space-y-2">
                 <Skeleton className="aspect-[2/3] w-full" />
                 <Skeleton className="h-4 w-4/5" />
@@ -189,12 +189,9 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
   const animes = data?.pages.flatMap(page => page.animes) ?? [];
 
   const handlePageChange = (newPage: number) => {
-    // This is a bit tricky with infinite query, for now we just fetch next page.
     if (newPage > (data?.pages.length || 0) && hasNextPage) {
         fetchNextPage();
     }
-    // We can't really go "back" a page in the infinite query model easily
-    // without more complex state management.
   };
 
   const Pagination = ({ currentPage, totalPages, hasNextPage }: { currentPage: number, totalPages: number, hasNextPage: boolean}) => {
@@ -223,7 +220,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
   
     return (
       <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+          <div className="grid-cards">
           {animes.map((anime: any) => (
               <AnimeCard key={anime.id} anime={anime} />
           ))}
@@ -235,9 +232,9 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
 
   
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 pt-24 min-h-[60vh]">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh]">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">AZ-LIST</h1>
+        <h1 className="text-title font-bold">AZ-LIST</h1>
         <p className="text-sm text-muted-foreground">{data?.pages[0].totalAnimes?.toLocaleString() || '...'} anime</p>
       </div>
       <AdvancedFilter />

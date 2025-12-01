@@ -4,10 +4,7 @@ import { Lexend, Space_Grotesk } from "next/font/google";
 import "../globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "../providers";
-import Navbar from "@/components/layout/header";
-import { Toaster } from "react-hot-toast";
-import Splash from "@/components/Splash";
-import { Balancer as BalancerProvider } from 'react-wrap-balancer'
+import Header from "@/components/layout/header";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import Footer from "@/components/layout/footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
@@ -33,6 +30,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#0f0f17",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -41,26 +41,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="dark h-full w-full m-0 p-0" suppressHydrationWarning>
        <head>
          <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
        </head>
-      <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
+      <body className={cn("h-full w-full min-h-screen bg-background text-foreground font-sans antialiased overflow-x-hidden", fontSans.variable, fontDisplay.variable)}>
         <Providers>
-        <BalancerProvider>
           <NotificationProvider>
-            <Splash />
             <ShadToaster />
-            <div className="flex flex-col min-h-screen">
-              <Navbar />
-              <main className="flex-grow pb-16 md:pb-0">{children}</main>
+            <div className="flex flex-col min-h-screen w-full">
+              <Header />
+              <main className="flex-grow pt-16">{children}</main>
               <Footer />
             </div>
             <MobileBottomNav />
             <BackToTopButton />
             <FloatingDiscordButton />
           </NotificationProvider>
-          </BalancerProvider>
         </Providers>
       </body>
     </html>

@@ -65,7 +65,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
              <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
         </div>
         
-        <div className="px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
            <div key={currentIndex} className="animate-banner-fade-in w-full">
               <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold my-3 text-glow max-w-2xl line-clamp-2">{spotlight.name}</h1>
@@ -276,7 +276,7 @@ export default function MainDashboardPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SpotlightSection spotlights={spotlightAnimes} />
       
-      <main className="px-4 sm:px-6 lg:px-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
         <PollSection />
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -296,7 +296,7 @@ export default function MainDashboardPage() {
                 <ScheduleSidebar />
             </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

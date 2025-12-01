@@ -126,7 +126,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-        <div className="relative h-auto md:h-auto overflow-hidden">
+        <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
           <div className="absolute inset-0 z-0">
             <Image
               src={animeInfo.poster}
@@ -139,7 +139,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
           </div>
 
-          <div className="px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
+          <div className="container mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
             <div className="lg:col-span-3 flex justify-center lg:justify-start">
               <Image
                 src={animeInfo.poster}
@@ -153,7 +153,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
             
             <div className="lg:col-span-9 flex flex-col justify-center h-full text-center lg:text-left">
               <div className="text-sm text-muted-foreground hidden sm:block">Home &gt; {stats.type} &gt; {animeInfo.name}</div>
-              <h1 className="text-3xl md:text-5xl font-bold mt-2 text-glow">{animeInfo.name}</h1>
+              <h1 className="text-title font-bold mt-2 text-glow">{animeInfo.name}</h1>
               
               <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
                   {stats.rating && stats.rating !== 'N/A' && <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</span>}
@@ -190,7 +190,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
           </div>
         </div>
 
-      <main className="px-4 sm:px-6 lg:px-8 -mt-10 relative z-10">
+      <div className="container mx-auto -mt-10 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-3 bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start">
                 <div className="space-y-3 text-sm">
@@ -223,7 +223,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
               
               {characters.length > 0 && (
                 <section>
-                   <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
+                   <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
                     <div className="grid grid-cols-1 gap-2">
                         {characters.slice(0, 10).map(cv => (
                             <CharacterCard key={cv.character.id} cv={cv} />
@@ -234,8 +234,8 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
              {recommendedAnimes && recommendedAnimes.length > 0 && (
                 <section>
-                    <h2 className="text-2xl font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
+                    <div className="grid-cards">
                     {recommendedAnimes?.slice(0,8).map((rec: AnimeBase) => (
                         <AnimeCard key={rec.id} anime={rec} />
                     ))}
@@ -297,7 +297,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

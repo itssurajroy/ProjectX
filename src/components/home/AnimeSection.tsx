@@ -14,7 +14,7 @@ export const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, a
     return (
         <section>
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold border-l-4 border-primary pl-3">{title}</h2>
+                <h2 className="text-title font-bold border-l-4 border-primary pl-3">{title}</h2>
                 {viewMoreLink && (
                     <Button variant="link" asChild>
                         <Link href={viewMoreLink} className="flex items-center gap-1">
@@ -23,7 +23,7 @@ export const AnimeSection = ({ title, animes, viewMoreLink }: { title: string, a
                     </Button>
                 )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-8">
+            <div className="grid-cards">
                 {animes.slice(0, 12).map((anime, index) => (
                     <AnimeCard key={`${anime.id}-${index}`} anime={anime} />
                 ))}

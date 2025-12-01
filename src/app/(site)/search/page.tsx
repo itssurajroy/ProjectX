@@ -57,7 +57,7 @@ function SearchPageContent() {
 
     if (filteredMedia.length > 0) {
         return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-4 gap-y-8">
+            <div className="grid-cards">
                 {filteredMedia.map((item) => (
                     <AnimeCard key={item.id} anime={item} />
                 ))}
@@ -74,7 +74,7 @@ function SearchPageContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 pt-24">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <form onSubmit={handleSearch}>
         <div className="bg-card p-4 rounded-lg border mb-8">
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
@@ -112,7 +112,7 @@ function SearchPageContent() {
       </form>
 
       <div>
-        <h2 className="text-2xl font-bold mb-4">{debouncedQuery ? `Results for "${debouncedQuery}"` : 'Search for shows'}</h2>
+        <h2 className="text-title font-bold mb-4">{debouncedQuery ? `Results for "${debouncedQuery}"` : 'Search for shows'}</h2>
         {renderContent()}
       </div>
     </div>
