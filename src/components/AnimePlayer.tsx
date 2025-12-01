@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { AnimeService } from '@/lib/AnimeService';
 import { sanitizeFirestoreId } from '@/lib/utils';
 import { EpisodeServer, Source, Subtitle } from '@/types/anime';
+import Link from 'next/link';
+import { SITE_NAME } from '@/lib/constants';
 
 const M3U8_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
 
@@ -196,13 +198,18 @@ export default function AnimePlayer({ episodeId, animeId }: { episodeId: string;
         }
         const iframeUrl = `https://megaplay.buzz/stream/s-2/${episodeNumber}/sub`;
         return (
-             <iframe
-                src={iframeUrl}
-                allowFullScreen
-                className="w-full h-full border-0"
-                scrolling="no"
-                title="Backup Player"
-            ></iframe>
+            <div className="w-full h-full relative">
+                <iframe
+                    src={iframeUrl}
+                    allowFullScreen
+                    className="w-full h-full border-0"
+                    scrolling="no"
+                    title="Backup Player"
+                ></iframe>
+                <div className="absolute top-2 right-2 z-10 bg-black/50 text-white text-xs px-2 py-1 rounded-md pointer-events-none">
+                    Powered by <Link href="/" className="font-bold text-primary hover:underline">{SITE_NAME}</Link>
+                </div>
+             </div>
         )
     }
 
