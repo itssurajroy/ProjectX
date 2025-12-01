@@ -81,7 +81,7 @@ export default function RulesPage() {
                 <CardHeader className="text-center">
                     <ShieldAlert className="w-12 h-12 mx-auto text-primary" />
                     <CardTitle className="text-2xl font-bold text-glow mt-4">
-                        PROJECT X COMMENT RULES — ANIME EDITION
+                        PROJECT X — OFFICIAL COMMENT SECTION RULES (2025 FINAL + ANIME-SPECIFIC EDITION)
                     </CardTitle>
                     <CardDescription className="text-lg font-mono">
                         (Read once. Break once = gone.)
