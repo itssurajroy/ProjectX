@@ -185,55 +185,37 @@ function WatchPageComponent() {
         ]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-4">
         {/* Left Sidebar */}
         <div className="hidden lg:block lg:col-span-3">
           <WatchSidebar anime={about} malData={malData} />
         </div>
 
         {/* Main Content */}
-        <div className="lg:col-span-9 space-y-4">
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-4">
-                 <div className="xl:col-span-9 space-y-4">
-                    <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                        {isLoadingSources ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center">
-                            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                        </div>
-                        ) : sourcesError || sources.length === 0 ? (
-                        <ErrorDisplay
-                                isCompact
-                                onRetry={refetchSources}
-                                title="Stream Failed"
-                                description={(sourcesError as Error)?.message || sourcesErrorMessage || "Could not load video source."}
-                            />
-                        ): (
-                        <AnimePlayer sources={sources} subtitles={subtitles} />
-                        )}
-                    </div>
-                     <PlayerOverlayControls
-                        onPrev={() => navigateEpisode('prev')}
-                        onNext={() => navigateEpisode('next')}
-                        isPrevDisabled={currentIndex <= 0}
-                        isNextDisabled={currentIndex >= episodes.length - 1}
-                        />
+        <div className="lg:col-span-6 space-y-4">
+            <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
+                {isLoadingSources ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
                 </div>
-                {/* Right sidebar for episodes */}
-                <div className="xl:col-span-3">
-                    <EpisodeList
-                        episodes={episodes}
-                        currentEpisodeId={currentEpisode?.number.toString() || null}
-                        onEpisodeSelect={(ep) =>
-                        router.push(
-                            `/watch/${animeId}?ep=${
-                            extractEpisodeNumber(ep.episodeId) || ep.number
-                            }`
-                        )
-                        }
+                ) : sourcesError || sources.length === 0 ? (
+                <ErrorDisplay
+                        isCompact
+                        onRetry={refetchSources}
+                        title="Stream Failed"
+                        description={(sourcesError as Error)?.message || sourcesErrorMessage || "Could not load video source."}
                     />
-                </div>
+                ): (
+                <AnimePlayer sources={sources} subtitles={subtitles} />
+                )}
             </div>
-
+            <PlayerOverlayControls
+                onPrev={() => navigateEpisode('prev')}
+                onNext={() => navigateEpisode('next')}
+                isPrevDisabled={currentIndex <= 0}
+                isNextDisabled={currentIndex >= episodes.length - 1}
+                />
+           
            <div className="bg-card/50 p-3 rounded-lg border border-border/50 space-y-3">
                 <p className="font-semibold text-lg">You are watching Episode {currentEpisode?.number}</p>
                 <p className="text-sm text-muted-foreground">If the current server is not working, please try switching to other servers.</p>
@@ -248,6 +230,21 @@ function WatchPageComponent() {
               episodeId={currentEpisode.episodeId}
             />
           )}
+        </div>
+
+        {/* Right sidebar for episodes */}
+        <div className="lg:col-span-3">
+            <EpisodeList
+                episodes={episodes}
+                currentEpisodeId={currentEpisode?.number.toString() || null}
+                onEpisodeSelect={(ep) =>
+                router.push(
+                    `/watch/${animeId}?ep=${
+                    extractEpisodeNumber(ep.episodeId) || ep.number
+                    }`
+                )
+                }
+            />
         </div>
       </div>
     </div>

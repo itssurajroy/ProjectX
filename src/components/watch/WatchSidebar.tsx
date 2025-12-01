@@ -43,7 +43,7 @@ export default function WatchSidebar({ anime, malData }: WatchSidebarProps) {
 
     return (
         <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start sticky top-4">
-            <div className="relative aspect-[2/3] w-full max-w-[200px] mx-auto rounded-md overflow-hidden shadow-lg -mt-16 mb-4">
+             <div className="relative aspect-[2/3] w-full max-w-[200px] mx-auto rounded-md overflow-hidden shadow-lg mb-4">
                 <Image src={info.poster} alt={info.name} fill className="object-cover" />
             </div>
             
@@ -75,4 +75,3 @@ export default function WatchSidebar({ anime, malData }: WatchSidebarProps) {
         </div>
     )
 }
-
