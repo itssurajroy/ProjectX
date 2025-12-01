@@ -12,7 +12,7 @@ import { Suspense, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import ErrorDisplay from "@/components/common/ErrorDisplay";
-import { search } from "@/lib/AnimeService";
+import * as AnimeService from "@/lib/AnimeService";
 import { SearchResult } from "@/types/anime";
 
 function SearchPageContent() {
@@ -25,7 +25,7 @@ function SearchPageContent() {
 
   const { data: searchResult, isLoading, error, refetch } = useQuery<SearchResult>({
       queryKey: ['search', debouncedQuery],
-      queryFn: () => search(debouncedQuery),
+      queryFn: () => AnimeService.search(debouncedQuery),
       enabled: !!debouncedQuery,
   });
 

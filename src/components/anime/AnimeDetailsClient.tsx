@@ -13,7 +13,7 @@ import PVCarousel from './PVCarousel';
 import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
 import { Badge } from '../ui/badge';
-import { getAnime, getEpisodes } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
@@ -72,7 +72,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     refetch,
   } = useQuery<AnimeAboutResponse>({
     queryKey: ['anime', id],
-    queryFn: () => getAnime(id),
+    queryFn: () => AnimeService.anime(id),
   });
   
   const anime = animeResult?.anime;
@@ -102,7 +102,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
   const { data: episodesResult } = useQuery<any>({
     queryKey: ['episodes', id],
-    queryFn: () => getEpisodes(id),
+    queryFn: () => AnimeService.episodes(id),
     enabled: !!animeInfo
   });
 

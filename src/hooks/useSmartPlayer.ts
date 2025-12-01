@@ -1,6 +1,8 @@
 
+'use client';
+
 import { useState, useEffect, useCallback } from 'react';
-import { getSources } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 import type { Source, Subtitle } from '@/types/anime';
 
 export function useSmartPlayer(episodeId: string, category: "sub" | "dub" = "sub") {
@@ -20,7 +22,7 @@ export function useSmartPlayer(episodeId: string, category: "sub" | "dub" = "sub
     setError(null);
 
     try {
-      const result = await getSources(episodeId, "hd-1", category);
+      const result = await AnimeService.sources(episodeId, "hd-1", category);
       if (!mounted) return;
 
       if (result.sources.length === 0) {

@@ -11,14 +11,15 @@ import { cn } from '@/lib/utils';
 import { HomeData, SearchResult } from '@/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getAZList, getHomeData } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 
 
 const AdvancedFilter = () => {
-    const { data: homeData } = useQuery<HomeData>({
+    const { data: homeDataResult } = useQuery<HomeData>({
         queryKey: ['homeData'],
-        queryFn: getHomeData,
+        queryFn: AnimeService.home,
     });
+    const homeData = homeDataResult;
     const genres = homeData?.genres || [];
     
     const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
@@ -178,7 +179,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
     isLoading,
   } = useInfiniteQuery<SearchResult, Error>({
     queryKey: ['az-list', sortOption],
-    queryFn: async ({ pageParam = 1 }) => getAZList(sortOption, pageParam),
+    queryFn: async ({ pageParam = 1 }) => AnimeService.getAZList(sortOption, pageParam),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
         return lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined

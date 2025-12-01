@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Star, Tv, Clapperboard, Calendar, Clock } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
-import { getQtip } from "@/lib/AnimeService";
+import * as AnimeService from "@/lib/AnimeService";
 
 const TooltipSkeleton = () => (
     <div className="p-2 space-y-3">
@@ -29,7 +29,7 @@ const TooltipSkeleton = () => (
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
   const { data: anime, isLoading, isError, error } = useQuery<QtipAnime>({
     queryKey: ['qtip', animeId],
-    queryFn: () => getQtip(animeId),
+    queryFn: () => AnimeService.qtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: any) => {
         // Don't retry on 404s

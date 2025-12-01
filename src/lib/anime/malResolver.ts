@@ -23,10 +23,10 @@ export async function getMALId(animeId: string): Promise<number | null> {
   }
 
   // 2. Auto search by title
-  const anime = await AnimeService.getAnimeAbout(animeId);
-  if (!anime || 'success' in anime && !anime.success || !anime.data?.anime?.info?.name) return null;
+  const anime = await AnimeService.anime(animeId);
+  if (!anime || !anime?.anime?.info?.name) return null;
 
-  const title = anime.data.anime.info.name;
+  const title = anime.anime.info.name;
   const search = await MALService.search(title);
 
   if (search?.data?.length > 0) {

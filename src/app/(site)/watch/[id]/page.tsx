@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import WatchSidebar from '@/components/watch/WatchSidebar';
 import CommentsSection from '@/components/watch/comments';
 import { useSmartPlayer } from '@/hooks/useSmartPlayer';
-import { getAnime, getEpisodes, getEpisodeServers } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
@@ -46,7 +46,7 @@ function WatchPageComponent() {
   } = useQuery<AnimeAboutResponse>(
     {
       queryKey: ['anime', animeId],
-      queryFn: () => getAnime(animeId),
+      queryFn: () => AnimeService.anime(animeId),
       enabled: !!animeId,
     }
   );
@@ -58,7 +58,7 @@ function WatchPageComponent() {
     refetch: refetchEpisodes,
   } = useQuery({
     queryKey: ['anime-episodes', animeId],
-    queryFn: () => getEpisodes(animeId),
+    queryFn: () => AnimeService.episodes(animeId),
     enabled: !!animeId,
   });
 
@@ -111,7 +111,7 @@ function WatchPageComponent() {
     data: serversResponse,
   } = useQuery({
     queryKey: ['episode-servers', currentEpisode?.episodeId],
-    queryFn: () => getEpisodeServers(currentEpisode!.episodeId),
+    queryFn: () => AnimeService.servers(currentEpisode!.episodeId),
     enabled: !!currentEpisode,
   });
 

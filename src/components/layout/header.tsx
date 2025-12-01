@@ -23,7 +23,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import NotificationBell from '../notifications/NotificationBell';
-import { search } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 
 
 const socialIcons = {
@@ -66,7 +66,7 @@ export default function Header() {
   
   const { data: suggestionsResult } = useQuery<SearchSuggestionResponse>({
       queryKey: ['searchSuggestions', searchQuery],
-      queryFn: () => search(searchQuery),
+      queryFn: () => AnimeService.search(searchQuery),
       enabled: searchQuery.length > 2,
   });
 

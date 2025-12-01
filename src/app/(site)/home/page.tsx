@@ -11,7 +11,7 @@ import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
-import { getHomeData, getSchedule } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -163,7 +163,7 @@ const ScheduleSidebar = () => {
 
     const { data: scheduleData, isLoading, error, refetch } = useQuery<ScheduleResponse>({
         queryKey: ['schedule', selectedDate.toISOString().split('T')[0]],
-        queryFn: () => getSchedule(selectedDate.toISOString().split('T')[0]),
+        queryFn: () => AnimeService.getSchedule(selectedDate.toISOString().split('T')[0]),
     });
 
     const handleDateChange = (days: number) => {
@@ -261,7 +261,7 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
 export default function MainDashboardPage() {
   const { data, isLoading, error, refetch } = useQuery<HomeData>({
     queryKey: ['homeData'],
-    queryFn: getHomeData,
+    queryFn: AnimeService.home,
   });
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;

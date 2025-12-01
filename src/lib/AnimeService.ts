@@ -10,23 +10,27 @@ async function api<T>(endpoint: string): Promise<any> {
 
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
-  if (!json.success) throw new Error(json.message || "API failed");
+  if (json.status === 500) throw new Error(json.message || `API error ${json.status}`)
+  if (!json.success) {
+    if (json.message) throw new Error(json.message)
+    throw new Error("API failed");
+  }
   return json.data;
 }
 
-export const getHomeData = () => api("/home");
-export const getMovies = (page = 1) => api(`/category/movie?page=${page}`);
-export const getTV = (page = 1) => api(`/category/tv?page=${page}`);
+export const home = () => api("/home");
+export const movies = (page = 1) => api(`/category/movie?page=${page}`);
+export const tv = (page = 1) => api(`/category/tv?page=${page}`);
 export const search = (q: string, page = 1) => api(`/search?q=${encodeURIComponent(q)}&page=${page}`);
-export const getAnime = (id: string) => api(`/anime/${id}`);
-export const getQtip = (id: string) => api(`/qtip/${id}`);
-export const getEpisodes = (id: string) => api(`/anime/${id}/episodes`);
-export const getEpisodeServers = (epId: string) => api(`/episode/servers?animeEpisodeId=${epId}`);
+export const anime = (id: string) => api(`/anime/${id}`);
+export const qtip = (id: string) => api(`/qtip/${id}`);
+export const episodes = (id: string) => api(`/anime/${id}/episodes`);
+export const servers = (epId: string) => api(`/episode/servers?animeEpisodeId=${epId}`);
 export const getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
 export const getSchedule = (date: string) => api(`/schedule?date=${date}`);
 export const getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
 
-export async function getSources(epId: string, server = "hd-1", category: "sub" | "dub" = "sub") {
+export async function sources(epId: string, server = "hd-1", category: "sub" | "dub" = "sub") {
     const data = await api(`/episode/sources?animeEpisodeId=${epId}&server=${server}&category=${category}`);
     
     return {

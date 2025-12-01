@@ -10,7 +10,7 @@ import { Film, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getMovies } from '@/lib/AnimeService';
+import * as AnimeService from '@/lib/AnimeService';
 import { SearchResult } from '@/types/anime';
 
 function MoviesPageContent() {
@@ -24,7 +24,7 @@ function MoviesPageContent() {
     error,
   } = useInfiniteQuery<SearchResult>({
     queryKey: ['movies'],
-    queryFn: ({ pageParam = 1 }) => getMovies(pageParam),
+    queryFn: ({ pageParam = 1 }) => AnimeService.movies(pageParam),
     getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
     initialPageParam: 1,
     staleTime: 15 * 60 * 1000, // 15 minutes
