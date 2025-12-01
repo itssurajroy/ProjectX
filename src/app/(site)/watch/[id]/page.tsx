@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
 import EpisodeList from '@/components/watch/episode-list';
-import { AnimeEpisode, AnimeAboutResponse, EpisodeServer } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse, EpisodeServer, Source, Subtitle } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
 import ServerToggle from '@/components/watch/ServerToggle';
@@ -21,19 +21,23 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { useSmartPlayer } from '@/hooks/useSmartPlayer';
 import { AnimeService } from '@/lib/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
-const CommentsSection = dynamic(() => import('@/components/watch/comments'), {
+const CommentsSection = dynamic(() => import('@components/watch/comments'), {
   loading: () => <Skeleton className="w-full h-64" />,
   ssr: false
 });
 
-
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
+
+interface SourcesData {
+    sources: Source[];
+    subtitles: Subtitle[];
+    message?: string;
+}
 
 function WatchPageComponent() {
   const params = useParams();
@@ -110,33 +114,19 @@ function WatchPageComponent() {
     );
   }, [episodes, episodeParam]);
 
-  const {
-    data: serversResponse,
-  } = useQuery({
-    queryKey: ['episode-servers', currentEpisode?.episodeId],
-    queryFn: () => AnimeService.servers(currentEpisode!.episodeId),
-    enabled: !!currentEpisode,
+  const { 
+    data: sourcesData, 
+    isLoading: isLoadingSources,
+    error: sourcesError,
+    refetch: refetchSources
+ } = useQuery<SourcesData>({
+    queryKey: ['episode-sources', currentEpisode?.episodeId, language],
+    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, language),
+    enabled: !!currentEpisode
   });
 
-  const availableServers: EpisodeServer[] = useMemo(() => {
-    if (!serversResponse) return [];
-    return serversResponse[language] || [];
-  }, [serversResponse, language]);
-  
-  const [selectedServer, setSelectedServer] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (availableServers.length > 0 && !selectedServer) {
-      setSelectedServer(availableServers[0].serverName);
-    }
-  }, [availableServers, selectedServer]);
-
-  const { sources, loading: isLoadingSources, error: sourcesError, retry } = useSmartPlayer(
-    currentEpisode?.episodeId || '',
-    language,
-    selectedServer || availableServers[0]?.serverName,
-    availableServers.map(s => s.serverName)
-  );
+  const sources = sourcesData?.sources || [];
+  const sourcesErrorMessage = sourcesData?.message;
 
   useEffect(() => {
     if (isLoadingEpisodes || !episodes) return;
@@ -250,12 +240,12 @@ function WatchPageComponent() {
               <div className="flex flex-col items-center justify-center h-full text-center">
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
               </div>
-            ) : sourcesError ? (
+            ) : sourcesError || sources.length === 0 ? (
               <ErrorDisplay
                     isCompact
-                    onRetry={retry}
+                    onRetry={refetchSources}
                     title="Stream Failed"
-                    description={sourcesError}
+                    description={(sourcesError as Error)?.message || sourcesErrorMessage || "Could not load video source."}
                   />
             ): (
               <iframe
@@ -287,10 +277,7 @@ function WatchPageComponent() {
               <LanguageToggle
                 onLanguageChange={(lang: Language) => setLanguage(lang)}
               />
-              <ServerToggle 
-                servers={availableServers}
-                activeServer={selectedServer}
-                onServerChange={(server) => setSelectedServer(server)} />
+              {/* ServerToggle is now redundant due to smart fallback */}
             </div>
           </div>
         </div>

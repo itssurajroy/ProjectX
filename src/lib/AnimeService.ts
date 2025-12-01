@@ -1,7 +1,6 @@
-
-// src/lib/AnimeService.ts — FINAL 100% WORKING VERSION
+// src/lib/AnimeService.ts
 const API_BASE = "/api";
-const PROXY = "/api/stream?url=";
+const STREAM_PROXY_BASE = "/api/stream";
 
 async function api<T>(endpoint: string): Promise<any> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -10,7 +9,6 @@ async function api<T>(endpoint: string): Promise<any> {
   });
 
   if (!res.ok) {
-    // Forward the error from the proxy
     const errorBody = await res.text();
     throw new Error(`API Request Failed: ${res.status} ${res.statusText} - ${errorBody}`);
   }
@@ -18,7 +16,6 @@ async function api<T>(endpoint: string): Promise<any> {
   if (json.status === 500) throw new Error(json.message || `API error ${json.status}`)
   if (!json.success && json.message) throw new Error(json.message);
   
-  // The external API nests the data, the proxy returns it directly.
   return json.data ?? json;
 }
 
@@ -35,19 +32,44 @@ export class AnimeService {
   static getSchedule = (date: string) => api(`/schedule?date=${date}`);
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   
-  static async sources(epId: string, server = "hd-1", category: "sub" | "dub" = "sub") {
-    const data = await api(`/episode/sources?animeEpisodeId=${epId}&server=${server}&category=${category}`);
+  static async getEpisodeSources(episodeId: string, category: "sub" | "dub" = "sub") {
+    const servers = ["hd-1", "vidstreaming", "megacloud", "streamwish", "filemoon"];
     
+    for (const server of servers) {
+      try {
+        const res = await fetch(`${STREAM_PROXY_BASE}/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`);
+        
+        if (!res.ok) continue;
+        
+        const json = await res.json();
+        
+        if (json.success && json.data?.sources?.length > 0) {
+          // Auto proxy all m3u8 and subtitles
+          return {
+            ...json.data,
+            sources: json.data.sources.map((s: any) => ({
+              ...s,
+              url: s.isM3U8 || s.url.includes(".m3u8")
+                ? `https://m3u8proxy-kohl-one.vercel.app/?url=${encodeURIComponent(s.url)}`
+                : s.url
+            })),
+            subtitles: (json.data.subtitles || []).map((s: any) => ({
+              ...s,
+              url: `https://m3u8proxy-kohl-one.vercel.app/?url=${encodeURIComponent(s.url)}`
+            }))
+          };
+        }
+      } catch (err) {
+        console.log(`Server ${server} failed, trying next...`);
+        continue;
+      }
+    }
+
+    // Final fallback
     return {
-      ...data,
-      sources: data.sources.map((s: any) => ({
-        ...s,
-        url: s.isM3U8 ? `${PROXY}${encodeURIComponent(s.url)}` : s.url
-      })),
-      subtitles: data.subtitles?.map((s: any) => ({
-        ...s,
-        url: `${PROXY}${encodeURIComponent(s.url)}`
-      })) || []
+      sources: [],
+      subtitles: [],
+      message: "All servers failed. Please try again later."
     };
   }
 }
