@@ -58,7 +58,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     {anime.malscore && <div className="flex items-center gap-1"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {anime.malscore}</div>}
                     <div className="flex items-center gap-1"><Tv className="w-3 h-3"/> {anime.type}</div>
-                    {anime.episodes.sub && <div className="flex items-center gap-1"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</div>}
+                    {anime.episodes?.sub && <div className="flex items-center gap-1"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</div>}
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-4" dangerouslySetInnerHTML={{__html: anime.description}} />
                 
