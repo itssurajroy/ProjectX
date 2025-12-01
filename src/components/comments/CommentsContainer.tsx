@@ -9,8 +9,9 @@ import AnimeComments from './AnimeComments';
 import EpisodeComments from './EpisodeComments';
 import { AnimeEpisode } from '@/types/anime';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { AlertTriangle, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ShieldCheck, ChevronsDown } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '../ui/button';
 
 interface CommentsContainerProps {
   animeId: string;
@@ -48,6 +49,7 @@ export default function CommentsContainer({
   availableEpisodes,
 }: CommentsContainerProps) {
   const [showComments, setShowComments] = useState(true);
+  const [showRules, setShowRules] = useState(false);
   const defaultTab = episodeId ? 'episode' : 'anime';
 
   return (
@@ -78,7 +80,17 @@ export default function CommentsContainer({
         )}
       </div>
 
-       <CommentRules />
+      {!showRules && (
+        <Button
+            variant="outline"
+            className="w-full mb-4 gap-2"
+            onClick={() => setShowRules(true)}
+        >
+            <ChevronsDown className="w-4 h-4"/> Show Community Rules
+        </Button>
+      )}
+
+      {showRules && <CommentRules />}
 
       {showComments && (
         <>
