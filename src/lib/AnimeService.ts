@@ -1,7 +1,7 @@
 
 // src/lib/AnimeService.ts — FINAL 100% WORKING VERSION
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
-const PROXY = process.env.NEXT_PUBLIC_CORS_PROXY!;
+const PROXY = "/api/stream?url=";
 
 async function api<T>(endpoint: string): Promise<any> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
