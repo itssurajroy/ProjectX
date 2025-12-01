@@ -1,5 +1,5 @@
 
-import { AnimeBase } from "@/types/anime"
+import { AnimeBase, QtipAnime } from "@/types/anime"
 import Image from "next/image"
 import Link from "next/link"
 import { Badge } from "./ui/badge"
@@ -8,11 +8,12 @@ import { AnimeTooltip } from "./AnimeTooltip"
 
 type AnimeCardProps = {
   anime: AnimeBase;
+  qtip: QtipAnime | undefined;
 }
 
-export function AnimeCard({ anime }: AnimeCardProps) {
+export function AnimeCard({ anime, qtip }: AnimeCardProps) {
   return (
-    <AnimeTooltip animeId={anime.id}>
+    <AnimeTooltip anime={qtip}>
       <Link href={`/anime/${anime.id}`} className="group block space-y-2 h-full flex flex-col">
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-md bg-secondary">
           <Image

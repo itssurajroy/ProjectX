@@ -4,7 +4,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
-import { AnimeBase, SearchResult } from "@/types/anime";
+import { AnimeBase, QtipAnime, SearchResult } from "@/types/anime";
 import { AnimeCard } from "../AnimeCard";
 import { Skeleton } from "../ui/skeleton";
 import ErrorDisplay from "../common/ErrorDisplay";
@@ -41,11 +41,25 @@ export default function AnimeListModal({ isOpen, onClose, title, category }: Ani
         isFetchingNextPage,
         isLoading,
         refetch
-    } = useInfiniteQuery<SearchResult, Error>({
+    } = useInfiniteQuery<{animes: AnimeBase[], qtips: Record<string, QtipAnime>}, Error, {animes: AnimeBase[], qtips: Record<string, QtipAnime>}, ['category', string], number>({
         queryKey: ['category', category],
-        queryFn: ({ pageParam = 1 }) => AnimeService.getCategory(category, pageParam),
+        queryFn: async ({ pageParam = 1 }) => {
+            const result: SearchResult = await AnimeService.getCategory(category, pageParam);
+            const animeIds = result.animes.map(a => a.id);
+            const qtipPromises = animeIds.map(id => AnimeService.qtip(id).catch(() => null));
+            const qtipResults = await Promise.all(qtipPromises);
+            
+            const qtips: Record<string, QtipAnime> = {};
+            qtipResults.forEach(res => {
+                if (res?.anime) {
+                    qtips[res.anime.id] = res.anime;
+                }
+            });
+
+            return { ...result, qtips };
+        },
         initialPageParam: 1,
-        getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
+        getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
         enabled: isOpen, // only fetch when modal is open
     });
 
@@ -62,24 +76,25 @@ export default function AnimeListModal({ isOpen, onClose, title, category }: Ani
     }, [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
 
-    const animes = data?.pages.flatMap(page => page.animes) ?? [];
+    const allAnimes = data?.pages.flatMap(page => page.animes) ?? [];
+    const allQtips = data?.pages.reduce((acc, page) => ({ ...acc, ...page.qtips }), {}) ?? {};
 
     const renderContent = () => {
         if (isLoading) return <LoadingSkeleton />;
         if (error) return <ErrorDisplay title={`Failed to load ${title}`} description={error.message} onRetry={refetch} isCompact/>;
 
-        if (animes.length === 0) {
+        if (allAnimes.length === 0) {
             return <p className="text-center text-muted-foreground py-16">No anime found in this category.</p>;
         }
 
         return (
             <>
                 <div className="grid-cards">
-                    {animes.map((anime: AnimeBase, index) => {
-                         if (animes.length === index + 1) {
-                            return <div ref={lastAnimeElementRef} key={anime.id}><AnimeCard anime={anime} /></div>
+                    {allAnimes.map((anime: AnimeBase, index) => {
+                         if (allAnimes.length === index + 1) {
+                            return <div ref={lastAnimeElementRef} key={anime.id}><AnimeCard anime={anime} qtip={allQtips[anime.id]} /></div>
                          }
-                         return <AnimeCard key={`${anime.id}-${index}`} anime={anime} />;
+                         return <AnimeCard key={`${anime.id}-${index}`} anime={anime} qtip={allQtips[anime.id]} />;
                     })}
                 </div>
                 {isFetchingNextPage && (
@@ -107,3 +122,4 @@ export default function AnimeListModal({ isOpen, onClose, title, category }: Ani
         </Dialog>
     )
 }
+
