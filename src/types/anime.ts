@@ -1,6 +1,3 @@
-
-
-
 export interface AnimeBase {
     id: string;
     name: string;
@@ -10,6 +7,7 @@ export interface AnimeBase {
         sub: number;
         dub: number;
     };
+    totalEpisodes?: number;
     type?: string;
     duration?: string;
     rank?: number;
@@ -209,5 +207,3 @@ export interface QtipAnime {
   status: string;
   genres: string[];
 }
-
-    
