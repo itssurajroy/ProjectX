@@ -239,36 +239,27 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                 <Link
                     key={anime.id}
                     href={`/anime/${anime.id}`}
-                    className="relative block p-3 rounded-lg overflow-hidden group transition-all duration-300"
+                    className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
                 >
                     <Image
                         src={anime.poster}
                         alt={anime.name}
                         fill
                         sizes="200px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-110 opacity-10"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-10"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-card/80 via-card/70 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
                     
-                    <div className="relative flex items-center gap-4">
-                        <div className="relative flex-shrink-0">
-                            {index === 0 && (
-                                <svg viewBox="0 0 100 100" className="absolute -top-3.5 -left-3.5 w-11 h-11 text-amber-400 opacity-80 -z-0 filter blur-[1px]">
-                                    <path d="M 50,0 L 60,40 L 100,40 L 70,65 L 80,100 L 50,75 L 20,100 L 30,65 L 0,40 L 40,40 Z" fill="currentColor"/>
-                                </svg>
-                            )}
-                            <span className={cn(
-                                "relative z-10 flex items-center justify-center w-8 h-8 rounded-full text-lg font-bold flex-shrink-0",
-                                index === 0 ? "bg-amber-400 text-black" : "bg-muted text-muted-foreground"
-                            )}>
-                                {anime.rank || index + 1}
-                            </span>
+                    <div className="relative flex items-center gap-3">
+                         <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-lg"
+                            style={{ borderColor: index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--border))'}}>
+                            {anime.rank || index + 1}
                         </div>
                         <div className="flex-1 overflow-hidden">
                             <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{anime.name}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                {anime.episodes?.sub && <span className="px-1.5 py-0.5 rounded-sm bg-red-500/20 text-red-300">SUB {anime.episodes.sub}</span>}
-                                {anime.episodes?.dub && <span className="px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
+                                {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-red-500/20 text-red-300"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
+                                {anime.episodes?.dub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
                                 <span className='hidden sm:inline'>{anime.type}</span>
                             </div>
                         </div>
@@ -323,5 +314,7 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
 
     
