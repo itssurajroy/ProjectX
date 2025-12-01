@@ -1,6 +1,6 @@
 
 // src/lib/AnimeService.ts — FINAL 100% WORKING VERSION
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+const API_BASE = "/api";
 const PROXY = "/api/stream?url=";
 
 async function api<T>(endpoint: string): Promise<any> {
@@ -9,14 +9,17 @@ async function api<T>(endpoint: string): Promise<any> {
     headers: { "User-Agent": "ProjectX/1.0" }
   });
 
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) {
+    // Forward the error from the proxy
+    const errorBody = await res.text();
+    throw new Error(`API Request Failed: ${res.status} ${res.statusText} - ${errorBody}`);
+  }
   const json = await res.json();
   if (json.status === 500) throw new Error(json.message || `API error ${json.status}`)
-  if (!json.success) {
-    if (json.message) throw new Error(json.message)
-    throw new Error("API failed");
-  }
-  return json.data;
+  if (!json.success && json.message) throw new Error(json.message);
+  
+  // The external API nests the data, the proxy returns it directly.
+  return json.data ?? json;
 }
 
 export class AnimeService {
