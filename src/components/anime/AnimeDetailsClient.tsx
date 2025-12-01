@@ -16,6 +16,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { Bookmark } from 'lucide-react';
+import AnimeComments from './AnimeComments';
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
   loading: () => <Skeleton className="h-48 w-full" />,
@@ -243,6 +244,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
                 </section>
              )}
+             <AnimeComments animeId={id} />
           </div>
           <div className="lg:col-span-3 space-y-6">
             {relatedAnimes && relatedAnimes.length > 0 && (

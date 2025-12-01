@@ -64,6 +64,13 @@ service cloud.firestore {
       allow update: if false; 
     }
     
+    match /comments/{animeId}/general/messages/{messageId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow delete: if isModeratorOrAdmin();
+        allow update: if false;
+    }
+    
     // Notifications: Users can only access their own.
     match /notifications/{userId}/items/{notificationId} {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
