@@ -1,4 +1,3 @@
-
 'use client';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -234,25 +233,52 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                     <button onClick={() => setTrendingPeriod('month')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'month' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Month</button>
                 </div>
             </div>
-          <div className='space-y-1'>
-            {animesToDisplay.map((anime: Top10Anime, index) => (
-              <Link key={anime.id} href={`/anime/${anime.id}`} className="block p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
-                <div className="flex items-start gap-4 group">
-                  <span className={`text-2xl font-bold w-8 text-center flex-shrink-0 ${(index + 1) < 4 ? 'text-primary text-glow-sm' : 'text-muted-foreground'}`}>{String(anime.rank || index + 1).padStart(2, '0')}</span>
-                  <div className="relative w-14 h-20 flex-shrink-0">
-                     <Image src={anime.poster} alt={anime.name} fill sizes="56px" className="rounded-md object-cover" />
-                  </div>
-                  <div className="flex-grow overflow-hidden">
-                    <p className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-2">{anime.name}</p>
-                     <div className="flex items-center flex-wrap gap-2 text-xs text-muted-foreground mt-1">
-                       {anime.episodes?.sub && <span className="px-1.5 py-0.5 rounded-sm bg-muted/80">SUB {anime.episodes.sub}</span>}
-                       {anime.episodes?.dub && <span className="px-1.5 py-0.5 rounded-sm bg-blue-500/50 text-blue-300">DUB {anime.episodes.dub}</span>}
+            <div className="space-y-2">
+            {animesToDisplay.map((anime, index) => (
+                <Link
+                    key={anime.id}
+                    href={`/anime/${anime.id}`}
+                    className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
+                >
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                             <div className="relative flex-shrink-0">
+                                {index === 0 && (
+                                    <svg viewBox="0 0 100 100" className="absolute -top-4 -left-4 w-12 h-12 text-primary opacity-50 -z-0">
+                                        <path d="M 50,0 L 60,40 L 100,40 L 70,65 L 80,100 L 50,75 L 20,100 L 30,65 L 0,40 L 40,40 Z" fill="currentColor"/>
+                                    </svg>
+                                )}
+                                <span className={cn(
+                                    "relative z-10 flex items-center justify-center w-8 h-8 rounded-full text-lg font-bold flex-shrink-0",
+                                    index === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                                )}>
+                                    {anime.rank || index + 1}
+                                </span>
+                            </div>
+                            <div className="overflow-hidden">
+                                <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{anime.name}</p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                    {anime.episodes?.sub && <span className="px-1.5 py-0.5 rounded-sm bg-red-500/20 text-red-300">SUB {anime.episodes.sub}</span>}
+                                    {anime.episodes?.dub && <span className="px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
+                                    <span className='hidden sm:inline'>{anime.type}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="relative w-20 h-12 flex-shrink-0 ml-2">
+                             <Image
+                                src={anime.poster}
+                                alt={anime.name}
+                                fill
+                                sizes="80px"
+                                className="object-cover rounded-md"
+                            />
+                             <div className="absolute inset-0 bg-gradient-to-l from-card/0 via-card/70 to-card/90 group-hover:to-muted/80 transition-colors"></div>
+                        </div>
                     </div>
-                  </div>
-                </div>
-              </Link>
+                </Link>
             ))}
-          </div>
+            </div>
         </div>
     );
 };
