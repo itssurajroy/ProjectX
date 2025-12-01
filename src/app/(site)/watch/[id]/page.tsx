@@ -30,12 +30,9 @@ import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
 import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
+import CommentsContainer from '@/components/comments/CommentsContainer';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
-const CommentsSection = dynamic(() => import('@/components/watch/comments'), {
-  loading: () => <Skeleton className="w-full h-64" />,
-  ssr: false
-});
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
@@ -230,9 +227,10 @@ function WatchPageComponent() {
            <EpisodeCountdown airingTime={nextAiringTime} />
             
           {currentEpisode && (
-            <CommentsSection
+            <CommentsContainer
               animeId={animeId}
               episodeId={currentEpisode.episodeId}
+              availableEpisodes={episodes}
             />
           )}
         </div>

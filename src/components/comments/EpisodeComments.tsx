@@ -1,6 +1,6 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,12 +12,12 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
-  doc,
-  where,
-  getFirestore,
 } from 'firebase/firestore';
 import { sanitizeFirestoreId } from '@/lib/utils';
 import { initializeFirebase } from '@/firebase';
+import { AnimeEpisode } from '@/types/anime';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const { firestore } = initializeFirebase();
 
@@ -29,15 +29,19 @@ interface Comment {
   avatar: string;
 }
 
-export default function CommentsSection({
-  animeId,
-  episodeId,
-}: {
+interface EpisodeCommentsProps {
   animeId: string;
   episodeId: string;
-}) {
+  availableEpisodes: AnimeEpisode[];
+}
+
+export default function EpisodeComments({ animeId, episodeId, availableEpisodes }: EpisodeCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const currentEpNumber = searchParams.get('ep');
 
   const commentsRef = useMemo(() => {
     const sanitizedEpisodeId = sanitizeFirestoreId(episodeId);
@@ -68,7 +72,7 @@ export default function CommentsSection({
     if (newComment.trim() === '') return;
 
     await addDoc(commentsRef, {
-      author: 'Anonymous', // Since auth is removed
+      author: 'Anonymous', // Placeholder
       text: newComment,
       timestamp: serverTimestamp(),
       avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
@@ -77,11 +81,27 @@ export default function CommentsSection({
     setNewComment('');
   };
 
-  return (
-    <Card className="bg-card/50 p-4">
-      <h2 className="mb-3 text-lg font-bold">💬 Comments</h2>
+  const handleEpisodeChange = (epNumber: string) => {
+    router.push(`/watch/${animeId}?ep=${epNumber}`);
+  };
 
-      <div className="mb-4 flex gap-3">
+  return (
+    <div className="space-y-4 mt-6">
+      <div className="flex gap-4 items-center">
+         <p className="text-sm font-semibold">Comments for Episode:</p>
+         <Select onValueChange={handleEpisodeChange} defaultValue={currentEpNumber || undefined}>
+            <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Select EP" />
+            </SelectTrigger>
+            <SelectContent>
+                {availableEpisodes.map(ep => (
+                    <SelectItem key={ep.number} value={String(ep.number)}>{ep.number}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex gap-3">
         <Avatar>
           <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
           <AvatarFallback>A</AvatarFallback>
@@ -90,7 +110,7 @@ export default function CommentsSection({
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment..."
+            placeholder={`Add a comment for Episode ${currentEpNumber}...`}
             className="mb-2"
           />
           <Button onClick={handlePostComment} size="sm">
@@ -131,11 +151,11 @@ export default function CommentsSection({
           </div>
         ))}
         {comments.length === 0 && (
-          <p className="py-4 text-center text-sm text-muted-foreground">
-            Be the first to comment!
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Be the first to comment on this episode!
           </p>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
