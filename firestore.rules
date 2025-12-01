@@ -31,6 +31,22 @@ service cloud.firestore {
         allow update, delete: if false; // Disallow editing/deleting for now
       }
     }
+    
+    // COMMENTS
+    match /comments/{animeId} {
+        // General anime comments
+        match /general/{messageId} {
+            allow read: if true;
+            allow create: if isSignedIn();
+            allow update, delete: if false; // Future: allow if user is author
+        }
+        // Episode-specific comments
+        match /episodes/{episodeId}/messages/{messageId} {
+             allow get, list: if true;
+             allow create: if isSignedIn();
+             allow update, delete: if false; // Future: allow if user is author
+        }
+    }
 
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
