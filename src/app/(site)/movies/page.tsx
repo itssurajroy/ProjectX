@@ -1,17 +1,63 @@
 
 'use client';
 
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Film, Sparkles } from 'lucide-react';
+import { Film, Sparkles, Filter, ChevronDown, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Suspense } from 'react';
+import { Suspense, useState, useMemo } from 'react';
 import { AnimeService } from '@/lib/AnimeService';
-import { SearchResult } from '@/types/anime';
+import { HomeData, SearchResult } from '@/types/anime';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { years } from '@/lib/data';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+
+
+function MoviesFilter() {
+  const { data: homeDataResult } = useQuery<HomeData>({
+      queryKey: ['homeData'],
+      queryFn: AnimeService.home,
+  });
+  const genres = homeDataResult?.genres || [];
+  
+  return (
+    <div className="bg-card/50 p-4 rounded-lg border border-border/50 backdrop-blur-sm mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-center">
+             <h3 className="text-lg font-semibold col-span-2 md:col-span-4 lg:col-span-1 flex items-center gap-2">
+                <Filter className="w-5 h-5 text-primary" />
+                Filter Movies
+            </h3>
+            <Select>
+                <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="All Genres" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">All Genres</SelectItem>
+                    {genres.map(g => <SelectItem key={g} value={g.toLowerCase()}>{g}</SelectItem>)}
+                </SelectContent>
+            </Select>
+             <Select>
+                <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="All Years" /></SelectTrigger>
+                <SelectContent>
+                     <SelectItem value="all">All Years</SelectItem>
+                    {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <Select defaultValue="popularity">
+                <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="Sort By" /></SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="popularity">Popularity</SelectItem>
+                    <SelectItem value="latest">Latest</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                </SelectContent>
+            </Select>
+            <Button className="col-span-2 md:col-span-1">Apply</Button>
+        </div>
+    </div>
+  )
+}
+
 
 function MoviesPageContent() {
   const {
@@ -22,77 +68,88 @@ function MoviesPageContent() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useInfiniteQuery<SearchResult>({
     queryKey: ['movies'],
     queryFn: ({ pageParam = 1 }) => AnimeService.movies(pageParam),
     getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
     initialPageParam: 1,
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 15 * 60 * 1000,
     retry: 2,
   });
 
-  const movies = data?.pages.flatMap(p => p.animes).filter(Boolean) || [];
+  const movies = useMemo(() => data?.pages.flatMap(p => p.animes).filter(Boolean) || [], [data]);
 
   return (
     <>
-      <div className="relative h-96 bg-gradient-to-br from-purple-900 via-black to-pink-900">
-        <div className="absolute inset-0 bg-black/70" />
-        <div className="container mx-auto px-6 h-full flex items-center">
-          <motion.div initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }}>
-            <Badge className="mb-6 text-2xl px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600">
-              <Film className="w-8 h-8 mr-3" /> ANIME MOVIES
-            </Badge>
-            <h1 className="text-8xl font-black bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent">
-              Cinema Collection
+      <div className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+            <Image src="https://picsum.photos/seed/movies-hero/1920/1080" data-ai-hint="epic movie cinematic" alt="Movies Background" fill className="object-cover opacity-20 blur-sm scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+        </div>
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative z-10"
+        >
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-glow tracking-tight uppercase">
+              Movie Collection
             </h1>
-            <p className="text-2xl text-gray-300 mt-6">All full-length anime films in one place.</p>
+            <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
+              Explore thousands of animated films, from timeless classics to the latest blockbusters.
+            </p>
             {movies.length > 0 && (
-                <div className="mt-8 text-xl text-gray-300">
-                <Sparkles className="inline w-8 h-8 text-yellow-400 mr-2" />
-                <strong>{movies.length.toLocaleString()}+</strong> movies loaded
+                <div className="mt-8 text-lg text-muted-foreground flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <strong>{movies.length.toLocaleString()}+</strong> movies loaded and ready to watch.
                 </div>
             )}
-          </motion.div>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="container mx-auto px-6 py-16">
+      <div className="container mx-auto px-6 py-12 -mt-16 relative z-10">
+        <MoviesFilter />
+
         {isLoading && <MoviesSkeleton />}
 
         {isError && (
-          <div className="text-center py-32 text-red-400">
-            <p className="text-2xl mb-4">Failed to load movies</p>
-            <p className="text-gray-500">Error: {(error as any)?.message}</p>
+          <div className="text-center py-20">
+             <ErrorDisplay title="Failed to Load Movies" description={(error as any)?.message} onRetry={refetch}/>
           </div>
         )}
 
         {movies.length > 0 && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
+            <motion.div 
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-4 gap-y-8"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ staggerChildren: 0.05 }}
+            >
               {movies.map((movie: any, i: number) => (
-                <motion.div key={`${movie.id}-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}>
-                  <Link href={`/anime/${movie.id}`}>
-                    <div className="group relative rounded-2xl overflow-hidden">
-                      <AnimeCard anime={movie} />
-                      {movie.duration && (
-                        <Badge className="absolute top-3 right-3 bg-black/80 backdrop-blur text-xs font-bold">
-                          {movie.duration}
-                        </Badge>
-                      )}
-                    </div>
-                  </Link>
+                <motion.div
+                    key={`${movie.id}-${i}`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <AnimeCard anime={movie} />
                 </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {hasNextPage && (
-              <div className="flex justify-center mt-20">
+              <div className="flex justify-center mt-16">
                 <Button
                   onClick={() => fetchNextPage()}
                   disabled={isFetchingNextPage}
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 px-24 py-8 text-2xl font-bold rounded-full shadow-2xl"
+                  size="lg"
+                  className="px-12 py-6 text-base font-bold shadow-lg shadow-primary/20 transform hover:scale-105 transition-transform"
                 >
-                  {isFetchingNextPage ? 'Loading...' : 'Load More Movies'}
+                  {isFetchingNextPage ? (
+                      <><RefreshCw className="w-5 h-5 mr-2 animate-spin"/> Loading...</>
+                  ) : 'Load More Movies'}
                 </Button>
               </div>
             )}
@@ -105,9 +162,12 @@ function MoviesPageContent() {
 
 function MoviesSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
-      {Array.from({ length: 32 }).map((_, i) => (
-        <Skeleton key={i} className="aspect-[2/3] rounded-2xl bg-gray-900/70" />
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-x-4 gap-y-8">
+      {Array.from({ length: 21 }).map((_, i) => (
+        <div key={i} className="space-y-2">
+            <Skeleton className="aspect-[2/3] rounded-md" />
+            <Skeleton className="h-4 w-4/5" />
+        </div>
       ))}
     </div>
   );
@@ -120,3 +180,5 @@ export default function MoviesPage() {
         </Suspense>
     )
 }
+
+    
