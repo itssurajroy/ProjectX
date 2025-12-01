@@ -31,6 +31,7 @@ import { MALService } from '@/lib/MALService';
 import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
 import CommentsContainer from '@/components/comments/CommentsContainer';
+import AnimeSchedule from '@/components/watch/AnimeSchedule';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
 
@@ -224,6 +225,7 @@ function WatchPageComponent() {
                 <ServerToggle onLanguageChange={setLanguage} />
            </div>
            
+           <AnimeSchedule animeId={animeId} animeName={about.info.name} />
            <EpisodeCountdown airingTime={nextAiringTime} />
             
           {currentEpisode && (
