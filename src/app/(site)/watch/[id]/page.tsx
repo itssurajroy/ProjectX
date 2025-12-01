@@ -5,10 +5,9 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
 import EpisodeList from '@/components/watch/episode-list';
-import { AnimeEpisode, AnimeAboutResponse, EpisodeServer, Source, Subtitle } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse, Source, Subtitle } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
-import ServerToggle from '@/components/watch/ServerToggle';
 import LanguageToggle, { Language } from '@/components/watch/LanguageToggle';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Breadcrumb from '@/components/common/Breadcrumb';
@@ -24,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { AnimeService } from '@/lib/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import AnimePlayer from '@/components/AnimePlayer';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
 const CommentsSection = dynamic(() => import('@/components/watch/comments'), {
@@ -126,6 +126,7 @@ function WatchPageComponent() {
   });
 
   const sources = sourcesData?.sources || [];
+  const subtitles = sourcesData?.subtitles || [];
   const sourcesErrorMessage = sourcesData?.message;
 
   useEffect(() => {
@@ -153,8 +154,6 @@ function WatchPageComponent() {
       episodes[newIndex].number;
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
   };
-
-  const iframeSrc = sources.length > 0 ? sources[0].url : '';
 
   if (isLoadingAbout || isLoadingEpisodes) {
     return (
@@ -248,12 +247,7 @@ function WatchPageComponent() {
                     description={(sourcesError as Error)?.message || sourcesErrorMessage || "Could not load video source."}
                   />
             ): (
-              <iframe
-                key={iframeSrc}
-                src={iframeSrc}
-                allowFullScreen
-                className="h-full w-full"
-              ></iframe>
+              <AnimePlayer sources={sources} subtitles={subtitles} />
             )}
           </div>
           <div className="mt-4">
@@ -277,7 +271,6 @@ function WatchPageComponent() {
               <LanguageToggle
                 onLanguageChange={(lang: Language) => setLanguage(lang)}
               />
-              {/* ServerToggle is now redundant due to smart fallback */}
             </div>
           </div>
         </div>

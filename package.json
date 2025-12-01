@@ -46,6 +46,7 @@
     "firebase": "^10.12.2",
     "framer-motion": "^11.2.10",
     "genkit": "^1.20.0",
+    "hls.js": "^1.5.11",
     "lucide-react": "^0.475.0",
     "next": "15.3.3",
     "patch-package": "^8.0.0",
