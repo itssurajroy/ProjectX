@@ -39,9 +39,18 @@ export class AnimeService {
       try {
         const res = await fetch(`${STREAM_PROXY_BASE}/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`);
         
-        if (!res.ok) continue;
+        if (!res.ok) {
+          console.log(`Server ${server} returned non-OK status: ${res.status}, trying next...`);
+          continue;
+        }
         
         const json = await res.json();
+
+        // Handle cases where the API returns a success-like status code (200) but with an error message in the body
+        if (json.status === 500 || json.success === false) {
+          console.log(`Server ${server} returned an error message: ${json.message}. Trying next...`);
+          continue;
+        }
         
         if (json.success && json.data?.sources?.length > 0) {
           // Auto proxy all m3u8 and subtitles
@@ -60,7 +69,7 @@ export class AnimeService {
           };
         }
       } catch (err) {
-        console.log(`Server ${server} failed, trying next...`);
+        console.log(`Server ${server} failed with an exception, trying next...`, err);
         continue;
       }
     }
