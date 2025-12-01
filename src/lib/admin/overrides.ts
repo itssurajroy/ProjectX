@@ -1,6 +1,6 @@
 'use server';
 
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { handleAdminError } from './utils';
 import { initializeAdminFirebase } from '@/firebase/server-admin';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -12,7 +12,7 @@ const { firestore } = initializeAdminFirebase();
 // This is a placeholder. In a real app, you'd get this from your auth state.
 const mockAuth = { currentUser: { uid: 'admin-user-placeholder' } };
 
-export function setAnimeOverride(
+export async function setAnimeOverride(
   animeId: string,
   data: Partial<{
     title: string;
@@ -23,7 +23,6 @@ export function setAnimeOverride(
   }>
 ) {
   if (!animeId || !data || Object.keys(data).length === 0) {
-    // This is a validation error, not a permission error, so using AdminError is fine.
     handleAdminError(new Error('Invalid anime data'), 'setAnimeOverride');
     return;
   }
@@ -35,27 +34,27 @@ export function setAnimeOverride(
     updatedBy: mockAuth.currentUser?.uid || 'unknown',
   };
 
-  // Do not `await` the setDoc call directly. Chain a .catch() instead.
-  setDoc(overrideRef, payload, { merge: true })
-    .then(() => {
-        // We can still show a success toast on the happy path.
-        // Note: This won't show in Next.js Server Actions without a client-side component.
-        console.log('Anime override saved successfully!');
-    })
-    .catch(async (serverError) => {
-        // Check if the error is a permission error before creating the contextual error.
-        if (serverError.code === 'permission-denied') {
-            const permissionError = new FirestorePermissionError({
-                path: overrideRef.path,
-                operation: 'update', // or 'create' depending on logic, 'update' is safer with merge:true
-                requestResourceData: payload,
-            } satisfies SecurityRuleContext);
+  try {
+    // Check if the document exists to determine operation type
+    const docSnap = await getDoc(overrideRef);
+    const operation: SecurityRuleContext['operation'] = docSnap.exists() ? 'update' : 'create';
 
-            // Emit the error through the central emitter.
-            errorEmitter.emit('permission-error', permissionError);
-        } else {
-            // For other types of errors (network, etc.), use the generic handler.
-            handleAdminError(serverError, 'setAnimeOverride');
-        }
-    });
+    await setDoc(overrideRef, payload, { merge: true });
+    console.log('Anime override saved successfully!');
+  } catch (serverError: any) {
+    if (serverError.code === 'permission-denied') {
+      const docSnap = await getDoc(overrideRef);
+      const operation: SecurityRuleContext['operation'] = docSnap.exists() ? 'update' : 'create';
+
+      const permissionError = new FirestorePermissionError({
+        path: overrideRef.path,
+        operation: operation,
+        requestResourceData: payload,
+      } satisfies SecurityRuleContext);
+
+      errorEmitter.emit('permission-error', permissionError);
+    } else {
+      handleAdminError(serverError, 'setAnimeOverride');
+    }
+  }
 }
