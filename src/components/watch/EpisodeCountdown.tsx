@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { differenceInSeconds, format, formatDistanceToNowStrict } from 'date-fns';
+import { differenceInSeconds, format } from 'date-fns';
 import { ScrollText } from 'lucide-react';
 
 interface EpisodeCountdownProps {
@@ -34,8 +34,6 @@ export default function EpisodeCountdown({ airingTime }: EpisodeCountdownProps) 
   const minutes = Math.floor((secondsRemaining % 3600) / 60);
   const seconds = secondsRemaining % 60;
   
-  const distance = formatDistanceToNowStrict(targetDate, { addSuffix: true });
-
   return (
     <div className="bg-primary/10 border border-primary/20 text-primary/90 p-3 rounded-lg flex flex-col sm:flex-row justify-between items-center gap-2 text-sm">
         <p className="font-semibold flex items-center gap-2"><ScrollText className="w-4 h-4"/>The next episode is expected to be released on {format(targetDate, 'yyyy/MM/dd HH:mm:ss')}</p>
@@ -45,3 +43,4 @@ export default function EpisodeCountdown({ airingTime }: EpisodeCountdownProps) 
     </div>
   );
 }
+
