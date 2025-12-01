@@ -142,15 +142,15 @@ const SmallListSection = ({ title, animes, qtips }: { title: string, animes: Ani
             <div className="bg-card/50 p-2 rounded-lg border border-border/50">
                 <div className="space-y-2">
                     {animes.slice(0, 7).map((anime, index) => (
-                        <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
+                        <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
                                 <Image src={anime.poster} alt={anime.name} fill sizes="48px" className="object-cover rounded-md" />
                             </div>
-                            <div className='overflow-hidden'>
+                            <div className='overflow-hidden flex-1'>
                                 <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{anime.name}</p>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                     {anime.type && <span>{anime.type}</span>}
-                                    {anime.episodes?.sub && <span className="flex items-center gap-1"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
+                                    {anime.duration && <span>&bull; {anime.duration}</span>}
                                 </div>
                             </div>
                         </Link>
@@ -354,7 +354,7 @@ export default function MainDashboardPage() {
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar top10Animes={top10Animes} qtips={qtips} />
-                <ScheduleSidebar topAiringAnimes={topAiringAnimes || []} />
+                {topAiringAnimes && <ScheduleSidebar topAiringAnimes={topAiringAnimes} />}
             </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ import { useState } from "react";
 import AnimeListModal from "./AnimeListModal";
 import Link from "next/link";
 
-export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { title: string, animes: AnimeBase[], category: string, qtips: Record<string, QtipAnime>, isSpecial?: string }) => {
+export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { title: string, animes: AnimeBase[] | undefined, category: string, qtips: Record<string, QtipAnime>, isSpecial?: string }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     if (!animes || !Array.isArray(animes) || animes.length === 0) return null;
