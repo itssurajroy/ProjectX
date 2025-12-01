@@ -5,11 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AnimeCard } from '@/components/AnimeCard';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
-import { getMALId } from '@/lib/anime/malResolver';
-import { MALService } from '@/lib/MALService';
 import { Badge } from '../ui/badge';
 import { AnimeService } from '@/lib/AnimeService';
 import dynamic from 'next/dynamic';
@@ -29,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import RecommendedSidebar from './RecommendedSidebar';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -273,17 +271,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
                 </section>
               )}
-
-             {recommendedAnimes && recommendedAnimes.length > 0 && (
-                <section>
-                    <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
-                    <div className="grid-cards">
-                    {recommendedAnimes?.slice(0,8).map((rec: AnimeBase) => (
-                        <AnimeCard key={rec.id} anime={rec} qtip={undefined} />
-                    ))}
-                    </div>
-                </section>
-             )}
              <CommentsContainer animeId={id} availableEpisodes={episodes} />
           </div>
           <div className="lg:col-span-3 space-y-6">
@@ -297,9 +284,14 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
                 </div>
             )}
+             {recommendedAnimes && recommendedAnimes.length > 0 && (
+                <RecommendedSidebar animes={recommendedAnimes} />
+             )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+    
