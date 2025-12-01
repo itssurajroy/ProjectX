@@ -137,7 +137,7 @@ function AdminPanelContainer({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className={cn('transition-all duration-300 ease-in-out md:pl-14', isExpanded && 'md:pl-64')}>
+        <div className={cn('transition-all duration-300 ease-in-out', isExpanded ? 'md:pl-64' : 'md:pl-[3.35rem]')}>
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
                 <SidebarTrigger className="md:hidden"/>
                 <h1 className="text-lg font-semibold capitalize">{getPageTitle(pathname)}</h1>

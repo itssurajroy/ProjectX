@@ -5,6 +5,9 @@ import Providers from "../providers";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { Lexend, Space_Grotesk } from "next/font/google";
 import { cn } from "@/lib/utils";
+import {
+  SidebarProvider,
+} from '@/components/ui/sidebar';
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -33,8 +36,10 @@ export default function AdminRootLayout({
        </head>
       <body className={cn("min-h-screen bg-background text-foreground font-sans antialiased", fontSans.variable, fontDisplay.variable)}>
         <Providers>
-            <ShadToaster />
-            {children}
+            <SidebarProvider>
+              <ShadToaster />
+              {children}
+            </SidebarProvider>
         </Providers>
       </body>
     </html>
