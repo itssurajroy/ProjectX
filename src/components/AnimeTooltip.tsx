@@ -68,7 +68,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                    {anime.genres.slice(0, 4).map(genre => (
+                    {anime.genres?.slice(0, 4).map(genre => (
                         <Badge key={genre} variant="secondary" className="text-xs">{genre}</Badge>
                     ))}
                 </div>
