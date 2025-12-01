@@ -55,8 +55,7 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
       'comments',
       animeId,
       'episodes',
-      sanitizedEpisodeId,
-      'messages'
+      sanitizedEpisodeId
     );
   }, [animeId, episodeId]);
 

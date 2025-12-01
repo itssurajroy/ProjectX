@@ -41,8 +41,7 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
       firestore,
       'comments',
       animeId,
-      'general',
-      'messages'
+      'general'
     );
   }, [animeId]);
 
