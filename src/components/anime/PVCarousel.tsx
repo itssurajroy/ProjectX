@@ -26,8 +26,8 @@ export default function PVCarousel({ videos }: PVCarouselProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold font-display border-l-4 border-primary pl-3">Trailers</h2>
+    <section>
+      <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">Promotional Videos</h2>
       <Carousel
         opts={{
           align: "start",
@@ -62,6 +62,8 @@ export default function PVCarousel({ videos }: PVCarouselProps) {
         <CarouselPrevious className="left-2 bg-card/80 hover:bg-card" />
         <CarouselNext className="right-2 bg-card/80 hover:bg-card" />
       </Carousel>
-    </div>
+    </section>
   );
 }
+
+    

@@ -24,12 +24,12 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
     }
 
     return (
-        <div className="space-y-4">
-            <h2 className="text-2xl font-bold font-display border-l-4 border-primary pl-3">Seasons</h2>
+        <section>
+            <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">Seasons</h2>
             <Carousel opts={{ align: "start" }} className="w-full">
                 <CarouselContent>
                     {seasons.map(season => (
-                        <CarouselItem key={season.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/4">
+                        <CarouselItem key={season.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5">
                              <Link href={`/anime/${season.id}`}>
                                 <div className={cn(
                                     "relative aspect-[2/3] rounded-md overflow-hidden group border-2 transition-all", 
@@ -52,6 +52,8 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
                 <CarouselPrevious className="left-2 bg-card/80 hover:bg-card" />
                 <CarouselNext className="right-2 bg-card/80 hover:bg-card" />
             </Carousel>
-        </div>
+        </section>
     )
 }
+
+    

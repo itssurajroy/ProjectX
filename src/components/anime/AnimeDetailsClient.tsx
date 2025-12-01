@@ -14,6 +14,8 @@ import { Badge } from '../ui/badge';
 import { AnimeService } from '@/lib/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
+import { Button } from '../ui/button';
+import { Bookmark } from 'lucide-react';
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
   loading: () => <Skeleton className="h-48 w-full" />,
@@ -94,22 +96,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const relatedAnimes = animeResult?.relatedAnimes;
   const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
 
-  const { data: malId } = useQuery({
-    queryKey: ['malId', id],
-    queryFn: () => getMALId(id),
-    enabled: !!animeInfo,
-  });
-
-  const { data: malData } = useQuery({
-    queryKey: ['mal', malId],
-    queryFn: async () => {
-      if (!malId) return null;
-      return await MALService.getById(malId);
-    },
-    enabled: !!malId,
-    staleTime: 60 * 60 * 1000,
-  });
-
   const { data: episodesResult } = useQuery<any>({
     queryKey: ['episodes', id],
     queryFn: () => AnimeService.episodes(id),
@@ -187,10 +173,15 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
                 {firstEpisodeWatchId && (
-                  <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/20">
-                    <Play /> Watch Now
-                  </Link>
+                  <Button asChild size="lg" className="shadow-lg shadow-primary/30">
+                    <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2">
+                        <Play /> Watch Now
+                    </Link>
+                  </Button>
                 )}
+                 <Button size="lg" variant="secondary">
+                    <Bookmark /> Add to Watchlist
+                </Button>
               </div>
               
               <p className="text-muted-foreground text-xs mt-4 max-w-3xl mx-auto lg:mx-0">
@@ -247,52 +238,11 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">✨ Recommended for you</h2>
                     <div className="grid-cards">
                     {recommendedAnimes?.slice(0,8).map((rec: AnimeBase) => (
-                        <AnimeCard key={rec.id} anime={rec} />
+                        <AnimeCard key={rec.id} anime={rec} qtip={undefined} />
                     ))}
                     </div>
                 </section>
              )}
-
-            {malData && (
-              <div className="mt-12 p-4 md:p-8 bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-3xl border border-purple-800">
-                <div className="flex flex-col md:flex-row items-center gap-6 mb-6">
-                  <Image src={malData.main_picture.large} width={120} height={170} loading="lazy" className="rounded-xl shadow-2xl" alt={`MyAnimeList poster for ${malData.title}`} />
-                  <div>
-                    <h2 className="text-2xl md:text-4xl font-black flex items-center gap-4">
-                      MyAnimeList
-                      <Badge className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-lg md:text-xl px-4 py-2">
-                        ★ {malData.mean || 'N/A'}
-                      </Badge>
-                    </h2>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-4 text-base md:text-lg">
-                      <span className="text-purple-300 font-semibold">Rank #{malData.rank || 'N/A'}</span>
-                      <span className="text-pink-300 font-semibold">{malData.num_episodes} episodes</span>
-                      <span className="text-yellow-300 font-semibold">{malData.start_season?.year} {malData.start_season?.season}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-base text-gray-300 leading-relaxed">
-                  {malData.synopsis?.replace(/\[Written by MAL Rewrite\]/g, '')}
-                </p>
-
-                {malData.recommendations?.length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="text-2xl font-bold mb-4">You Might Also Like</h3>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-                      {malData.recommendations.slice(0, 6).map((rec: any) => (
-                        <Link key={rec.node.id} href={`/anime/mal-${rec.node.id}`}>
-                          <div className="group cursor-pointer">
-                            <Image src={rec.node.main_picture.medium} width={200} height={280} loading="lazy" className="rounded-xl group-hover:scale-105 transition" alt={rec.node.title} />
-                            <p className="text-center mt-2 text-sm font-medium line-clamp-2">{rec.node.title}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
           <div className="lg:col-span-3 space-y-6">
             {relatedAnimes && relatedAnimes.length > 0 && (
@@ -311,3 +261,5 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     </div>
   );
 }
+
+    
