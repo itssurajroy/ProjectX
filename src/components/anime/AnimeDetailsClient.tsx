@@ -191,7 +191,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
               <h1 className="text-title font-bold mt-2 text-glow">{animeInfo.name}</h1>
               
               <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
-                  {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'default'} className="px-2 py-1 bg-card/50 rounded-md border border-border/50">⭐ {stats.rating}</Badge>}
+                  {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'secondary'} className="px-2 py-1">{stats.rating}</Badge>}
                   <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">{stats.quality}</span>
                   {stats.episodes.sub && (
                       <span className="flex items-center gap-1 px-2 py-1 bg-card/50 rounded-md border border-border/50">
