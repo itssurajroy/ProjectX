@@ -14,6 +14,7 @@ import { HomeData, SearchResult } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { years } from '@/lib/data';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
+import Image from 'next/image';
 
 
 function MoviesFilter() {
@@ -180,5 +181,3 @@ export default function MoviesPage() {
         </Suspense>
     )
 }
-
-    
