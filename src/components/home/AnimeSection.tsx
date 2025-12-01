@@ -12,7 +12,7 @@ import Link from "next/link";
 export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { title: string, animes: AnimeBase[], category: string, qtips: Record<string, QtipAnime>, isSpecial?: string }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    if (!animes || animes.length === 0) return null;
+    if (!animes || !Array.isArray(animes) || animes.length === 0) return null;
     
     const ViewMoreButton = () => {
         if (isSpecial === 'trending') {
@@ -39,7 +39,7 @@ export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { ti
             </div>
             <div className="grid-cards">
                 {animes.slice(0, 12).map((anime, index) => (
-                    <AnimeCard key={`${anime.id}-${index}`} anime={anime} qtip={qtips[anime.id]} />
+                    <AnimeCard key={`${anime.id}-${index}`} anime={anime} qtip={qtips ? qtips[anime.id] : undefined} />
                 ))}
             </div>
 
