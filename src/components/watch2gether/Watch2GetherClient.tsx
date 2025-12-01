@@ -1,10 +1,9 @@
 // src/components/watch2gether/Watch2GetherClient.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useDocumentData, useCollectionData } from 'react-firebase-hooks/firestore';
-import { doc, collection, DocumentData, addDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useEffect } from 'react';
+import { doc, collection } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection, setDocumentNonBlocking } from '@/firebase';
 import { Loader2, Users } from 'lucide-react';
 import ErrorDisplay from '../common/ErrorDisplay';
 import W2GVideoPlayer from './W2GVideoPlayer';
@@ -20,20 +19,22 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     const roomRef = useMemoFirebase(() => doc(firestore, 'watch2gether_rooms', roomId), [firestore, roomId]);
     const usersRef = useMemoFirebase(() => collection(firestore, 'watch2gether_rooms', roomId, 'users'), [firestore, roomId]);
 
-    const [roomData, isRoomLoading, roomError] = useDocumentData<WatchTogetherRoom>(roomRef);
-    const [usersInRoom, isUsersLoading, usersError] = useCollectionData<RoomUser>(usersRef);
+    const { data: roomData, isLoading: isRoomLoading, error: roomError } = useDoc<WatchTogetherRoom>(roomRef);
+    const { data: usersInRoom, isLoading: isUsersLoading, error: usersError } = useCollection<RoomUser>(usersRef);
 
     useEffect(() => {
         if (!user || !roomData) return;
 
         // Add user to the room's `users` subcollection
         const userDocRef = doc(usersRef, user.uid);
-        setDoc(userDocRef, {
+        const userData = {
             id: user.uid,
             name: user.displayName || 'Anonymous',
             avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
             isHost: roomData.hostId === user.uid
-        }, { merge: true });
+        };
+        
+        setDocumentNonBlocking(userDocRef, userData, { merge: true });
 
     }, [user, roomData, usersRef]);
     
@@ -50,6 +51,10 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
         return <ErrorDisplay title="Error loading room" description={roomError.message} />;
     }
 
+    if (usersError) {
+        return <ErrorDisplay title="Error loading users" description={usersError.message} />;
+    }
+
     if (!roomData) {
         return <ErrorDisplay title="Room not found" description="This room does not exist or has expired." />;
     }
@@ -59,7 +64,7 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
             <main className="flex-1 flex flex-col">
                 <div className="flex-1 bg-black flex items-center justify-center">
                     <W2GVideoPlayer
-                        roomRef={roomRef}
+                        roomRef={roomRef!}
                         animeId={roomData.animeId}
                         episodeId={roomData.episodeId}
                         playerState={roomData.playerState}

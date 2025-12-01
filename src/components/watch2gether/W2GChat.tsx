@@ -1,9 +1,8 @@
 // src/components/watch2gether/W2GChat.tsx
 'use client';
 
-import { useCollectionData } from 'react-firebase-hooks/firestore';
-import { collection, query, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, serverTimestamp, addDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -21,7 +20,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
     const messagesRef = useMemoFirebase(() => collection(firestore, 'watch2gether_rooms', roomId, 'messages'), [firestore, roomId]);
     const messagesQuery = useMemoFirebase(() => query(messagesRef, orderBy('timestamp', 'asc')), [messagesRef]);
 
-    const [messages, isLoading, error] = useCollectionData<ChatMessage>(messagesQuery);
+    const {data: messages, isLoading, error} = useCollection<ChatMessage>(messagesQuery);
     
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,15 +29,17 @@ export default function W2GChat({ roomId }: { roomId: string }) {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if (!message.trim() || !user) return;
+        if (!message.trim() || !user || !messagesRef) return;
 
-        await addDoc(messagesRef, {
+        const messageData = {
             userId: user.uid,
             userName: user.displayName || 'Anonymous',
             avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
             text: message,
             timestamp: serverTimestamp(),
-        });
+        };
+
+        addDocumentNonBlocking(messagesRef, messageData);
         setMessage('');
     };
 

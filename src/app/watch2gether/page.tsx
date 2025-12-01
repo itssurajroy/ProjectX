@@ -4,11 +4,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { initializeFirebase } from "@/firebase";
+import { initializeFirebase, addDocumentNonBlocking, FirestorePermissionError, errorEmitter } from "@/firebase";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import type { SecurityRuleContext } from "@/firebase/errors";
 
 export default function Watch2GetherLobby() {
     const router = useRouter();
@@ -34,7 +35,7 @@ export default function Watch2GetherLobby() {
             }
 
             const roomCollection = collection(firestore, 'watch2gether_rooms');
-            const newRoomDoc = await addDoc(roomCollection, {
+            const roomData = {
                 name: roomName,
                 animeId: animeId,
                 episodeId: `${animeId}?ep=${episodeNumber}`,
@@ -46,10 +47,20 @@ export default function Watch2GetherLobby() {
                     currentTime: 0,
                     updatedAt: serverTimestamp(),
                 }
+            };
+            
+            addDoc(roomCollection, roomData).then(newRoomDoc => {
+                 toast.success("Room created successfully!");
+                 router.push(`/watch2gether/${newRoomDoc.id}`);
+            }).catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: roomCollection.path,
+                    operation: 'create',
+                    requestResourceData: roomData
+                } satisfies SecurityRuleContext);
+                errorEmitter.emit('permission-error', permissionError);
+                setIsCreating(false);
             });
-
-            toast.success("Room created successfully!");
-            router.push(`/watch2gether/${newRoomDoc.id}`);
 
         } catch (error) {
             console.error("Error creating room:", error);
