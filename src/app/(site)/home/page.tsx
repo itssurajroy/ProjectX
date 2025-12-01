@@ -56,7 +56,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
                     sizes="100vw"
                     className={cn(
                         'object-cover transition-opacity duration-1000',
-                        index === currentIndex ? 'opacity-30' : 'opacity-0'
+                        index === currentIndex ? 'opacity-60' : 'opacity-0'
                     )}
                     priority
                 />
