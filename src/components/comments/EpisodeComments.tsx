@@ -18,6 +18,9 @@ import { initializeFirebase } from '@/firebase';
 import { AnimeEpisode } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
+import Spoiler from './Spoiler';
 
 const { firestore } = initializeFirebase();
 
@@ -27,6 +30,7 @@ interface Comment {
   text: string;
   timestamp: any;
   avatar: string;
+  isSpoiler?: boolean;
 }
 
 interface EpisodeCommentsProps {
@@ -38,6 +42,7 @@ interface EpisodeCommentsProps {
 export default function EpisodeComments({ animeId, episodeId, availableEpisodes }: EpisodeCommentsProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [isSpoiler, setIsSpoiler] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -76,9 +81,11 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
       text: newComment,
       timestamp: serverTimestamp(),
       avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
+      isSpoiler: isSpoiler,
     });
 
     setNewComment('');
+    setIsSpoiler(false);
   };
 
   const handleEpisodeChange = (epNumber: string) => {
@@ -113,9 +120,15 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
             placeholder={`Add a comment for Episode ${currentEpNumber}...`}
             className="mb-2"
           />
-          <Button onClick={handlePostComment} size="sm">
-            Post Comment
-          </Button>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Checkbox id="spoiler-episode" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} />
+              <Label htmlFor="spoiler-episode" className="text-xs text-muted-foreground">Mark as spoiler</Label>
+            </div>
+            <Button onClick={handlePostComment} size="sm">
+              Post Comment
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -135,7 +148,13 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
                   {comment.timestamp?.toDate().toLocaleString()}
                 </p>
               </div>
-              <p className="text-sm">{comment.text}</p>
+              {comment.isSpoiler ? (
+                <Spoiler>
+                  <p className="text-sm">{comment.text}</p>
+                </Spoiler>
+              ) : (
+                <p className="text-sm">{comment.text}</p>
+              )}
               <div className="mt-1 flex items-center gap-4 text-xs text-muted-foreground">
                 <button className="flex items-center gap-1 hover:text-primary">
                   <ThumbsUp className="h-3 w-3" /> 0
