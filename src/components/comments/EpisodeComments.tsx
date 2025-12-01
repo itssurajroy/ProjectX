@@ -58,7 +58,8 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
       'comments',
       animeId,
       'episodes',
-      sanitizedEpisodeId
+      sanitizedEpisodeId,
+      'messages'
     );
   }, [animeId, episodeId]);
 
@@ -85,12 +86,23 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
   const handlePostComment = async () => {
     if (newComment.trim() === '') return;
 
-    await addDoc(commentsRef, {
+    addDoc(commentsRef, {
       author: 'Anonymous', // Placeholder
       text: newComment,
       timestamp: serverTimestamp(),
       avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
       isSpoiler: isSpoiler,
+    }).catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: commentsRef.path,
+            operation: 'create',
+            requestResourceData: {
+                author: 'Anonymous',
+                text: newComment,
+                isSpoiler: isSpoiler,
+            },
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
     });
 
     setNewComment('');
