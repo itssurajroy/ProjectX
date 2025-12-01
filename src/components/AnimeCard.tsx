@@ -1,4 +1,3 @@
-
 import { AnimeBase, QtipAnime } from "@/types/anime"
 import Image from "next/image"
 import Link from "next/link"
@@ -58,10 +57,10 @@ export function AnimeCard({ anime, qtip, rank }: AnimeCardProps) {
           </div>
 
           {/* Bottom Info Area (Floating Glass Effect) */}
-          <div className="absolute bottom-3 inset-x-3 flex flex-col gap-2 z-10">
+          <div className="absolute bottom-3 right-3 flex items-center justify-end z-10">
              
              {/* Sub / Dub / Ep Count Row */}
-             <div className="flex flex-wrap items-center gap-1.5">
+             <div className="flex flex-wrap items-center justify-end gap-1.5">
                 {anime.episodes?.sub && (
                    <div className="flex items-center gap-1 bg-red-600/80 backdrop-blur-sm border border-red-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                       <Clapperboard className="w-3 h-3" />
