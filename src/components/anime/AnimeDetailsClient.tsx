@@ -1,6 +1,5 @@
 
 'use client';
-import { getAnimeAbout, getEpisodes, extractEpisodeNumber } from '@/lib/AnimeService';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users } from 'lucide-react';
@@ -14,6 +13,9 @@ import PVCarousel from './PVCarousel';
 import { getMALId } from '@/lib/anime/malResolver';
 import { MALService } from '@/lib/MALService';
 import { Badge } from '../ui/badge';
+import { getAnime, getEpisodes } from '@/lib/AnimeService';
+
+const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
 const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
     <Link href={`/anime/${anime.id}`} passHref>
@@ -64,16 +66,15 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 
 export default function AnimeDetailsClient({ id }: { id: string }) {
   const {
-    data: apiResponse,
+    data: animeResult,
     isLoading: isLoadingAnime,
     error,
     refetch,
-  } = useQuery<{data: AnimeAboutResponse} | { success: false; error: string }>({
+  } = useQuery<AnimeAboutResponse>({
     queryKey: ['anime', id],
-    queryFn: () => getAnimeAbout(id),
+    queryFn: () => getAnime(id),
   });
   
-  const animeResult = apiResponse && !('success' in apiResponse) ? apiResponse.data : null;
   const anime = animeResult?.anime;
   const animeInfo: AnimeInfo | undefined = anime?.info;
   const moreInfo = anime?.moreInfo;
@@ -99,13 +100,13 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     staleTime: 60 * 60 * 1000,
   });
 
-  const { data: episodesResult } = useQuery<any | { success: false, error: string }>({
+  const { data: episodesResult } = useQuery<any>({
     queryKey: ['episodes', id],
     queryFn: () => getEpisodes(id),
     enabled: !!animeInfo
   });
 
-  const episodes = episodesResult && !('success' in episodesResult) ? episodesResult.data?.episodes : [];
+  const episodes = episodesResult?.episodes || [];
   
   const isLoading = isLoadingAnime;
 

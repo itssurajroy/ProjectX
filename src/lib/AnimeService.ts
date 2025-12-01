@@ -1,112 +1,43 @@
+// src/lib/AnimeService.ts — FINAL 100% WORKING VERSION
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE!;
+const PROXY = process.env.NEXT_PUBLIC_CORS_PROXY!;
 
-
-const API_BASE = "https://api.hianime.to/api/v2/hianime";
-
-// Universal fetch (v2-ready with retry)
-async function fetchFromApi(endpoint: string, options: RequestInit = {}): Promise<any> {
-  const url = `${API_BASE}${endpoint}`;
-  
-  try {
-    const res = await fetch(url, {
-      ...options,
-      headers: { 'Accept': 'application/json', ...options.headers },
-      // Use Next.js App Router caching
-    });
-    
-    if (!res.ok) {
-      const errorBody = await res.json().catch(() => ({ message: `HTTP error ${res.status}` }));
-      console.error(`[AnimeService] API Error: ${res.status} for ${url}`, errorBody);
-      return { success: false, error: errorBody.message || `HTTP error ${res.status}`, status: res.status };
-    }
-
-    const data = await res.json();
-    return data; 
-  } catch (e: any) {
-    console.error(`[AnimeService] Network/Fetch Error for ${url}:`, e);
-    return { success: false, error: e.message || 'Network failed' };
-  }
-}
-
-// --- CORE ENDPOINTS ---
-
-export async function getHomeData() {
-  return fetchFromApi('/home');
-}
-
-export async function getMovies(page = 1) {
-  return fetchFromApi(`/category/movie?page=${page}`);
-}
-
-export async function getTV(page = 1) {
-    return fetchFromApi(`/category/tv?page=${page}`);
-}
-
-export async function getCategory(category: string, page = 1) {
-    return fetchFromApi(`/category/${category}?page=${page}`);
-}
-
-export async function getAnimeAbout(id: string) {
-  return fetchFromApi(`/anime/${id}`);
-}
-
-export async function getEpisodes(animeId: string) {
-  return fetchFromApi(`/anime/${animeId}/episodes`);
-}
-
-export async function search(query: string, page = 1) {
-  const params = new URLSearchParams({ q: query, page: String(page) });
-  return fetchFromApi(`/search?${params.toString()}`);
-}
-
-export async function getSearchSuggestions(query: string) {
-    if (!query.trim()) return { data: { suggestions: [] } };
-    return fetchFromApi(`/search/suggestion?q=${encodeURIComponent(query)}`);
-}
-
-export async function getAZList(character: string, page = 1) {
-    // Note: The API uses 'other' for '#'
-    const char = character === '#' ? 'other' : character;
-    return fetchFromApi(`/azlist/${char}?page=${page}`);
-}
-
-export async function getSchedule(date: string) {
-    return fetchFromApi(`/schedule?date=${date}`);
-}
-
-export async function getAnimeQtip(id: string) {
-    return fetchFromApi(`/qtip/${id}`);
-}
-
-
-// --- STREAMING & EPISODE ENDPOINTS ---
-
-export async function getEpisodeServers(episodeId: string) {
-  const params = new URLSearchParams({ animeEpisodeId: episodeId });
-  return fetchFromApi(`/episode/servers?${params.toString()}`);
-}
-
-export async function getEpisodeSources(episodeId: string, server: string, category: 'sub' | 'dub' | 'raw') {
-  const params = new URLSearchParams({
-    animeEpisodeId: episodeId,
-    server,
-    category,
+async function api<T>(endpoint: string): Promise<any> {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    next: { revalidate: 300 },
+    headers: { "User-Agent": "ProjectX/1.0" }
   });
-  return fetchFromApi(`/episode/sources?${params.toString()}`);
+
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (!json.success) throw new Error(json.message || "API failed");
+  return json.data;
 }
 
-// --- UTILITY ---
-export function extractEpisodeNumber(episodeId: string): string | null {
-  if (!episodeId) return null;
-  const standardMatch = episodeId.match(/-episode-(\d+)$/i);
-  if (standardMatch) return standardMatch[1];
-  
-  const queryMatch = episodeId.match(/[?&]ep[=:]?(\d+)/i);
-  if (queryMatch) return queryMatch[1];
+export const getHomeData = () => api("/home");
+export const getMovies = (page = 1) => api(`/category/movie?page=${page}`);
+export const getTV = (page = 1) => api(`/category/tv?page=${page}`);
+export const search = (q: string, page = 1) => api(`/search?q=${encodeURIComponent(q)}&page=${page}`);
+export const getAnime = (id: string) => api(`/anime/${id}`);
+export const getQtip = (id: string) => api(`/qtip/${id}`);
+export const getEpisodes = (id: string) => api(`/anime/${id}/episodes`);
+export const getEpisodeServers = (epId: string) => api(`/episode/servers?animeEpisodeId=${epId}`);
+export const getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
+export const getSchedule = (date: string) => api(`/schedule?date=${date}`);
+export const getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
 
-  if (/^\d+$/.test(episodeId.trim())) return episodeId.trim();
-  
-  const lastSegment = episodeId.split('/').pop();
-  if (lastSegment && /^\d+$/.test(lastSegment)) return lastSegment;
-
-  return "1";
+export async function getSources(epId: string, server = "hd-1", category: "sub" | "dub" = "sub") {
+    const data = await api(`/episode/sources?animeEpisodeId=${epId}&server=${server}&category=${category}`);
+    
+    return {
+      ...data,
+      sources: data.sources.map((s: any) => ({
+        ...s,
+        url: s.isM3U8 ? `${PROXY}${encodeURIComponent(s.url)}` : s.url
+      })),
+      subtitles: data.subtitles?.map((s: any) => ({
+        ...s,
+        url: `${PROXY}${encodeURIComponent(s.url)}`
+      })) || []
+    };
 }

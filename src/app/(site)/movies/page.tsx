@@ -9,8 +9,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Film, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { getMovies } from '@/lib/AnimeService';
 import { Suspense } from 'react';
+import { getMovies } from '@/lib/AnimeService';
+import { SearchResult } from '@/types/anime';
 
 function MoviesPageContent() {
   const {
@@ -21,16 +22,10 @@ function MoviesPageContent() {
     isLoading,
     isError,
     error,
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<SearchResult>({
     queryKey: ['movies'],
-    queryFn: async ({ pageParam = 1 }) => {
-      const result = await getMovies(pageParam);
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch movies');
-      }
-      return result.data;
-    },
-    getNextPageParam: (lastPage) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
+    queryFn: ({ pageParam = 1 }) => getMovies(pageParam),
+    getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
     initialPageParam: 1,
     staleTime: 15 * 60 * 1000, // 15 minutes
     retry: 2,

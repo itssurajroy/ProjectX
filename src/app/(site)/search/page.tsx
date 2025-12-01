@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { genres, seasons, sortOptions, types, years } from "@/lib/data";
-import { search, getSearchSuggestions } from "@/lib/AnimeService";
 import { Search as SearchIcon } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 import ErrorDisplay from "@/components/common/ErrorDisplay";
+import { search } from "@/lib/AnimeService";
+import { SearchResult } from "@/types/anime";
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ function SearchPageContent() {
   const [query, setQuery] = useState(initialQuery);
   const [debouncedQuery] = useDebounce(query, 500);
 
-  const { data: searchResult, isLoading, error, refetch } = useQuery({
+  const { data: searchResult, isLoading, error, refetch } = useQuery<SearchResult>({
       queryKey: ['search', debouncedQuery],
       queryFn: () => search(debouncedQuery),
       enabled: !!debouncedQuery,
@@ -48,11 +49,11 @@ function SearchPageContent() {
         );
     }
 
-    if (error || (searchResult && 'success' in searchResult && !searchResult.success)) {
+    if (error) {
         return <ErrorDisplay onRetry={refetch} description="Could not perform search. Please try again."/>
     }
 
-    const filteredMedia = searchResult && 'data' in searchResult && searchResult.data ? searchResult.data.animes : [];
+    const filteredMedia = searchResult?.animes || [];
 
     if (filteredMedia.length > 0) {
         return (

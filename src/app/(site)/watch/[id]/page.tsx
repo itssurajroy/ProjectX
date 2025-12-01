@@ -4,7 +4,6 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
-import { getAnime, getEpisodes, getEpisodeServers, extractEpisodeNumber } from '@/lib/AnimeService';
 import EpisodeList from '@/components/watch/episode-list';
 import { AnimeEpisode, AnimeAboutResponse } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +24,9 @@ import { Button } from '@/components/ui/button';
 import WatchSidebar from '@/components/watch/WatchSidebar';
 import CommentsSection from '@/components/watch/comments';
 import { useSmartPlayer } from '@/hooks/useSmartPlayer';
+import { getAnime, getEpisodes, getEpisodeServers } from '@/lib/AnimeService';
+
+const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
 function WatchPageComponent() {
   const params = useParams();
@@ -41,7 +43,7 @@ function WatchPageComponent() {
     isLoading: isLoadingAbout,
     error: aboutError,
     refetch: refetchAbout,
-  } = useQuery<{ data: AnimeAboutResponse } | { success: false; error: string }>(
+  } = useQuery<AnimeAboutResponse>(
     {
       queryKey: ['anime', animeId],
       queryFn: () => getAnime(animeId),
@@ -62,30 +64,30 @@ function WatchPageComponent() {
 
   const episodes: AnimeEpisode[] = useMemo(
     () =>
-      episodesResponse && episodesResponse.success
-        ? episodesResponse.data.episodes
+      episodesResponse
+        ? episodesResponse.episodes
         : [],
     [episodesResponse]
   );
   
   const about = useMemo(
     () =>
-      aboutResponse && aboutResponse.success
-        ? aboutResponse.data.anime
+      aboutResponse
+        ? aboutResponse.anime
         : null,
     [aboutResponse]
   );
   const recommendedAnimes = useMemo(
     () =>
-      aboutResponse && aboutResponse.success
-        ? aboutResponse.data.recommendedAnimes
+      aboutResponse
+        ? aboutResponse.recommendedAnimes
         : [],
     [aboutResponse]
   );
   const mostPopularAnimes = useMemo(
     () =>
-      aboutResponse && aboutResponse.success
-        ? aboutResponse.data.mostPopularAnimes
+      aboutResponse
+        ? aboutResponse.mostPopularAnimes
         : [],
     [aboutResponse]
   );
@@ -114,8 +116,8 @@ function WatchPageComponent() {
   });
 
   const availableServers = useMemo(() => {
-    if (!serversResponse || !serversResponse.success) return [];
-    return serversResponse.data[language] || [];
+    if (!serversResponse) return [];
+    return serversResponse[language] || [];
   }, [serversResponse, language]);
 
   useEffect(() => {

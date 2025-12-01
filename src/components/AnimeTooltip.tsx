@@ -7,12 +7,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getAnimeQtip } from "@/lib/AnimeService";
 import { QtipAnime } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Tv, Clapperboard, Calendar, Clock } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
+import { getQtip } from "@/lib/AnimeService";
 
 const TooltipSkeleton = () => (
     <div className="p-2 space-y-3">
@@ -27,9 +27,9 @@ const TooltipSkeleton = () => (
 )
 
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
-  const { data: qtipResult, isLoading, isError, error } = useQuery<{data: {anime: QtipAnime}} | { success: false; error: string; status?: number }>({
+  const { data: anime, isLoading, isError, error } = useQuery<QtipAnime>({
     queryKey: ['qtip', animeId],
-    queryFn: () => getAnimeQtip(animeId),
+    queryFn: () => getQtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error: any) => {
         // Don't retry on 404s
@@ -37,8 +37,6 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
         return failureCount < 2;
     }
   });
-
-  const anime = qtipResult && 'data' in qtipResult && qtipResult.data ? qtipResult.data.anime : null;
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -49,7 +47,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
             <TooltipSkeleton />
           ) : isError || !anime ? (
             <div className="p-4 text-center text-muted-foreground">
-                {(error as any)?.status === 404 || (qtipResult as any)?.status === 404
+                {(error as any)?.status === 404
                     ? "No details available for this item."
                     : "Could not load details."
                 }

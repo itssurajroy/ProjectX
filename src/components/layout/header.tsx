@@ -6,7 +6,6 @@ import { Search, Menu, Shuffle, Languages, Send, Twitter, Youtube, Instagram, Fa
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { getSearchSuggestions } from '@/lib/AnimeService';
 import { SearchSuggestionResponse } from '@/types/anime';
 import Image from 'next/image';
 import {
@@ -24,6 +23,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTrigger } from '../ui/sheet';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import NotificationBell from '../notifications/NotificationBell';
+import { search } from '@/lib/AnimeService';
+
 
 const socialIcons = {
     Twitter: Twitter,
@@ -63,9 +64,9 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const { data: suggestionsResult } = useQuery<{data: SearchSuggestionResponse} | { success: false; error: string }>({
+  const { data: suggestionsResult } = useQuery<SearchSuggestionResponse>({
       queryKey: ['searchSuggestions', searchQuery],
-      queryFn: () => getSearchSuggestions(searchQuery),
+      queryFn: () => search(searchQuery),
       enabled: searchQuery.length > 2,
   });
 
@@ -88,7 +89,7 @@ export default function Header() {
     }
   };
 
-  const suggestions = suggestionsResult && 'data' in suggestionsResult ? suggestionsResult.data.suggestions : [];
+  const suggestions = suggestionsResult?.suggestions || [];
   
   const navItems = [
     { href: "/home", label: "Home" },

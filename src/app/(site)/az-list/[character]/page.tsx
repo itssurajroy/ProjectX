@@ -1,7 +1,6 @@
 
 'use client';
 
-import { getAZList, getHomeData } from '@/lib/AnimeService';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal, X } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -12,14 +11,15 @@ import { cn } from '@/lib/utils';
 import { HomeData, SearchResult } from '@/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getAZList, getHomeData } from '@/lib/AnimeService';
 
 
 const AdvancedFilter = () => {
-    const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
+    const { data: homeData } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: getHomeData,
     });
-    const genres = homeDataResult && !('success' in homeDataResult) ? homeDataResult.data.genres : [];
+    const genres = homeData?.genres || [];
     
     const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
     const genreRef = useRef<HTMLDivElement>(null);
@@ -176,20 +176,16 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-  } = useInfiniteQuery<{data: SearchResult}, Error>({
+  } = useInfiniteQuery<SearchResult, Error>({
     queryKey: ['az-list', sortOption],
-    queryFn: async ({ pageParam = 1 }) => {
-        const res = await getAZList(sortOption, pageParam);
-        if (!res.success) throw new Error(res.error);
-        return res;
-    },
+    queryFn: async ({ pageParam = 1 }) => getAZList(sortOption, pageParam),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-        return lastPage.data.hasNextPage ? lastPage.data.currentPage + 1 : undefined
+        return lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined
     },
   });
 
-  const animes = data?.pages.flatMap(page => page.data.animes) ?? [];
+  const animes = data?.pages.flatMap(page => page.animes) ?? [];
 
   const handlePageChange = (newPage: number) => {
     // This is a bit tricky with infinite query, for now we just fetch next page.
@@ -231,7 +227,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
               <AnimeCard key={anime.id} anime={anime} />
           ))}
           </div>
-          <Pagination currentPage={data?.pages.length || 1} totalPages={data?.pages[0].data.totalPages || 1} hasNextPage={!!hasNextPage} />
+          {data?.pages[0].totalPages && <Pagination currentPage={data?.pages.length || 1} totalPages={data?.pages[0].totalPages || 1} hasNextPage={!!hasNextPage} />}
       </>
     );
   }
@@ -241,7 +237,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
     <div className="px-4 sm:px-6 lg:px-8 py-8 pt-24 min-h-[60vh]">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">AZ-LIST</h1>
-        <p className="text-sm text-muted-foreground">{data?.pages[0].data.totalAnimes?.toLocaleString() || '...'} anime</p>
+        <p className="text-sm text-muted-foreground">{data?.pages[0].totalAnimes?.toLocaleString() || '...'} anime</p>
       </div>
       <AdvancedFilter />
       <AZNav activeChar={displayCharacter} />

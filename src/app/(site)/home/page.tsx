@@ -1,6 +1,5 @@
 
 'use client';
-import { getHomeData } from '@/lib/AnimeService';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2 } from 'lucide-react';
@@ -12,7 +11,7 @@ import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
-import { getSchedule } from '@/lib/AnimeService';
+import { getHomeData, getSchedule } from '@/lib/AnimeService';
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -162,7 +161,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
 const ScheduleSidebar = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const { data: scheduleResult, isLoading, error, refetch } = useQuery<{ data: ScheduleResponse } | { success: false; error: string }>({
+    const { data: scheduleData, isLoading, error, refetch } = useQuery<ScheduleResponse>({
         queryKey: ['schedule', selectedDate.toISOString().split('T')[0]],
         queryFn: () => getSchedule(selectedDate.toISOString().split('T')[0]),
     });
@@ -175,7 +174,7 @@ const ScheduleSidebar = () => {
         });
     }
 
-    const scheduledAnimes = scheduleResult && 'data' in scheduleResult && scheduleResult.data ? scheduleResult.data.scheduledAnimes : [];
+    const scheduledAnimes = scheduleData?.scheduledAnimes;
     
     return (
         <section className='bg-card/50 p-4 rounded-lg border border-border/50'>
@@ -198,7 +197,7 @@ const ScheduleSidebar = () => {
                     <div className="flex justify-center items-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
                     </div>
-                ) : error || ('success' in scheduleResult! && !scheduleResult.success) ? (
+                ) : error ? (
                      <ErrorDisplay description='Could not load schedule.' onRetry={refetch} isCompact/>
                 ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
                     return (
@@ -260,17 +259,16 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
 
 
 export default function MainDashboardPage() {
-  const { data: apiResponse, isLoading, error, refetch } = useQuery<{data: HomeData} | { success: false; error: string }>({
+  const { data, isLoading, error, refetch } = useQuery<HomeData>({
     queryKey: ['homeData'],
     queryFn: getHomeData,
   });
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
-  if (error || !apiResponse || (apiResponse && 'success' in apiResponse && !apiResponse.success) || !apiResponse.data) {
+  if (error || !data) {
     return <ErrorDisplay onRetry={refetch} />;
   }
   
-  const data = apiResponse.data;
   const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = data;
 
 

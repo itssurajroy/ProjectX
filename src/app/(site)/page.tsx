@@ -24,12 +24,12 @@ export default function LandingPage() {
     const [query, setQuery] = useState('');
     const router = useRouter();
 
-    const { data: homeDataResult } = useQuery<{data: HomeData} | { success: false; error: string }>({
+    const { data: homeData } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: getHomeData,
     });
     
-    const trendingAnimes = homeDataResult && 'data' in homeDataResult ? homeDataResult.data.trendingAnimes.slice(0, 5) : [];
+    const trendingAnimes = homeData?.trendingAnimes.slice(0, 5) || [];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
