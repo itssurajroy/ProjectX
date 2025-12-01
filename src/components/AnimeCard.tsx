@@ -1,3 +1,4 @@
+
 import { AnimeBase, QtipAnime } from "@/types/anime"
 import Image from "next/image"
 import Link from "next/link"
@@ -62,14 +63,14 @@ export function AnimeCard({ anime, qtip, rank }: AnimeCardProps) {
              {/* Sub / Dub / Ep Count Row */}
              <div className="flex flex-wrap items-center gap-1.5">
                 {anime.episodes?.sub && (
-                   <div className="flex items-center gap-1 bg-red-500/20 backdrop-blur-sm border border-red-500/30 text-red-300 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                   <div className="flex items-center gap-1 bg-red-600/80 backdrop-blur-sm border border-red-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                       <Clapperboard className="w-3 h-3" />
                       {anime.episodes.sub}
                    </div>
                 )}
                 
                 {anime.episodes?.dub && (
-                   <div className="flex items-center gap-1 bg-green-500/20 backdrop-blur-sm border border-green-500/30 text-green-300 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                   <div className="flex items-center gap-1 bg-green-600/80 backdrop-blur-sm border border-green-400/50 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                       <Mic className="w-3 h-3" />
                       {anime.episodes.dub}
                    </div>
