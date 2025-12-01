@@ -2,7 +2,7 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, Clapperboard, List, Bookmark, History } from "lucide-react";
+import { Home, Clapperboard, List, Bookmark, History, Tv } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,7 +25,7 @@ export default function MobileBottomNav() {
     const navItems = [
         { href: "/home", icon: Home, label: "Home" },
         { href: "/movies", icon: Clapperboard, label: "Movies" },
-        { href: "/az-list/all", icon: List, label: "AZ-List" },
+        { href: "/tv", icon: Tv, label: "TV" },
         { href: "/watchlist", icon: Bookmark, label: "Watchlist" },
         { href: "/history", icon: History, label: "History" },
     ];

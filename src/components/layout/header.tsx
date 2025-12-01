@@ -30,6 +30,7 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     const navItems = [
       { href: "/home", label: "Home" },
       { href: "/movies", label: "Movies" },
+      { href: "/tv", label: "TV Shows" },
       { href: "/az-list/all", label: "A-Z List" },
     ];
     
@@ -99,6 +100,7 @@ export default function Header() {
   const navItems = [
     { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
+    { href: "/tv", label: "TV Shows" },
     { href: "/az-list/all", label: "A-Z List" },
   ];
 
