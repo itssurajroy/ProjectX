@@ -34,27 +34,23 @@ export async function setAnimeOverride(
     updatedBy: mockAuth.currentUser?.uid || 'unknown',
   };
 
-  try {
-    // Check if the document exists to determine operation type
-    const docSnap = await getDoc(overrideRef);
-    const operation: SecurityRuleContext['operation'] = docSnap.exists() ? 'update' : 'create';
+  const docSnap = await getDoc(overrideRef);
+  const operation: SecurityRuleContext['operation'] = docSnap.exists() ? 'update' : 'create';
 
-    await setDoc(overrideRef, payload, { merge: true });
-    console.log('Anime override saved successfully!');
-  } catch (serverError: any) {
-    if (serverError.code === 'permission-denied') {
-      const docSnap = await getDoc(overrideRef);
-      const operation: SecurityRuleContext['operation'] = docSnap.exists() ? 'update' : 'create';
-
-      const permissionError = new FirestorePermissionError({
-        path: overrideRef.path,
-        operation: operation,
-        requestResourceData: payload,
-      } satisfies SecurityRuleContext);
-
-      errorEmitter.emit('permission-error', permissionError);
-    } else {
-      handleAdminError(serverError, 'setAnimeOverride');
-    }
-  }
+  setDoc(overrideRef, payload, { merge: true })
+    .then(() => {
+        console.log('Anime override saved successfully!');
+    })
+    .catch((serverError: any) => {
+        if (serverError.code === 'permission-denied') {
+            const permissionError = new FirestorePermissionError({
+                path: overrideRef.path,
+                operation: operation,
+                requestResourceData: payload,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+        } else {
+            handleAdminError(serverError, 'setAnimeOverride');
+        }
+  });
 }

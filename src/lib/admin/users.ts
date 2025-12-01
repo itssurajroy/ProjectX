@@ -4,6 +4,9 @@ import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { handleAdminError, AdminError } from './utils';
 import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+
 
 const { firestore } = initializeAdminFirebase();
 
@@ -14,14 +17,21 @@ async function updateUserRole(uid: string, role: UserRole) {
     throw new AdminError('User ID and role are required.');
   }
 
-  try {
-    const userRef = doc(firestore, 'users', uid);
-    await updateDoc(userRef, { role });
-    toast.success(`User role updated to ${role}.`);
-  } catch (error) {
-    handleAdminError(error, 'updateUserRole');
-    throw error;
-  }
+  const userRef = doc(firestore, 'users', uid);
+  const payload = { role };
+
+  updateDoc(userRef, payload)
+    .then(() => {
+        toast.success(`User role updated to ${role}.`);
+    })
+    .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: payload,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+    });
 }
 
 export async function banUser(uid: string) {
@@ -47,8 +57,22 @@ export async function bulkUpdateUserRoles(uids: string[], role: UserRole) {
             const userRef = doc(firestore, 'users', uid);
             batch.update(userRef, { role });
         });
-        await batch.commit();
-        toast.success(`${uids.length} users updated to ${role}.`);
+        
+        await batch.commit()
+            .then(() => {
+                toast.success(`${uids.length} users updated to ${role}.`);
+            })
+            .catch((serverError) => {
+                // Note: Batch errors are harder to contextualize to a single doc.
+                // This will report the first failed operation if possible, but it's a limitation.
+                const permissionError = new FirestorePermissionError({
+                    path: `users/[MULTIPLE]`,
+                    operation: 'update',
+                    requestResourceData: { role },
+                } satisfies SecurityRuleContext);
+                errorEmitter.emit('permission-error', permissionError);
+            });
+
     } catch (error) {
         handleAdminError(error, 'bulkUpdateUserRoles');
         throw error;
