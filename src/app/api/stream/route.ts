@@ -10,6 +10,8 @@ const ALLOWED_DOMAINS = [
   "streamwish.to",
   "vidoza.net",
   "animespa.com",
+  "sunshinerays93.live",
+  "haildrop77.pro",
 ];
 
 export async function GET(req: NextRequest) {
