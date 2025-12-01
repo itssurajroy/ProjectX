@@ -3,6 +3,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
 import { Clapperboard, Mic, Play, Clock } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 type AnimeCardProps = {
   anime: AnimeBase;
