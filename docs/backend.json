@@ -6,91 +6,83 @@
       "type": "object",
       "description": "Represents a Watch Together room where users can watch content together.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Watch Together room."
-        },
         "name": {
           "type": "string",
           "description": "Name of the Watch Together room."
         },
         "animeId": {
           "type": "string",
-          "description": "Reference to Anime. (Relationship: WatchTogetherRoom 1:N Anime)"
+          "description": "ID of the anime being watched."
         },
-        "episode": {
-          "type": "number",
-          "description": "Episode number being watched in the room."
-        },
-        "password": {
+        "episodeId": {
           "type": "string",
-          "description": "Optional password to protect the room.  Should be hashed before storing."
+          "description": "ID of the episode being watched."
         },
-        "maxUsers": {
+        "episodeNumber": {
           "type": "number",
-          "description": "Maximum number of users allowed in the room."
+          "description": "Episode number being watched."
         },
         "hostId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: WatchTogetherRoom 1:N User) User ID of the room host."
+          "description": "User ID of the room host."
         },
         "createdAt": {
           "type": "string",
           "description": "Date and time the room was created.",
           "format": "date-time"
         },
-        "expiresAt": {
-          "type": "string",
-          "description": "Date and time the room expires due to inactivity.",
-          "format": "date-time"
-        },
-        "backgroundImageUrl": {
-          "type": "string",
-          "description": "URL of a custom background image for the room.",
-          "format": "uri"
+        "playerState": {
+          "type": "object",
+          "description": "The current state of the video player.",
+          "properties": {
+            "isPlaying": {
+              "type": "boolean"
+            },
+            "currentTime": {
+              "type": "number"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": ["isPlaying", "currentTime", "updatedAt"]
         }
       },
       "required": [
-        "id",
         "name",
         "animeId",
-        "episode",
-        "maxUsers",
+        "episodeId",
+        "episodeNumber",
         "hostId",
         "createdAt",
-        "expiresAt"
+        "playerState"
       ]
     },
-    "User": {
+    "RoomUser": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "RoomUser",
       "type": "object",
-      "description": "Represents a user in the system.",
+      "description": "Represents a user within a Watch Together room.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
+          "description": "User's unique identifier."
         },
-        "username": {
+        "name": {
           "type": "string",
-          "description": "Username of the user."
+          "description": "Display name of the user."
         },
-        "email": {
+        "avatar": {
           "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
+          "description": "URL of the user's avatar."
         },
-        "avatarUrl": {
-          "type": "string",
-          "description": "URL of the user's avatar image.",
-          "format": "uri"
+        "isHost": {
+          "type": "boolean",
+          "description": "True if this user is the host."
         }
       },
-      "required": [
-        "id",
-        "username",
-        "email"
-      ]
+      "required": ["id", "name", "avatar", "isHost"]
     },
     "ChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -98,19 +90,19 @@
       "type": "object",
       "description": "Represents a chat message within a Watch Together room.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the chat message."
-        },
-        "roomId": {
-          "type": "string",
-          "description": "Reference to WatchTogetherRoom. (Relationship: WatchTogetherRoom 1:N ChatMessage) ID of the room the message belongs to."
-        },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N ChatMessage) ID of the user who sent the message."
+          "description": "ID of the user who sent the message."
         },
-        "content": {
+        "userName": {
+          "type": "string",
+          "description": "Name of the user who sent the message."
+        },
+        "avatar": {
+          "type": "string",
+          "description": "Avatar of the user who sent the message."
+        },
+        "text": {
           "type": "string",
           "description": "Text content of the chat message."
         },
@@ -120,15 +112,9 @@
           "format": "date-time"
         }
       },
-      "required": [
-        "id",
-        "roomId",
-        "userId",
-        "content",
-        "timestamp"
-      ]
+      "required": ["userId", "userName", "text", "timestamp"]
     },
-    "Anime": {
+     "Anime": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Anime",
       "type": "object",
@@ -158,74 +144,35 @@
         "posterUrl"
       ]
     },
-    "QueueItem": {
+     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "QueueItem",
+      "title": "User",
       "type": "object",
-      "description": "Represents an item in the Watch Together room's queue.",
+      "description": "Represents a user in the system.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the queue item."
+          "description": "Unique identifier for the user."
         },
-        "roomId": {
+        "username": {
           "type": "string",
-          "description": "Reference to WatchTogetherRoom. (Relationship: WatchTogetherRoom 1:N QueueItem) ID of the room the queue item belongs to."
+          "description": "Username of the user."
         },
-        "animeId": {
+        "email": {
           "type": "string",
-          "description": "Reference to Anime. (Relationship: Anime 1:N QueueItem) ID of the anime in the queue."
+          "description": "Email address of the user.",
+          "format": "email"
         },
-        "episode": {
-          "type": "number",
-          "description": "Episode number in the queue."
-        },
-        "addedByUserId": {
+        "avatarUrl": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N QueueItem) ID of the user who added the item to the queue."
+          "description": "URL of the user's avatar image.",
+          "format": "uri"
         }
       },
       "required": [
         "id",
-        "roomId",
-        "animeId",
-        "episode",
-        "addedByUserId"
-      ]
-    },
-    "RoomUser": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "RoomUser",
-      "type": "object",
-      "description": "Represents the relationship between a user and a Watch Together room, including the user's role.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the RoomUser relationship."
-        },
-        "roomId": {
-          "type": "string",
-          "description": "Reference to WatchTogetherRoom. (Relationship: WatchTogetherRoom 1:N RoomUser) ID of the Watch Together room."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N RoomUser) ID of the user in the room."
-        },
-        "role": {
-          "type": "string",
-          "description": "Role of the user in the room (e.g., host, co-host, viewer)."
-        },
-        "mutedUntil": {
-          "type": "string",
-          "description": "Timestamp until the user is muted in the room, if applicable.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "roomId",
-        "userId",
-        "role"
+        "username",
+        "email"
       ]
     }
   },
@@ -238,75 +185,33 @@
   "firestore": {
     "structure": [
       {
-        "path": "/watch_together_rooms/{roomId}",
+        "path": "/watch2gether_rooms/{roomId}",
         "definition": {
           "entityName": "WatchTogetherRoom",
           "schema": {
             "$ref": "#/backend/entities/WatchTogetherRoom"
           },
-          "description": "Stores Watch Together rooms. Includes denormalized 'members' map for authorization independence.",
-          "params": [
-            {
-              "name": "roomId",
-              "description": "Unique identifier for the Watch Together room."
-            }
-          ]
+          "description": "Stores active Watch Together rooms."
         }
       },
       {
-        "path": "/watch_together_rooms/{roomId}/chat_messages/{messageId}",
-        "definition": {
-          "entityName": "ChatMessage",
-          "schema": {
-            "$ref": "#/backend/entities/ChatMessage"
-          },
-          "description": "Stores chat messages for a specific Watch Together room.",
-          "params": [
-            {
-              "name": "roomId",
-              "description": "Unique identifier for the Watch Together room."
-            },
-            {
-              "name": "messageId",
-              "description": "Unique identifier for the chat message."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/watch_together_rooms/{roomId}/queue_items/{queueItemId}",
-        "definition": {
-          "entityName": "QueueItem",
-          "schema": {
-            "$ref": "#/backend/entities/QueueItem"
-          },
-          "description": "Stores queue items for a specific Watch Together room.",
-          "params": [
-            {
-              "name": "roomId",
-              "description": "Unique identifier for the Watch Together room."
-            },
-            {
-              "name": "queueItemId",
-              "description": "Unique identifier for the queue item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/room_users/{roomUserId}",
+        "path": "/watch2gether_rooms/{roomId}/users/{userId}",
         "definition": {
           "entityName": "RoomUser",
           "schema": {
             "$ref": "#/backend/entities/RoomUser"
           },
-          "description": "Stores user roles within a specific room. Used for setting roles, but authorization relies on the denormalized 'members' map in the watch_together_rooms collection.",
-          "params": [
-            {
-              "name": "roomUserId",
-              "description": "Unique identifier for the RoomUser relationship."
-            }
-          ]
+          "description": "Stores participants of a specific room."
+        }
+      },
+      {
+        "path": "/watch2gether_rooms/{roomId}/messages/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores chat messages for a specific room."
         }
       },
       {
@@ -316,13 +221,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user information.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "Unique identifier for the user."
-            }
-          ]
+          "description": "Stores user information."
         }
       },
       {
@@ -332,16 +231,9 @@
           "schema": {
             "$ref": "#/backend/entities/Anime"
           },
-          "description": "Stores information about anime series and movies.",
-          "params": [
-            {
-              "name": "animeId",
-              "description": "Unique identifier for the anime."
-            }
-          ]
+          "description": "Stores information about anime series and movies."
         }
       }
-    ],
-    "reasoning": "The Firestore data structure is designed to support a collaborative anime watching experience similar to Watch2Gether, prioritizing real-time interactions, user roles, and scalability. The design emphasizes authorization independence by denormalizing relevant user role information into subcollections where necessary, which is crucial for maintaining data consistency and simplifying security rules. The structure is segregated into collections based on entity type to ensure uniform security postures within each collection. The membership map pattern is employed to handle collaborative access control in WatchTogetherRoom objects.\n\n*Rooms and Messages*:  Watch rooms are stored in `/watch_together_rooms/{roomId}`. Each room contains information about the anime being watched, the current episode, and room settings. Chat messages for each room are stored in a subcollection `/watch_together_rooms/{roomId}/chat_messages/{messageId}`.  This structure keeps chat messages closely associated with their respective rooms.\n\n*User Roles*:  The `/room_users/{roomUserId}` collection tracks user roles within specific rooms. To avoid authorization dependencies, the `role` attribute is duplicated (denormalized) to the `watch_together_rooms/{roomId}` documents as part of a `members` map.  This map contains the `userId` and `role` of each user in the room, enabling efficient security rules that verify user roles without needing additional `get()` calls.  This denormalization is critical for Authorization Independence.\n\n*Queues*:  The `queue_items` subcollection, `/watch_together_rooms/{roomId}/queue_items/{queueItemId}`, stores items in the watch queue for each room. This ensures that the queue is tied to the room and allows users to add, vote, and skip episodes.\n\n*Security and QAPs*: The data structure achieves Authorization Independence by denormalizing the 'members' map into the `watch_together_rooms` documents and nested collections. This ensures that all security rules within `chat_messages` and `queue_items` can be evaluated without fetching parent documents. Segregation ensures the `list` operation QAP. For instance, listing `watch_together_rooms` requires no filtering based on access, as different access levels would be in different collections, if necessary. If certain trending rooms should be world-readable, they could be stored in `watch_together_rooms_public`. All `list` operations are secure by default without needing to implement filtering logic in rules.\n\n*Invariants*:  The structure ensures that the ownership of rooms is always maintained through the `hostId` field in the `watch_together_rooms` collection. Timestamps (`createdAt`, `expiresAt`) capture relevant dates for room management. The `members` map enforces the invariant that only users with explicitly defined roles can access certain room resources."
+    ]
   }
 }

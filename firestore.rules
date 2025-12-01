@@ -1,219 +1,44 @@
-/**
- * Core Philosophy: This ruleset enables a secure, collaborative "Watch Together" experience.
- * The core principle is that access to a room and its sub-collections (chat, queue) is
- * governed by a denormalized 'members' map on the room document itself. This map defines
- * user roles ('host', 'co-host', 'viewer'), providing a single, performant source of truth
- * for all authorization checks within that room's data tree.
- *
- * Data Structure: The primary collection is /watch_together_rooms/{roomId}. This document
- * acts as the security root for its sub-collections, /chat_messages and /queue_items.
- * User profiles (/users/{userId}) are private and owner-only. Ancillary data like
- * anime information (/anime/{animeId}) is public and read-only.
- *
- * Key Security Decisions:
- * - Denormalization for Authorization: To ensure fast and simple security rules, a 'members'
- *   map (e.g., { members: { 'user_abc': 'host', 'user_xyz': 'viewer' } }) is stored
- *   directly on each /watch_together_rooms document. Rules for sub-collections perform a
- *   single `get()` on the parent room to verify membership, avoiding complex and slow queries.
- * - Public Lobby: The list of all rooms (/watch_together_rooms) is publicly readable to allow
- *   for a lobby or browsing page. However, reading the full data of a specific room or
- *   accessing its sub-collections is restricted to its members.
- * - Role-Based Permissions: Within a room, permissions are granular. Any member can read
- *   data and create new items (chat messages, queue items), but only users with elevated
- *   roles ('host', 'co-host') can manage the room or moderate its content. Deleting the
- *   room entirely is restricted to the 'host'.
- * - User Privacy: The /users collection cannot be listed by anyone, preventing user enumeration.
- *   A user's profile can only be read, created, or modified by the user themselves.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // -------------------------------------------------------------------------
     // Helper Functions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns true if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Returns true if the authenticated user's UID matches the provided userId.
-     */
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
+    // WATCH2GETHER ROOMS
+    // A user can read/write to a room if they are a member of that room.
+    // Membership is determined by checking for their UID in the room's 'users' subcollection.
+    match /watch2gether_rooms/{roomId} {
+      allow read, update, delete: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
+      allow create: if isSignedIn();
 
-    /**
-     * Returns true if the document being operated on already exists.
-     * Crucial for protecting against writes on non-existent paths.
-     */
-    function isExistingDoc() {
-      return resource != null;
-    }
-
-    /**
-     * Convenience function for update/delete to check ownership of an existing document.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && isExistingDoc();
-    }
-
-    /**
-     * Retrieves the data of a parent room document for subcollection rules.
-     */
-    function getRoomData(roomId) {
-      return get(/databases/$(database)/documents/watch_together_rooms/$(roomId)).data;
-    }
-
-    /**
-     * Checks if the requesting user is a member of a given room
-     * by checking the denormalized 'members' map on the room document.
-     */
-    function isRoomMember(roomId) {
-      return isSignedIn() && getRoomData(roomId).members[request.auth.uid] != null;
-    }
-
-    /**
-     * Checks if the requesting user is the host of a given room.
-     */
-    function isRoomHost(roomId) {
-      return isSignedIn() && getRoomData(roomId).members[request.auth.uid] == 'host';
-    }
-
-    /**
-     * Checks if the requesting user is a co-host or the host of a given room.
-     */
-    function isRoomCoHostOrHost(roomId) {
-      return isSignedIn() && getRoomData(roomId).members[request.auth.uid] in ['host', 'co-host'];
-    }
-
-    /**
-     * Validates that the creator of a room is the authenticated user and
-     * is correctly assigned as the host in the initial members map.
-     */
-    function isValidNewRoom() {
-      let incomingData = request.resource.data;
-      return incomingData.hostId == request.auth.uid && incomingData.members[request.auth.uid] == 'host';
-    }
-
-    /**
-     * Ensures the hostId of a room cannot be changed after creation.
-     */
-    function isHostImmutable() {
-      return request.resource.data.hostId == resource.data.hostId;
-    }
-
-    // -------------------------------------------------------------------------
-    // Collection Rules
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description Controls access to Watch Together rooms. Allows public listing for a lobby,
-     * but restricts getting a room's details or interacting with it to its members.
-     * @path /watch_together_rooms/{roomId}
-     * @allow (list) any user, signed in or not, to see the list of available rooms.
-     * @allow (get) a signed-in user who is a member of the room to read its data.
-     * @allow (create) a signed-in user to create a new room, making them the host.
-     * @deny (get) a user who is not a member from reading a specific room's details.
-     * @deny (update) a 'viewer' role from changing the room name.
-     * @principle Implements a Shared Access model using a denormalized 'members' map for efficient role-based authorization.
-     */
-    match /watch_together_rooms/{roomId} {
-      allow get: if isRoomMember(roomId);
-      allow list: if true;
-      allow create: if isSignedIn() && isValidNewRoom();
-      allow update: if isExistingDoc() && isRoomCoHostOrHost(roomId) && isHostImmutable();
-      allow delete: if isExistingDoc() && isRoomHost(roomId);
-
-      /**
-       * @description Controls access to chat messages within a room.
-       * @path /watch_together_rooms/{roomId}/chat_messages/{messageId}
-       * @allow (create) any member of the room to send a message.
-       * @allow (list) any member of the room to read the chat history.
-       * @deny (create) a user not in the room from sending a message.
-       * @deny (delete) a regular member from deleting another member's message.
-       * @principle Inherits authorization from the parent document, ensuring only room members can participate.
-       */
-      match /chat_messages/{messageId} {
-        allow get: if isRoomMember(roomId);
-        allow list: if isRoomMember(roomId);
-        allow create: if isRoomMember(roomId) && isOwner(request.resource.data.userId) && request.resource.data.roomId == roomId;
-        allow update: if false;
-        allow delete: if isExistingDoc() && (isOwner(resource.data.userId) || isRoomCoHostOrHost(roomId));
+      // Room Users subcollection
+      // Allow users to join a room (create their own user doc)
+      // Allow users to leave a room (delete their own user doc)
+      // Allow any member of the room to read the user list
+      match /users/{userId} {
+        allow read: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
+        allow create: if isSignedIn() && request.auth.uid == userId;
+        allow delete: if isSignedIn() && request.auth.uid == userId;
       }
-
-      /**
-       * @description Controls access to the media queue within a room.
-       * @path /watch_together_rooms/{roomId}/queue_items/{queueItemId}
-       * @allow (create) any member of the room to add an item to the queue.
-       * @allow (delete) a host or co-host to remove an item from the queue.
-       * @deny (update) a regular 'viewer' member from reordering the queue.
-       * @deny (create) a non-member from adding to the queue.
-       * @principle Enforces role-based permissions where all members can add items, but only moderators can manage the queue.
-       */
-      match /queue_items/{queueItemId} {
-        allow get: if isRoomMember(roomId);
-        allow list: if isRoomMember(roomId);
-        allow create: if isRoomMember(roomId) && isOwner(request.resource.data.addedByUserId) && request.resource.data.roomId == roomId;
-        allow update: if isExistingDoc() && isRoomCoHostOrHost(roomId);
-        allow delete: if isExistingDoc() && isRoomCoHostOrHost(roomId);
+      
+      // Chat Messages subcollection
+      // Allow any member of the room to read and send messages.
+      match /messages/{messageId} {
+        allow read, create: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
+        allow update, delete: if false; // Disallow editing/deleting for now
       }
     }
 
-    /**
-     * @description Manages user profiles. Each user has full control over their own document.
-     * User profiles are private and cannot be listed or read by other users.
-     * @path /users/{userId}
-     * @allow (create) a new user to create their own user profile document.
-     * @allow (get, update, delete) an authenticated user to manage their own profile.
-     * @deny (list) any user from listing all user documents.
-     * @deny (get) user 'A' from reading user 'B's profile.
-     * @principle Enforces a strict document ownership model for user privacy and data integrity.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    /**
-     * @description Provides public, read-only access to anime metadata.
-     * This data is considered global content and can be read by anyone.
-     * @path /anime/{animeId}
-     * @allow (get, list) any user, signed-in or not, to read anime information.
-     * @deny (create, update, delete) all write operations from clients.
-     * @principle Secures global content as read-only, preventing any client-side modification.
-     */
+    
     match /anime/{animeId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    /**
-     * @description Stores the relationship between users and rooms. This collection is less critical
-     * for real-time security, which relies on the denormalized 'members' map on the room document.
-     * It serves as a record that can be used to populate the primary map.
-     * @path /room_users/{roomUserId}
-     * @allow (create) a user to create their own membership record for a room.
-     * @allow (delete) a user to delete their own record (leave) or a room host to kick a member.
-     * @deny (list) any user from listing all room memberships.
-     * @principle Secures join-table records based on ownership of the user record or host-ship of the associated room.
-     */
-    match /room_users/{roomUserId} {
-      allow get: if isSignedIn() && (isOwner(resource.data.userId) || isRoomHost(resource.data.roomId));
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
-      allow update: if isExistingDoc() && (isOwner(resource.data.userId) || isRoomHost(resource.data.roomId));
-      allow delete: if isExistingDoc() && (isOwner(resource.data.userId) || isRoomHost(resource.data.roomId));
+      allow get, list: if true;
+      allow create, update, delete: if false;
     }
   }
 }
