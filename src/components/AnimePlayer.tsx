@@ -6,9 +6,8 @@ import Hls from 'hls.js';
 import { Button } from './ui/button';
 import { Loader2, ServerCrash, Tv } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { cn } from '@/lib/utils';
-import { AnimeEpisode } from '@/types/anime';
 import { AnimeService } from '@/lib/AnimeService';
+import { sanitizeFirestoreId } from '@/lib/utils';
 
 interface Source {
   url: string;
@@ -21,7 +20,7 @@ interface Subtitle {
   url:string;
 }
 
-const servers = [
+const SERVERS = [
   { name: "HD-1", id: "hd-1" },
   { name: "VidStreaming", id: "vidstreaming" },
   { name: "MegaCloud", id: "megacloud" },
@@ -40,11 +39,12 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [status, setStatus] = useState<string>('Initializing...');
   const [error, setError] = useState<string | null>(null);
-  const [selectedServer, setSelectedServer] = useState<string>('');
+  const [selectedServerId, setSelectedServerId] = useState<string>('');
 
-  const cleanEpisodeId = episodeId.split('?')[0];
+  // Sanitize episodeId to remove any query params that might have been passed
+  const cleanEpisodeId = sanitizeFirestoreId(episodeId.split('?')[0]);
 
-  const loadPlayer = useCallback(async (serverList: typeof servers) => {
+  const loadPlayer = useCallback(async (serverList: typeof SERVERS) => {
     setError(null);
     for (const server of serverList) {
         try {
@@ -56,31 +56,31 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
               
               setSources(data.sources);
               setSubtitles(data.subtitles || []);
-              setSelectedServer(server.id);
+              setSelectedServerId(server.id);
 
-              // Save last working server
+              // Save last working server for this specific anime
               localStorage.setItem(`last-working-server:${animeId}`, server.id);
               return; // Success, exit loop
             } else {
-              throw new Error("No sources found in data");
+              throw new Error("No sources returned from data");
             }
         } catch (err: any) {
             console.warn(`Server ${server.name} failed:`, err.message);
             setStatus(`Server ${server.name} failed, trying next...`);
         }
     }
-    setError('All servers failed to provide a video source. Please try again later.');
+    setError('All servers are busy or unavailable. Please try again in 5 minutes.');
     setStatus('Playback Failed');
   }, [cleanEpisodeId, category, animeId]);
 
   useEffect(() => {
     const lastWorkingServerId = localStorage.getItem(`last-working-server:${animeId}`);
-    const reorderedServers = [...servers];
+    const reorderedServers = [...SERVERS];
 
     if (lastWorkingServerId) {
         const lastWorkingServer = reorderedServers.find(s => s.id === lastWorkingServerId);
         if (lastWorkingServer) {
-            // Move last working server to the front
+            // Move last working server to the front of the list for faster loading
             reorderedServers.splice(reorderedServers.indexOf(lastWorkingServer), 1);
             reorderedServers.unshift(lastWorkingServer);
         }
@@ -92,33 +92,41 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
     if (!videoRef.current || sources.length === 0) return;
 
     const video = videoRef.current;
-    const hlsUrl = sources[0].url;
+    // Prefer the highest quality source if multiple are provided
+    const mainSource = sources.find(s => s.quality === '1080p') || sources[0];
+    const hlsUrl = mainSource.url;
 
     let hls: Hls;
-    if (Hls.isSupported()) {
+    if (mainSource.isM3U8 && Hls.isSupported()) {
         hls = new Hls({
             xhrSetup: (xhr) => {
+              // The proxy should handle this, but adding for robustness
               xhr.setRequestHeader("Referer", "https://hianime.to");
             },
         });
         hls.loadSource(hlsUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(e => console.error("Autoplay prevented:", e));
+            video.play().catch(e => console.error("Autoplay was prevented:", e));
             setStatus('Playing');
         });
         hls.on(Hls.Events.ERROR, (event, data) => {
             if (data.fatal) {
                 console.error("HLS Fatal Error:", data);
-                setError("A fatal error occurred with the stream. Please try another server.");
+                setError("A fatal error occurred with the video stream. Please try another server.");
             }
         });
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = hlsUrl;
         video.addEventListener('loadedmetadata', () => {
-            video.play().catch(e => console.error("Autoplay prevented:", e));
+            video.play().catch(e => console.error("Autoplay was prevented:", e));
             setStatus('Playing');
         });
+    } else {
+        // Fallback for non-M3U8 sources (e.g., MP4)
+        video.src = hlsUrl;
+        video.play().catch(e => console.error("Autoplay was prevented:", e));
+        setStatus('Playing');
     }
     
      // Clear old tracks before adding new ones
@@ -142,7 +150,7 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
   }, [sources, subtitles]);
 
   const handleServerChange = (serverId: string) => {
-      const server = servers.find(s => s.id === serverId);
+      const server = SERVERS.find(s => s.id === serverId);
       if (server) {
           setSources([]); // Reset player
           setSubtitles([]);
@@ -173,16 +181,16 @@ export default function AnimePlayer({ episodeId, category = 'sub', animeId }: { 
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
-      <video ref={videoRef} className="w-full h-full" controls playsInline />
+      <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" />
       {renderOverlay()}
        <div className="absolute bottom-4 right-4 z-20">
-          <Select onValueChange={handleServerChange} value={selectedServer}>
+          <Select onValueChange={handleServerChange} value={selectedServerId}>
               <SelectTrigger className="w-[180px] bg-card/80 border-border/50 text-white backdrop-blur-sm">
                   <Tv className="w-4 h-4 mr-2" />
                   <SelectValue placeholder="Select Server" />
               </SelectTrigger>
               <SelectContent>
-                  {servers.map(server => (
+                  {SERVERS.map(server => (
                       <SelectItem key={server.id} value={server.id}>{server.name}</SelectItem>
                   ))}
               </SelectContent>

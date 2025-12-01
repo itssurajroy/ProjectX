@@ -1,6 +1,5 @@
 // src/lib/AnimeService.ts
 const API_BASE = "/api";
-const STREAM_PROXY_BASE = "/api/stream";
 
 async function api<T>(endpoint: string): Promise<any> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -35,15 +34,28 @@ export class AnimeService {
   static getGenres = () => api("/genres");
   
   static async getEpisodeSources(episodeId: string, server: string, category: "sub" | "dub" = "sub") {
-    const res = await fetch(`${STREAM_PROXY_BASE}/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`);
-    if (!res.ok) {
-        const error = await res.json().catch(() => ({ message: res.statusText }));
-        throw new Error(error.message || `Server ${server} failed with status ${res.status}`);
+    const endpoint = `/episode/sources?animeEpisodeId=${episodeId}&server=${server}&category=${category}`;
+    const data = await this.request(endpoint);
+    
+    if (!data || !data.sources || data.sources.length === 0) {
+        throw new Error(`No sources found on server: ${server}`);
     }
-    const json = await res.json();
-    if (!json.success) {
-        throw new Error(json.message || `No sources found on ${server}`);
-    }
-    return json.data;
+
+    const M3U8_PROXY = "https://m3u8proxy-kohl-one.vercel.app/?url=";
+
+    // Auto-proxy all M3U8 and subtitle URLs
+    const proxiedData = {
+        ...data,
+        sources: data.sources.map((s: any) => ({
+            ...s,
+            url: s.isM3U8 ? `${M3U8_PROXY}${encodeURIComponent(s.url)}` : s.url,
+        })),
+        subtitles: (data.subtitles || []).map((sub: any) => ({
+            ...sub,
+            url: `${M3U8_PROXY}${encodeURIComponent(sub.url)}`,
+        })),
+    };
+    
+    return proxiedData;
   }
 }
