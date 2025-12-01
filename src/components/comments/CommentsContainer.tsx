@@ -23,7 +23,7 @@ const CommentRules = () => (
         <h3 className="font-bold text-base mb-3 flex items-center gap-2 text-primary"><ShieldCheck className="w-5 h-5"/> PROJECT X COMMENT RULES (Read or get banned)</h3>
         <ol className="list-decimal list-inside space-y-2 text-muted-foreground text-xs [&_strong]:text-foreground/90">
             <li><strong>Be respectful</strong> — no personal attacks, racism, homophobia, death threats, doxxing, or harassment. Instant permanent ban.</li>
-            <li><strong>No spoilers without warning</strong>. Use spoiler tags: `>!spoiler text!<`. Spoilers without tags = 7-day ban (first offense), permanent (second).</li>
+            <li><strong>No spoilers without warning</strong>. Use spoiler tags: `>!spoiler text!`. Spoilers without tags = 7-day ban (first offense), permanent (second).</li>
             <li><strong>No illegal links or piracy discussion</strong>. No asking “where to download”, no torrent links. This is a streaming site, not a warehouse.</li>
             <li><strong>No excessive spam</strong>, copypasta, or all-caps screaming. Chill. We can hear you.</li>
             <li><strong>No advertising or self-promo</strong> in comments. Your own site, Discord, YouTube, TikTok, etc. → banned.</li>
