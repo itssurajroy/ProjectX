@@ -27,7 +27,7 @@ const TooltipSkeleton = () => (
 )
 
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
-  const { data: anime, isLoading, isError, error } = useQuery<QtipAnime>({
+  const { data: animeResult, isLoading, isError, error } = useQuery<{anime: QtipAnime}>({
     queryKey: ['qtip', animeId],
     queryFn: () => AnimeService.qtip(animeId),
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -37,6 +37,8 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
         return failureCount < 2;
     }
   });
+
+  const anime = animeResult?.anime;
 
   return (
     <TooltipProvider delayDuration={100}>
