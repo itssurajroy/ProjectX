@@ -13,6 +13,7 @@ import FloatingDiscordButton from "@/components/common/FloatingDiscordButton";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { Suspense } from 'react';
 import Loading from '../loading';
+import { FirebaseErrorListener } from "@/components/FirebaseErrorListener";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({
         <Suspense fallback={<Loading />}>
           <Providers>
             <NotificationProvider>
+              <FirebaseErrorListener />
               <ShadToaster />
               <div className="flex flex-col min-h-screen w-full">
                 <Header />

@@ -13,6 +13,8 @@ import { initializeFirebase } from "@/firebase";
 import { deleteComment, resolveReport } from "@/lib/admin/moderation";
 import { sanitizeFirestoreId } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError, type SecurityRuleContext } from "@/firebase/errors";
 
 const { firestore } = initializeFirebase();
 
@@ -68,8 +70,12 @@ function CommentsModeration() {
             } as Comment));
             setComments(commentsData);
             setLoading(false);
-        }, (error) => {
-            console.error("Error fetching comments:", error);
+        }, (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: 'comments/{animeId}/{section}/messages',
+                operation: 'list',
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
             setLoading(false);
         });
 
@@ -133,13 +139,18 @@ function ReportsModeration() {
     const [loading, setLoading] = useState(true);
 
      useEffect(() => {
-        const q = query(collection(firestore, 'admin/reports/active'), orderBy('timestamp', 'desc'));
+        const reportsRef = collection(firestore, 'admin/reports/active');
+        const q = query(reportsRef, orderBy('timestamp', 'desc'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const reportsData: Report[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Report));
             setReports(reportsData);
             setLoading(false);
-        }, (error) => {
-            console.error("Error fetching reports:", error);
+        }, (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: reportsRef.path,
+                operation: 'list',
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
             setLoading(false);
         });
         return () => unsubscribe();

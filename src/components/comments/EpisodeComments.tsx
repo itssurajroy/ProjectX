@@ -21,6 +21,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import Spoiler from './Spoiler';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+import type { SecurityRuleContext } from '@/firebase/errors';
 
 const { firestore } = initializeFirebase();
 
@@ -67,6 +70,13 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
         commentsData.push({ id: doc.id, ...doc.data() } as Comment);
       });
       setComments(commentsData);
+    },
+    (serverError) => {
+      const permissionError = new FirestorePermissionError({
+        path: commentsRef.path,
+        operation: 'list',
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
     });
 
     return () => unsubscribe();
