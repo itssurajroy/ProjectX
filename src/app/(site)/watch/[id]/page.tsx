@@ -145,6 +145,11 @@ function WatchPageComponent() {
       episodes[newIndex].number;
     router.push(`/watch/${animeId}?ep=${nextEpId}`);
   }, [episodes, currentEpisode, animeId, router]);
+  
+  const handleEpisodeSelect = useCallback((episode: AnimeEpisode) => {
+      const epId = extractEpisodeNumber(episode.episodeId) || episode.number;
+      router.push(`/watch/${animeId}?ep=${epId}`);
+  }, [animeId, router]);
 
   if (isLoadingAbout || isLoadingEpisodes) {
     return (
@@ -190,13 +195,11 @@ function WatchPageComponent() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6">
-        {/* Left Sidebar */}
         <div className="hidden lg:block lg:col-span-3">
           { about && <WatchSidebar anime={about} malData={malData} /> }
         </div>
 
-        {/* Main Content */}
-        <div className={cn("lg:col-span-9 space-y-4", isFocusMode && "relative z-40")}>
+        <div className={cn("lg:col-span-6 space-y-4", isFocusMode && "relative z-40")}>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
                 {currentEpisode ? (
                     <AnimePlayer 
@@ -234,7 +237,13 @@ function WatchPageComponent() {
           )}
         </div>
 
-        {/* Right sidebar for episodes - This seems to have been removed in favor of the 3-col layout */}
+        <div className="lg:col-span-3">
+            <EpisodeList 
+                episodes={episodes}
+                currentEpisodeId={currentEpisode?.episodeId || null}
+                onEpisodeSelect={handleEpisodeSelect}
+            />
+        </div>
       </div>
     </div>
   );
