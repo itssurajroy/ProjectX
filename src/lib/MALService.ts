@@ -1,6 +1,6 @@
 
 // src/lib/MALService.ts
-const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID!;
+const API_BASE = "/api/mal";
 
 interface MALAnime {
   id: number;
@@ -17,61 +17,51 @@ interface MALAnime {
 }
 
 export class MALService {
-  private static cache = new Map<string, any>();
-  private static cacheTime = new Map<string, number>();
-
   private static async fetchMAL(endpoint: string, params: Record<string, any> = {}) {
-    const url = new URL(`https://api.myanimelist.net/v2${endpoint}`);
-    Object.entries(params).forEach(([k, v]) => url.searchParams.append(k, String(v)));
-    
-    if(!url.searchParams.has('limit')) {
-        url.searchParams.append('limit', '10');
-    }
-    if(!url.searchParams.has('fields')) {
-        url.searchParams.append('fields', 'id,title,main_picture,mean,rank,status,num_episodes,start_season,genres,synopsis,recommendations');
-    }
-
-    const cacheKey = url.toString();
-    const now = Date.now();
-
-    if (this.cache.has(cacheKey) && this.cacheTime.get(cacheKey)! > now - 1000 * 60 * 30) {
-      return this.cache.get(cacheKey);
-    }
+    const url = new URL(`${API_BASE}${endpoint}`);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) {
+        url.searchParams.append(k, String(v));
+      }
+    });
 
     try {
         const res = await fetch(url.toString(), {
-          headers: {
-            'X-MAL-CLIENT-ID': CLIENT_ID,
-          },
-          next: { revalidate: 3600 },
+          next: { revalidate: 3600 }, // Revalidate every hour
         });
 
         if (!res.ok) {
-          console.warn('[MAL] Rate limited or error:', res.status);
+          console.warn(`[MAL PROXY] Failed to fetch from MAL API: ${res.status}`);
           return null;
         }
 
         const data = await res.json();
-        this.cache.set(cacheKey, data);
-        this.cacheTime.set(cacheKey, now);
         return data;
 
     } catch (e) {
-        console.error("[MAL] Fetch failed", e);
+        console.error("[MAL Service] Fetch failed", e);
         return null;
     }
   }
 
   static async getById(malId: number): Promise<MALAnime | null> {
-    return await this.fetchMAL(`/anime/${malId}`);
+    const params = {
+      fields: 'id,title,main_picture,mean,rank,status,num_episodes,start_season,genres,synopsis,recommendations'
+    };
+    return await this.fetchMAL(`/anime/${malId}`, params);
   }
 
   static async search(title: string) {
-    return await this.fetchMAL('/anime', { q: title });
+    const params = {
+      q: title,
+      limit: 1, // Only need the top result for resolution
+      fields: 'id,title'
+    };
+    return await this.fetchMAL('/anime', params);
   }
 
   static async getRecommendations(malId: number) {
-    const data = await this.fetchMAL(`/anime/${malId}`, { fields: 'recommendations' });
+    const data = await this.getById(malId);
     return data?.recommendations || [];
   }
 }
