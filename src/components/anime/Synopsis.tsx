@@ -12,6 +12,11 @@ interface SynopsisProps {
 export default function Synopsis({ description }: SynopsisProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Add a guard clause to handle null or undefined description
+  if (!description) {
+    return <p className="text-sm text-muted-foreground">No synopsis available.</p>;
+  }
+
   // Determine if the description is long enough to need truncation
   const needsTruncation = description.length > 250;
 
