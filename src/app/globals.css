@@ -60,7 +60,7 @@ img {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 173 100% 50%; /* Electric Cyan */
+    --primary: 262 84% 59%; /* Vibrant Purple */
     --primary-foreground: 210 20% 98%;
  
     --secondary: 240 3.7% 15.9%;
@@ -77,7 +77,7 @@ img {
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 173 100% 50%; /* Electric Cyan for rings */
+    --ring: 262 84% 59%; /* Vibrant Purple for rings */
  
     --radius: 0.5rem;
 
@@ -95,7 +95,7 @@ img {
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 173 100% 50%; /* Electric Cyan */
+    --primary: 262 84% 59%; /* Vibrant Purple */
     --primary-foreground: 210 20% 98%;
  
     --secondary: 240 3.7% 15.9%;
@@ -112,7 +112,7 @@ img {
  
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 173 100% 50%; /* Electric Cyan for rings */
+    --ring: 262 84% 59%; /* Vibrant Purple for rings */
   }
 }
 
