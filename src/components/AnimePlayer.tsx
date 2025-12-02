@@ -35,7 +35,6 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const [showConfetti, setShowConfetti] = useState(false);
   const { width, height } = useWindowSize();
   
-  const formattedEpisodeId = episodeId.includes('?ep=') ? episodeId.replace('?ep=', '-episode-') : episodeId;
   const episodeNumber = extractEpisodeNumber(episodeId);
 
   const { autoNext, autoPlay } = usePlayerSettings();
@@ -64,7 +63,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const loadStream = useCallback(async (server: EpisodeServer) => {
     setStatus(`Contacting server: ${server.serverName}...`);
     try {
-      const data = await AnimeService.getEpisodeSources(formattedEpisodeId, server.serverName);
+      const data = await AnimeService.getEpisodeSources(episodeId, server.serverName);
        if (data && data.sources && data.sources.length > 0) {
               setStatus(`Source found on ${server.serverName}! Loading player...`);
               
@@ -83,7 +82,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
         setStatus(`Server ${server.serverName} failed...`);
         return false;
     }
-  }, [formattedEpisodeId, animeId]);
+  }, [episodeId, animeId]);
 
   const findWorkingServer = useCallback(async (serverList: EpisodeServer[]) => {
       setError(null);
@@ -99,7 +98,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   }, [loadStream]);
 
   useEffect(() => {
-    if (!formattedEpisodeId) return;
+    if (!episodeId) return;
     
     setSources([]);
     setSubtitles([]);
@@ -109,7 +108,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     const fetchServersAndPlay = async () => {
         try {
             setStatus('Fetching available servers...');
-            const serverData = await AnimeService.getEpisodeServers(formattedEpisodeId);
+            const serverData = await AnimeService.getEpisodeServers(episodeId);
             const subServers = serverData.sub || [];
             const dubServers = serverData.dub || [];
             const rawServers = serverData.raw || [];
@@ -143,7 +142,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
         }
     }
     fetchServersAndPlay();
-  }, [formattedEpisodeId, animeId, findWorkingServer]);
+  }, [episodeId, animeId, findWorkingServer]);
   
   useEffect(() => {
     if (!videoRef.current || sources.length === 0 || useIframeFallback) return;

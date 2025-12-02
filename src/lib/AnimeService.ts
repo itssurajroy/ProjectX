@@ -37,5 +37,3 @@ export class AnimeService {
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   static getGenres = () => api("/genres");
 }
-
-
