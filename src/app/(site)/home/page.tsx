@@ -83,7 +83,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
               <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-xs md:text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
               
               <div className="flex gap-3 items-center">
-                  <Link href={`/watch/${spotlight.id}`} className="bg-primary text-primary-foreground px-4 md:px-6 py-3 rounded-lg font-bold text-sm md:text-base flex items-center gap-2 hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
+                  <Link href={`/watch/${spotlight.id}`} className="bg-accent text-white px-4 md:px-6 py-3 rounded-lg font-bold text-sm md:text-base flex items-center gap-2 hover:bg-accent/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-accent/30">
                       <Play className="w-5 h-5" /> Watch Now
                   </Link>
                   <Link href={`/anime/${spotlight.id}`} className="border border-white/50 text-white px-4 py-3 rounded-lg font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-colors">

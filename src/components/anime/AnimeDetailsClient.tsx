@@ -212,7 +212,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
                 {firstEpisodeWatchId && (
-                  <Button asChild size="lg" className="shadow-lg shadow-primary/30">
+                  <Button asChild size="lg" className="shadow-lg shadow-accent/30 bg-accent text-white hover:bg-accent/80">
                     <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2">
                         <Play /> Watch Now
                     </Link>
