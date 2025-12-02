@@ -1,3 +1,4 @@
+
 'use client';
 
 import Header from "@/components/layout/header";
@@ -13,10 +14,13 @@ export default function SiteLayout({
 }>) {
   const pathname = usePathname();
 
-  // Don't render header/footer for watch2gether rooms
-  if (pathname.includes('/watch2gether/')) {
+  // Don't render header/footer for watch2gether rooms, but do for the lobby
+  const isW2GRoom = /^\/watch2gether\/[^/]+$/.test(pathname);
+
+  if (isW2GRoom) {
     return <main>{children}</main>;
   }
+
 
   return (
     <div className="flex flex-col min-h-screen w-full">
