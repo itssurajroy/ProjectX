@@ -73,7 +73,7 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <Image src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage" alt="Anime Collage" fill priority className="object-cover opacity-10 blur-sm" />
+                        <Image src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage cyberpunk" alt="Anime Collage" fill priority className="object-cover opacity-10 blur-sm" />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
                     <div className="relative z-10 container mx-auto px-4">
@@ -132,7 +132,7 @@ export default function LandingPage() {
                         </div>
 
                          <div className="mt-8">
-                            <Button size="lg" className="h-14 px-10 text-lg font-bold bg-[#33ff99] text-black hover:bg-[#33ff99]/90" onClick={() => router.push('/home')}>
+                             <Button size="lg" className="h-14 px-10 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 transform hover:scale-105 transition-transform" onClick={() => router.push('/home')}>
                                 View Full Site <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
                         </div>
@@ -164,7 +164,7 @@ export default function LandingPage() {
                               </span>
                               <Sparkles className="w-6 h-6 text-yellow-400 animate-ping" />
                           </div>
-                           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-purple-600 to-pink-600 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity" />
+                           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary to-cyan-500 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity" />
                         </Link>
                     </div>
 
