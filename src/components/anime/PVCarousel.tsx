@@ -14,6 +14,7 @@ import { PlayCircle } from "lucide-react";
 
 interface PVCarouselProps {
   videos: PromotionalVideo[];
+  fallbackPoster: string;
 }
 
 // Helper to get high-res YouTube thumbnail
@@ -27,7 +28,7 @@ const getYoutubeThumbnail = (url?: string): string | null => {
 }
 
 
-export default function PVCarousel({ videos }: PVCarouselProps) {
+export default function PVCarousel({ videos, fallbackPoster }: PVCarouselProps) {
   if (!videos || videos.length === 0) {
     return null;
   }
@@ -55,7 +56,7 @@ export default function PVCarousel({ videos }: PVCarouselProps) {
                   onClick={() => openVideo(video.source)}
                 >
                   <Image
-                    src={youtubeThumbnail || video.thumbnail || "https://picsum.photos/seed/pv-fallback/480/270"}
+                    src={youtubeThumbnail || video.thumbnail || fallbackPoster}
                     alt={video.title || `Promotional Video ${index + 1}`}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-110"
