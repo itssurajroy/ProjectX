@@ -11,6 +11,8 @@ import { useAuth, initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSig
 import { useRouter } from 'next/navigation';
 import { FirebaseError } from 'firebase/app';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
+import { X } from 'lucide-react';
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -45,7 +47,10 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
-      <Tabs defaultValue="login" className="w-[400px]">
+      <Tabs defaultValue="login" className="w-[400px] relative">
+        <Link href="/home" className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10">
+            <X className="w-5 h-5" />
+        </Link>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="signup">Sign Up</TabsTrigger>
