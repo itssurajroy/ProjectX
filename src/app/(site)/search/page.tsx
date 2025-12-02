@@ -135,7 +135,7 @@ const AdvancedFilter = ({ onFilterChange, initialValues }: { onFilterChange: (fi
 }
 
 const LoadingSkeleton = () => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+    <div className="grid-cards">
         {Array.from({ length: 18 }).map((_, index) => (
             <div key={index} className="space-y-2">
                 <Skeleton className="aspect-[2/3] w-full" />
@@ -237,7 +237,7 @@ function SearchPageComponent() {
          error ? <ErrorDisplay title="Search Failed" description={error.message} onRetry={refetch} /> :
          animes.length > 0 ? (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
+            <div className="grid-cards">
               {animes.map((anime, index) => (
                 <div key={`${anime.id}-${index}`} ref={index === animes.length - 1 ? lastElementRef : null}>
                  <AnimeCard anime={anime} />
@@ -268,3 +268,4 @@ export default function SearchPage() {
         </Suspense>
     )
 }
+

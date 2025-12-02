@@ -7,9 +7,22 @@ const BASE_URL = "https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime";
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   
-  // This route is now exclusively for advanced search, not suggestions.
+  const q = searchParams.get('q');
+  
   if (request.nextUrl.pathname.includes('/suggestion')) {
-      return new NextResponse(null, { status: 404 });
+      if (!q) {
+          return NextResponse.json({ success: false, message: "Query 'q' is required for suggestions." }, { status: 400 });
+      }
+      const suggestionUrl = `${BASE_URL}/search/suggestion?q=${encodeURIComponent(q)}`;
+      try {
+          const res = await fetch(suggestionUrl, { next: { revalidate: 300 } }); // Cache for 5 minutes
+          if (!res.ok) throw new Error(`Suggestion API failed with status: ${res.status}`);
+          const data = await res.json();
+          return NextResponse.json(data);
+      } catch (error: any) {
+          console.error('[Search Suggestion API Error]', error);
+          return NextResponse.json({ success: false, message: "Suggestions unavailable", error: error.message }, { status: 503 });
+      }
   }
 
   const advancedParams = new URLSearchParams();
@@ -21,10 +34,10 @@ export async function GET(request: NextRequest) {
       }
   });
 
-  if (!hasQuery) {
+  if (!hasQuery && advancedParams.toString() === 'page=1') {
     return NextResponse.json({
       success: false,
-      message: "Search query 'q' must be provided.",
+      message: "Search query 'q' must be provided for a general search.",
     }, { status: 400 });
   }
 
@@ -53,3 +66,4 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
+

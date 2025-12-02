@@ -251,5 +251,3 @@ export default function AZListPage({ params }: { params: { character: string } }
         </Suspense>
     )
 }
-
-    
