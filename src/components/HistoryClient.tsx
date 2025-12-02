@@ -7,11 +7,15 @@ import { AnimeCard } from './AnimeCard';
 import { Loader2 } from 'lucide-react';
 import ErrorDisplay from './common/ErrorDisplay';
 import { AnimeBase } from '@/types/anime';
+import { Progress } from './ui/progress';
+import Link from 'next/link';
 
 interface HistoryEntry extends AnimeBase {
     watchedAt: any;
     episodeNumber: number;
     progress: number;
+    duration: number;
+    episodeId: string;
 }
 
 export default function HistoryClient({ userId }: { userId: string }) {
@@ -34,6 +38,16 @@ export default function HistoryClient({ userId }: { userId: string }) {
         return <ErrorDisplay title="Could not load your history" description={error.message} />
     }
 
+    const formatTime = (seconds: number) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return [h, m, s]
+            .map(v => v.toString().padStart(2, '0'))
+            .filter((v, i) => v !== '00' || i > 0)
+            .join(':');
+    };
+
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
             <div className="flex justify-between items-center mb-6">
@@ -43,15 +57,29 @@ export default function HistoryClient({ userId }: { userId: string }) {
 
             {history && history.length > 0 ? (
                 <div className="grid-cards">
-                    {history.map(item => (
-                        <div key={item.id}>
-                             <AnimeCard anime={item} />
-                             <div className="mt-2 text-sm text-muted-foreground">
-                                <p>Watched Ep. {item.episodeNumber}</p>
-                                {item.watchedAt && <p>{new Date(item.watchedAt?.seconds * 1000).toLocaleDateString()}</p>}
-                             </div>
-                        </div>
-                    ))}
+                    {history.map(item => {
+                        const progressPercent = item.duration > 0 ? (item.progress / item.duration) * 100 : 0;
+                        const episodeNumberFromId = item.episodeId.split('?ep=')[1];
+
+                        return (
+                            <div key={item.id}>
+                                <Link href={`/watch/${item.animeId}?ep=${episodeNumberFromId}`}>
+                                    <AnimeCard anime={item} />
+                                </Link>
+                                <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                                    <p className="font-bold">Watched Ep. {item.episodeNumber}</p>
+                                    <div className="space-y-1">
+                                        <Progress value={progressPercent} className="h-2" />
+                                        <div className="flex justify-between text-xs">
+                                            <span>{formatTime(item.progress)}</span>
+                                            <span>{formatTime(item.duration)}</span>
+                                        </div>
+                                    </div>
+                                    {item.watchedAt && <p className="text-xs">{new Date(item.watchedAt?.seconds * 1000).toLocaleDateString()}</p>}
+                                </div>
+                            </div>
+                        )
+                    })}
                 </div>
             ) : (
                 <div className="text-center py-16">

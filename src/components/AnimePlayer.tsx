@@ -12,14 +12,15 @@ import { EpisodeServer, Source, Subtitle } from '@/types/anime';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
-import Confetti from 'react-confetti';
+import Confetti from 'react-etti';
 import { useWindowSize } from '@uidotdev/usehooks';
+import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp } from 'firebase/firestore';
 
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
     if (!episodeIdWithParam) return null;
-    const match = episodeIdWithParam.match(/[?&]ep=(\d+)/);
-    return match ? match[1] : null;
+    return episodeIdWithParam.split('?ep=')[1] || null;
 }
 
 
@@ -36,10 +37,65 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const { width, height } = useWindowSize();
   
   const episodeNumber = extractEpisodeNumber(episodeId);
+  const { user } = useUser();
+  const firestore = useFirestore();
 
   const { autoNext, autoPlay } = usePlayerSettings();
+  const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const saveHistory = useCallback(() => {
+    if (!user || !videoRef.current || !animeId || !episodeId) return;
+
+    const video = videoRef.current;
+    const { currentTime, duration } = video;
+    
+    // Don't save if video hasn't started or is too short
+    if (currentTime === 0 || duration < 60) return;
+
+    const historyRef = doc(firestore, 'users', user.uid, 'history', animeId);
+    
+    setDocumentNonBlocking(historyRef, {
+      animeId,
+      episodeId,
+      episodeNumber: Number(episodeNumber),
+      watchedAt: serverTimestamp(),
+      progress: currentTime,
+      duration: duration,
+    }, { merge: true });
+
+  }, [user, firestore, animeId, episodeId, episodeNumber]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => {
+      // Clear any existing timeout
+      if (updateProgressTimeout.current) {
+        clearTimeout(updateProgressTimeout.current);
+      }
+      // Set a new timeout to save progress after 15 seconds of no updates
+      updateProgressTimeout.current = setTimeout(saveHistory, 15000);
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    // Also save on pause
+    video.addEventListener('pause', saveHistory);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('pause', saveHistory);
+      if (updateProgressTimeout.current) {
+        clearTimeout(updateProgressTimeout.current);
+      }
+       // Save one last time on unmount
+      saveHistory();
+    };
+  }, [saveHistory]);
+
 
   const handleEpisodeEnd = useCallback(() => {
+    saveHistory(); // Save final progress
     if (autoNext) {
         setShowConfetti(true);
         setTimeout(() => {
@@ -47,7 +103,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
             onNext();
         }, 3000); // Show confetti for 3 seconds then go next
     }
-  }, [autoNext, onNext]);
+  }, [autoNext, onNext, saveHistory]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -60,10 +116,10 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   }, [handleEpisodeEnd]);
 
 
-  const loadStream = useCallback(async (server: EpisodeServer) => {
+  const loadStream = useCallback(async (server: EpisodeServer, category: 'sub' | 'dub' = 'sub') => {
     setStatus(`Contacting server: ${server.serverName}...`);
     try {
-      const data = await AnimeService.getEpisodeSources(episodeId, server.serverName);
+      const data = await AnimeService.getEpisodeSources(episodeId, server.serverName, category);
        if (data && data.sources && data.sources.length > 0) {
               setStatus(`Source found on ${server.serverName}! Loading player...`);
               

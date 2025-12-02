@@ -30,6 +30,20 @@
       },
       "required": ["displayName", "role", "createdAt"]
     },
+    "UserHistory": {
+      "title": "UserHistory",
+      "type": "object",
+      "description": "Represents a user's watch history for a single episode.",
+      "properties": {
+        "animeId": { "type": "string" },
+        "episodeId": { "type": "string" },
+        "episodeNumber": { "type": "number" },
+        "watchedAt": { "type": "string", "format": "date-time" },
+        "progress": { "type": "number", "description": "Time in seconds" },
+        "duration": { "type": "number", "description": "Total duration in seconds" }
+      },
+      "required": ["animeId", "episodeId", "episodeNumber", "watchedAt", "progress", "duration"]
+    },
     "WatchTogetherRoom": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "WatchTogetherRoom",
@@ -191,6 +205,16 @@
             "$ref": "#/backend/entities/UserProfile"
           },
           "description": "Stores public user profile information."
+        }
+      },
+      {
+        "path": "/users/{userId}/history/{animeId}",
+        "definition": {
+          "entityName": "UserHistory",
+          "schema": {
+            "$ref": "#/backend/entities/UserHistory"
+          },
+          "description": "Stores user watch history."
         }
       },
       {
