@@ -38,3 +38,4 @@ export class AnimeService {
   static getGenres = () => api("/genres");
 }
 
+

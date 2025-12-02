@@ -3,12 +3,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, Twitter, Send, Tv, Film, Rss, Shuffle, Sparkles } from "lucide-react";
+import { Search, ChevronDown, Twitter, Send, Rss, Shuffle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Balancer from "react-wrap-balancer";
-import { AnimeBase, HomeData } from "@/types/anime";
+import { AnimeBase, HomeData, SearchSuggestion } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
 import Image from "next/image";
@@ -22,19 +22,48 @@ const socialLinks = [
 
 export default function LandingPage() {
     const [query, setQuery] = useState('');
+    const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const router = useRouter();
+    const searchContainerRef = useRef<HTMLDivElement>(null);
+
 
     const { data: homeData } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: AnimeService.home,
     });
     
+    useEffect(() => {
+        if (query.length < 2) {
+            setSuggestions([]);
+            return;
+        }
+        const fetchSuggestions = async () => {
+            const data = await AnimeService.getSearchSuggestions(query);
+            setSuggestions(data.suggestions || []);
+            setShowSuggestions(true);
+        };
+        const debounce = setTimeout(fetchSuggestions, 300);
+        return () => clearTimeout(debounce);
+    }, [query]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const trendingAnimes = homeData?.trendingAnimes.slice(0, 5) || [];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if(query.trim()) {
             router.push(`/search?q=${query.trim()}`);
+            setShowSuggestions(false);
         }
     }
 
@@ -57,21 +86,42 @@ export default function LandingPage() {
                             </Balancer>
                         </p>
 
-                        <form onSubmit={handleSearch} className="max-w-2xl mx-auto mb-4">
-                            <div className="relative">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                                <Input 
-                                    type="search"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Search anime..."
-                                    className="w-full h-14 pl-12 pr-32 rounded-full bg-card/80 border-2 border-border focus:ring-primary focus:border-primary text-lg"
-                                />
-                                <Button type="submit" variant="ghost" className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-full flex items-center gap-2">
-                                    Filter <ChevronDown className="w-4 h-4"/>
-                                </Button>
-                            </div>
-                        </form>
+                        <div ref={searchContainerRef} className="max-w-2xl mx-auto mb-4 relative">
+                            <form onSubmit={handleSearch}>
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                                    <Input 
+                                        type="search"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        onFocus={() => query.length > 2 && setShowSuggestions(true)}
+                                        placeholder="Search anime..."
+                                        className="w-full h-14 pl-12 pr-32 rounded-full bg-card/80 border-2 border-border focus:ring-primary focus:border-primary text-lg"
+                                    />
+                                    <Button type="submit" variant="ghost" className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-full flex items-center gap-2">
+                                        Filter <ChevronDown className="w-4 h-4"/>
+                                    </Button>
+                                </div>
+                            </form>
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div className="absolute top-full mt-2 w-full bg-card rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto border border-border text-left">
+                                    {suggestions.map(anime => (
+                                    <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
+                                        <div className="relative w-10 h-14 flex-shrink-0">
+                                        <Image src={anime.poster} alt={anime.name} fill sizes="40px" className="rounded-md object-cover" />
+                                        </div>
+                                        <div className='overflow-hidden'>
+                                            <p className="font-semibold truncate text-sm">{anime.name}</p>
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
+                                                {anime.moreInfo.map(info => <span key={info}>{info}</span>)}
+                                            </div>
+                                        </div>
+                                    </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
                         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground max-w-xl mx-auto">
                             <span>Trending:</span>
                             {trendingAnimes.map((anime: AnimeBase) => (
