@@ -25,8 +25,7 @@ export class AnimeService {
   static home = () => api("/home");
   static movies = (page = 1) => api(`/category/movie?page=${page}`);
   static tv = (page = 1) => api(`/category/tv?page=${page}`);
-  // The main search component now directly calls /api/search, so this can be simplified or removed if unused elsewhere
-  static search = (q: string, page = 1) => api(`/search?q=${encodeURIComponent(q)}&page=${page}`);
+  static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
   static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);
   static episodes = (id: string) => api(`/anime/${id}/episodes`);

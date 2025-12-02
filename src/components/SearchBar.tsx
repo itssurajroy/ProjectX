@@ -17,9 +17,9 @@ export default function SearchBar() {
     }
 
     const timer = setTimeout(async () => {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+      const res = await fetch(`/api/search/suggestion?q=${encodeURIComponent(query)}`);
       const data = await res.json();
-      setResults(data.data?.animes || data.animes || []);
+      setResults(data.data?.suggestions || []);
       setOpen(true);
     }, 300);
 
@@ -42,7 +42,7 @@ export default function SearchBar() {
 
       {open && results.length > 0 && (
         <div 
-          className="absolute top-full mt-2 w-full bg-gray-950/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden"
+          className="absolute top-full mt-2 w-full bg-gray-950/95 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden z-50"
           onMouseLeave={() => setOpen(false)}
         >
           {results.slice(0, 8).map((anime: any) => (
@@ -56,7 +56,7 @@ export default function SearchBar() {
               <div>
                 <p className="font-semibold">{anime.name}</p>
                 <p className="text-xs text-gray-400">
-                  {anime.type} • Sub: {anime.episodes?.sub || '?'} • Dub: {anime.episodes?.dub || '0'}
+                  {anime.moreInfo?.join(' • ')}
                 </p>
               </div>
             </Link>

@@ -14,19 +14,8 @@ import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Link from 'next/link';
+import { AnimeCard } from '@/components/AnimeCard';
 
-interface AnimeResult {
-  id: string;
-  name: string;
-  poster?: string;
-  image?: string;
-  type?: string;
-  year?: string;
-  episodes?: {
-    sub: number;
-    dub: number;
-  };
-}
 
 const AdvancedFilter = ({ onFilterChange, initialValues }: { onFilterChange: (filters: any) => void, initialValues: any }) => {
     const { data: homeDataResult } = useQuery<HomeData>({
@@ -156,27 +145,6 @@ const LoadingSkeleton = () => (
     </div>
 );
 
-const SearchResultCard = ({ anime }: { anime: AnimeResult }) => (
-    <Link href={`/anime/${anime.id}`} className="group cursor-pointer">
-      <div className="aspect-[2/3] relative overflow-hidden rounded-xl shadow-2xl">
-        <Image
-          src={anime.poster || anime.image || '/placeholder.jpg'}
-          alt={anime.name}
-          fill
-          className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition" />
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-          <p className="font-bold text-sm line-clamp-2">{anime.name}</p>
-          <div className="text-xs opacity-80 mt-1 flex items-center gap-2">
-            <span>{anime.type || 'TV'}</span>
-            {anime.episodes?.sub && <span>EP {anime.episodes.sub}</span>}
-          </div>
-        </div>
-      </div>
-    </Link>
-)
 
 function SearchPageComponent() {
   const router = useRouter();
@@ -211,7 +179,7 @@ function SearchPageComponent() {
         if (filters.sort) params.set('sort', filters.sort);
         params.set('page', String(pageParam));
         
-        return AnimeService.request(`/search?${params.toString()}`);
+        return AnimeService.search(params);
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -272,7 +240,7 @@ function SearchPageComponent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-4 sm:gap-6">
               {animes.map((anime, index) => (
                 <div key={`${anime.id}-${index}`} ref={index === animes.length - 1 ? lastElementRef : null}>
-                 <SearchResultCard anime={anime} />
+                 <AnimeCard anime={anime} />
                 </div>
               ))}
             </div>

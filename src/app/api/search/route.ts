@@ -1,76 +1,70 @@
 
 // src/app/api/search/route.ts
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const BASE_URL = "https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const q = searchParams.get("q")?.trim();
-  const page = searchParams.get("page") || "1";
 
-  if (!q || q.length < 2) {
-    return Response.json({
+  // Suggestion endpoint
+  if (request.nextUrl.pathname.endsWith('/suggestion')) {
+      if (!q) {
+          return NextResponse.json({ success: false, message: "Query parameter 'q' is required for suggestions." }, { status: 400 });
+      }
+      try {
+          const res = await fetch(`${BASE_URL}/search/suggestion?q=${encodeURIComponent(q)}`, {
+              next: { revalidate: 300 } // Cache suggestions for 5 mins
+          });
+          if (!res.ok) {
+              const errorBody = await res.text();
+              console.error(`[API Suggestion Error] ${res.status}: ${errorBody}`);
+              throw new Error(`Suggestion API failed with status: ${res.status}`);
+          }
+          const data = await res.json();
+          return NextResponse.json(data);
+      } catch (error: any) {
+          console.error('[Search Suggestion API Error]', error);
+          return NextResponse.json(
+              { success: false, message: "Suggestions temporarily unavailable" },
+              { status: 503 }
+          );
+      }
+  }
+
+  // Advanced search endpoint
+  if (!q) {
+    return NextResponse.json({
       success: false,
-      message: "Search query must be at least 2 characters",
+      message: "Search query 'q' must be provided.",
     }, { status: 400 });
   }
 
+  const advancedParams = new URLSearchParams();
+  searchParams.forEach((value, key) => {
+      advancedParams.append(key, value);
+  });
+
   try {
-    // Main search
     const searchRes = await fetch(
-      `${BASE_URL}/search?keyword=${encodeURIComponent(q)}&page=${page}`,
+      `${BASE_URL}/search?${advancedParams.toString()}`,
       { next: { revalidate: 300 } }
     );
     
     if (!searchRes.ok) {
+        const errorBody = await searchRes.text();
+        console.error(`[API Search Error] ${searchRes.status}: ${errorBody}`);
         throw new Error(`Primary search failed with status: ${searchRes.status}`);
     }
 
     const data = await searchRes.json();
+    return NextResponse.json(data);
 
-    // The new API structure returns data directly, not nested in a `data` property.
-    // Let's check for the presence of the `animes` array.
-    if (!data.animes || data.animes.length === 0) {
-      const homeRes = await fetch(`${BASE_URL}/home`, { next: { revalidate: 600 } });
-      const homeDataResponse = await homeRes.json();
-      const homeData = homeDataResponse.data;
-
-
-      const allAnimes = [
-        ...(homeData.spotlightAnimes || []),
-        ...(homeData.trendingAnimes || []),
-        ...(homeData.top10Animes?.today || []),
-        ...(homeData.top10Animes?.week || []),
-        ...(homeData.latestEpisodeAnimes || []),
-      ];
-
-      const filtered = allAnimes
-        .filter((a: any) =>
-          a.name?.toLowerCase().includes(q.toLowerCase()) ||
-          a.jname?.toLowerCase().includes(q.toLowerCase())
-        )
-        .slice(0, 20);
-
-      return Response.json({
-        success: true,
-        data: {
-          animes: filtered,
-          currentPage: 1,
-          hasNextPage: false,
-          totalResults: filtered.length,
-        }
-      });
-    }
-    
-    // The original API response might be what we need, ensure it's wrapped correctly.
-    // If data is already in the right structure from the primary API, just pass it through.
-    return Response.json({ success: true, data });
-
-  } catch (error) {
+  } catch (error: any) {
     console.error('[Search API Error]', error);
-    return Response.json(
-      { success: false, message: "Search temporarily unavailable" },
+    return NextResponse.json(
+      { success: false, message: "Search temporarily unavailable", error: error.message },
       { status: 503 }
     );
   }
