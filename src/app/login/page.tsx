@@ -25,17 +25,21 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (action === 'anonymous') {
-        initiateAnonymousSignIn(auth);
+        await initiateAnonymousSignIn(auth);
       } else if (action === 'signIn') {
-        initiateEmailSignIn(auth, email, password);
+        await initiateEmailSignIn(auth, email, password);
       } else {
-        initiateEmailSignUp(auth, email, password);
+        await initiateEmailSignUp(auth, email, password);
       }
       toast.success("Redirecting...");
       router.push('/home');
     } catch (error) {
       if (error instanceof FirebaseError) {
-        toast.error(error.message);
+        if (error.code === 'auth/invalid-credential') {
+            toast.error('Invalid email or password.');
+        } else {
+            toast.error(error.message);
+        }
       } else {
         toast.error('An unexpected error occurred.');
       }
