@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, Twitter, Send, Tv, Film, Rss } from "lucide-react";
+import { Search, ChevronDown, Twitter, Send, Tv, Film, Rss, Shuffle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -102,6 +102,21 @@ export default function LandingPage() {
                             ))}
                         </div>
                     </section>
+                    
+                    <div className="flex justify-center my-16">
+                        <Link href="/random"
+                            className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-1 shadow-2xl transition-all hover:scale-105 active:scale-95"
+                        >
+                          <div className="flex items-center gap-3 px-8 py-5 bg-black rounded-2xl transition-all group-hover:bg-black/80">
+                              <Shuffle className="w-7 h-7 text-white animate-pulse" />
+                              <span className="text-2xl font-black text-white bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
+                                RANDOM ANIME
+                              </span>
+                              <Sparkles className="w-6 h-6 text-yellow-400 animate-ping" />
+                          </div>
+                           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-purple-600 to-pink-600 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                    </div>
 
 
                     {/* SEO Content Section */}
