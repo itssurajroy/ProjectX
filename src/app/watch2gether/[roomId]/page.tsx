@@ -1,3 +1,4 @@
+
 // src/app/watch2gether/[roomId]/page.tsx
 'use client';
 
@@ -18,3 +19,5 @@ export default function Watch2GetherRoomPage({ params }: { params: { roomId: str
     </Suspense>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -16,7 +17,7 @@ export default {
         "md": "768px",
         "lg": "1024px",
         "xl": "1280px",
-        "2xl": "1536px",
+        "2xl": "1720px",
       },
     },
     extend: {
@@ -93,3 +94,5 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

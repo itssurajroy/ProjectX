@@ -1,3 +1,4 @@
+
 // src/app/watch2gether/page.tsx
 'use client';
 
@@ -70,7 +71,7 @@ export default function Watch2GetherLobby() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 max-w-4xl">
             <div className="text-center mb-12">
                 <h1 className="text-4xl font-bold text-glow">Watch Together</h1>
                 <p className="text-lg text-muted-foreground mt-2">Create a room and watch anime with your friends, synced in real-time.</p>
@@ -120,3 +121,5 @@ export default function Watch2GetherLobby() {
         </div>
     );
 }
+
+    

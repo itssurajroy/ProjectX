@@ -337,7 +337,7 @@ export default function MainDashboardPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SpotlightSection spotlights={spotlightAnimes} />
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
         <PollSection />
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -361,5 +361,7 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
 
     

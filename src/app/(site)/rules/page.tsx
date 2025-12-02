@@ -76,7 +76,7 @@ const rules = [
 
 export default function RulesPage() {
     return (
-        <div className="container mx-auto px-4 py-8 pt-24 max-w-4xl">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24 max-w-4xl">
             <Card className="bg-card/50 border-border/50">
                 <CardHeader className="text-center">
                     <ShieldAlert className="w-12 h-12 mx-auto text-primary" />
@@ -111,3 +111,5 @@ export default function RulesPage() {
         </div>
     )
 }
+
+    
