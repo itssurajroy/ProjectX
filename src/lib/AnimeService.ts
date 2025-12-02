@@ -1,3 +1,4 @@
+
 // src/lib/AnimeService.ts
 const API_BASE = "/api";
 
@@ -12,8 +13,9 @@ async function api<T>(endpoint: string): Promise<any> {
     throw new Error(`API Request Failed: ${res.status} ${res.statusText} - ${errorBody}`);
   }
   const json = await res.json();
-  if (json.status === 500) throw new Error(json.message || `API error ${json.status}`)
-  if (!json.success && json.message) throw new Error(json.message);
+  if (json.status === 500 || json.success === false) {
+    throw new Error(json.message || `API error ${json.status}`);
+  }
   
   return json.data ?? json;
 }
@@ -23,6 +25,7 @@ export class AnimeService {
   static home = () => api("/home");
   static movies = (page = 1) => api(`/category/movie?page=${page}`);
   static tv = (page = 1) => api(`/category/tv?page=${page}`);
+  // The main search component now directly calls /api/search, so this can be simplified or removed if unused elsewhere
   static search = (q: string, page = 1) => api(`/search?q=${encodeURIComponent(q)}&page=${page}`);
   static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);

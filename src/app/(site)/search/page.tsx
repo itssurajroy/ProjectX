@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
@@ -7,7 +8,7 @@ import { useDebounce } from 'use-debounce';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { HomeData, SearchResult } from '@/types/anime';
+import { HomeData, SearchResult, AnimeBase } from '@/types/anime';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -27,7 +28,7 @@ interface AnimeResult {
   };
 }
 
-const AdvancedFilter = ({ onFilterChange }: { onFilterChange: (filters: any) => void }) => {
+const AdvancedFilter = ({ onFilterChange, initialValues }: { onFilterChange: (filters: any) => void, initialValues: any }) => {
     const { data: homeDataResult } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: AnimeService.home,
@@ -37,11 +38,11 @@ const AdvancedFilter = ({ onFilterChange }: { onFilterChange: (filters: any) => 
     
     const [isGenreDropdownOpen, setIsGenreDropdownOpen] = useState(false);
     const genreRef = useRef<HTMLDivElement>(null);
-    const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-    const [keyword, setKeyword] = useState('');
-    const [type, setType] = useState('');
-    const [status, setStatus] = useState('');
-    const [sort, setSort] = useState('');
+    const [selectedGenres, setSelectedGenres] = useState<string[]>(initialValues.genres || []);
+    const [keyword, setKeyword] = useState(initialValues.q || '');
+    const [type, setType] = useState(initialValues.type || '');
+    const [status, setStatus] = useState(initialValues.status || '');
+    const [sort, setSort] = useState(initialValues.sort || '');
 
     const types = ['TV', 'Movie', 'OVA', 'ONA', 'Special'];
     const statuses = ['Airing', 'Finished Airing', 'Not yet aired'];
@@ -180,16 +181,16 @@ const SearchResultCard = ({ anime }: { anime: AnimeResult }) => (
 function SearchPageComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || '';
-  const initialGenres = searchParams.get('genres')?.split(',') || [];
   
-  const [filters, setFilters] = useState({
-      q: initialQuery,
-      genres: initialGenres,
+  const getInitialFilters = () => ({
+      q: searchParams.get('q') || '',
+      genres: searchParams.get('genres')?.split(',') || [],
       type: searchParams.get('type') || '',
       status: searchParams.get('status') || '',
       sort: searchParams.get('sort') || 'popularity'
   });
+
+  const [filters, setFilters] = useState(getInitialFilters);
 
   const {
     data,
@@ -199,7 +200,7 @@ function SearchPageComponent() {
     isFetchingNextPage,
     isLoading,
     refetch
-  } = useInfiniteQuery<SearchResult, Error>({
+  } = useInfiniteQuery<{ data: SearchResult }, Error>({
     queryKey: ['search', filters],
     queryFn: async ({ pageParam = 1 }) => {
         const params = new URLSearchParams();
@@ -214,7 +215,7 @@ function SearchPageComponent() {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-        return lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined
+        return lastPage.data?.hasNextPage ? (lastPage.data.currentPage || 0) + 1 : undefined;
     },
   });
 
@@ -238,7 +239,7 @@ function SearchPageComponent() {
       router.push(`/search?${params.toString()}`);
   }
 
-  const animes = data?.pages.flatMap(page => page.animes) ?? [];
+  const animes = data?.pages.flatMap(page => page.data?.animes || []) ?? [];
 
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback((node: HTMLDivElement | null) => {
@@ -262,7 +263,7 @@ function SearchPageComponent() {
           Search Anime
         </h1>
 
-        <AdvancedFilter onFilterChange={handleFilterChange} />
+        <AdvancedFilter onFilterChange={handleFilterChange} initialValues={filters}/>
         
         {isLoading ? <LoadingSkeleton /> :
          error ? <ErrorDisplay title="Search Failed" description={error.message} onRetry={refetch} /> :
