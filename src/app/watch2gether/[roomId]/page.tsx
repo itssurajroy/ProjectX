@@ -19,5 +19,3 @@ export default function Watch2GetherRoomPage({ params }: { params: { roomId: str
     </Suspense>
   );
 }
-
-    

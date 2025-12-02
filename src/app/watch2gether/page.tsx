@@ -121,5 +121,3 @@ export default function Watch2GetherLobby() {
         </div>
     );
 }
-
-    

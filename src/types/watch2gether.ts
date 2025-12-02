@@ -1,3 +1,4 @@
+
 // src/types/watch2gether.ts
 
 import { FieldValue } from 'firebase/firestore';
