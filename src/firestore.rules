@@ -27,7 +27,13 @@ service cloud.firestore {
       allow create: if isSignedIn();
       
       // Subcollections for user-specific data like watchlist, history, notifications
-      match /{collection}/{docId} {
+      match /watchlist/{entryId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /history/{entryId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /notifications/{notifId} {
         allow read, write: if isOwner(userId);
       }
     }
