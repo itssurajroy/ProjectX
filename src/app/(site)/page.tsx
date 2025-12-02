@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, Twitter, Send, Rss, Shuffle, Sparkles } from "lucide-react";
+import { Search, ChevronDown, Twitter, Send, Rss, Shuffle, Sparkles, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
@@ -132,8 +132,8 @@ export default function LandingPage() {
                         </div>
 
                          <div className="mt-8">
-                            <Button size="lg" className="h-12 px-8 text-lg font-bold" onClick={() => router.push('/home')}>
-                                Start Watching
+                            <Button size="lg" className="h-14 px-10 text-lg font-bold bg-[#33ff99] text-black hover:bg-[#33ff99]/90" onClick={() => router.push('/home')}>
+                                View Full Site <ArrowRight className="w-5 h-5 ml-2" />
                             </Button>
                         </div>
                     </div>
