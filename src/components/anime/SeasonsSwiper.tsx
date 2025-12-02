@@ -55,5 +55,3 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
         </section>
     )
 }
-
-    
