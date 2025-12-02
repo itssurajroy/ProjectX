@@ -98,6 +98,7 @@ export default function Header() {
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
     { href: "/az-list/all", label: "A-Z List" },
+    { href: "/watch2gether", label: "Watch Together"}
   ];
   
   const handleLogout = () => {
