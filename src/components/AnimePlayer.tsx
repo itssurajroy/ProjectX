@@ -12,7 +12,7 @@ import { EpisodeServer, Source, Subtitle } from '@/types/anime';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
-import Confetti from 'react-etti';
+import Confetti from 'react-confetti';
 import { useWindowSize } from '@uidotdev/usehooks';
 import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
