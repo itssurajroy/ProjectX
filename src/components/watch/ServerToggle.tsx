@@ -33,7 +33,7 @@ export default function ServerToggle({ onLanguageChange }: ServerToggleProps) {
              >
                  Hard Sub
             </Button>
-             <Button 
+            <Button 
                 size="sm" 
                 variant={'ghost'} 
                 className='font-semibold text-xs text-muted-foreground'

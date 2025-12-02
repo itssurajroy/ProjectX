@@ -116,7 +116,7 @@ function WatchPageComponent() {
     data: sourcesData, 
  } = useQuery<SourcesData>({
     queryKey: ['episode-sources', currentEpisode?.episodeId, language],
-    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, 'hd-1', language), // default to hd-1
+    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, language),
     enabled: !!currentEpisode,
     retry: false, // Let the player handle retries
   });
