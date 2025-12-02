@@ -32,6 +32,10 @@ import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
 import CommentsContainer from '@/components/comments/CommentsContainer';
 import AnimeSchedule from '@/components/watch/AnimeSchedule';
+import { addDocumentNonBlocking, errorEmitter, FirestorePermissionError, useUser, useFirestore } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import type { SecurityRuleContext } from '@/firebase/errors';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
 
@@ -49,6 +53,8 @@ function WatchPageComponent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const firestore = useFirestore();
+  const { user } = useUser();
 
   const animeId = params.id as string;
   const episodeParam = searchParams.get('ep');
@@ -149,6 +155,55 @@ function WatchPageComponent() {
       router.push(`/watch/${animeId}?ep=${epId}`);
   }, [animeId, router]);
 
+  const handleCreateW2G = async () => {
+    if (!user) {
+      toast.error('You must be logged in to create a Watch Together room.');
+      router.push('/login');
+      return;
+    }
+    if (!currentEpisode || !about) {
+      toast.error('Could not get anime details to create a room.');
+      return;
+    }
+
+    const toastId = toast.loading('Creating Watch Together room...');
+
+    try {
+      const roomCollection = collection(firestore, 'watch2gether_rooms');
+      const roomData = {
+        name: `${user.displayName || 'Anonymous'}'s Watch Party`,
+        animeId: about.info.id,
+        episodeId: currentEpisode.episodeId,
+        episodeNumber: currentEpisode.number,
+        hostId: user.uid,
+        createdAt: serverTimestamp(),
+        playerState: {
+          isPlaying: false,
+          currentTime: 0,
+          updatedAt: serverTimestamp(),
+        },
+      };
+
+      addDoc(roomCollection, roomData)
+        .then((newRoomDoc) => {
+          toast.success('Room created! Redirecting...', { id: toastId });
+          router.push(`/watch2gether/${newRoomDoc.id}`);
+        })
+        .catch((serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: roomCollection.path,
+            operation: 'create',
+            requestResourceData: roomData,
+          } satisfies SecurityRuleContext);
+          errorEmitter.emit('permission-error', permissionError);
+          toast.error('Failed to create room: Permission denied.', { id: toastId });
+        });
+    } catch (error) {
+      console.error('Error creating Watch Together room:', error);
+      toast.error('An unexpected error occurred.', { id: toastId });
+    }
+  };
+
   if (isLoadingAbout || isLoadingEpisodes) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -215,6 +270,7 @@ function WatchPageComponent() {
             <PlayerOverlayControls
                 onPrev={() => navigateEpisode('prev')}
                 onNext={() => navigateEpisode('next')}
+                onW2G={handleCreateW2G}
                 isPrevDisabled={currentIndex <= 0}
                 isNextDisabled={currentIndex >= episodes.length - 1}
                 />

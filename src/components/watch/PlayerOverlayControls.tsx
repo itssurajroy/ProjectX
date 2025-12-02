@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 interface PlayerOverlayControlsProps {
     onPrev: () => void;
     onNext: () => void;
+    onW2G: () => void;
     isPrevDisabled: boolean;
     isNextDisabled: boolean;
 }
@@ -35,7 +36,7 @@ const ControlButton = ({
     )
 }
 
-export default function PlayerOverlayControls({ onPrev, onNext, isPrevDisabled, isNextDisabled }: PlayerOverlayControlsProps) {
+export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDisabled, isNextDisabled }: PlayerOverlayControlsProps) {
   const { 
       isFocusMode, 
       toggleFocusMode, 
@@ -48,7 +49,6 @@ export default function PlayerOverlayControls({ onPrev, onNext, isPrevDisabled, 
   } = usePlayerSettings();
   
   const handleBookmark = () => toast.success("Added to your watchlist!");
-  const handleW2G = () => toast.error("Watch Together is coming soon!");
   const handleReport = () => toast.error("Report form is coming soon!");
   
   const leftControls = [
@@ -60,7 +60,7 @@ export default function PlayerOverlayControls({ onPrev, onNext, isPrevDisabled, 
   
   const rightControls = [
       { icon: Bookmark, label: "Bookmark", onClick: handleBookmark, isStatic: true},
-      { icon: Users, label: "W2G", onClick: handleW2G, isStatic: true },
+      { icon: Users, label: "W2G", onClick: onW2G, isStatic: true },
       { icon: Flag, label: "Report", onClick: handleReport, isStatic: true },
   ]
 
