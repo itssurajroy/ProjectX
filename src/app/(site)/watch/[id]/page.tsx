@@ -221,7 +221,6 @@ function WatchPageComponent() {
            
            <div className="bg-card/50 p-3 rounded-lg border border-border/50 space-y-3">
                 <p className="font-semibold text-lg">You are watching Episode {currentEpisode?.number}</p>
-                <p className="text-sm text-muted-foreground">If the current server is not working, please try switching to other servers.</p>
                 <ServerToggle onLanguageChange={setLanguage} />
            </div>
            
@@ -262,5 +261,3 @@ export default function WatchPage() {
     </Suspense>
   );
 }
-
-    
