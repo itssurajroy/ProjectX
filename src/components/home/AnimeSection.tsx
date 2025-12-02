@@ -35,7 +35,7 @@ export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { ti
         <section>
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-title font-bold border-l-4 border-primary pl-3">{title}</h2>
-                <ViewMoreButton />
+                
             </div>
             <div className="grid-cards">
                 {animes.slice(0, 12).map((anime, index) => (
