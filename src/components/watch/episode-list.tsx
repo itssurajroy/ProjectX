@@ -96,7 +96,7 @@ export default function EpisodeList({ episodes, currentEpisodeId, onEpisodeSelec
                 key={ep.episodeId}
                 onClick={() => onEpisodeSelect(ep)}
                 className={cn(
-                    'p-2 text-center text-sm font-medium rounded-md truncate',
+                    'p-2 text-center text-sm font-medium rounded-md truncate relative',
                     isCurrent(ep)
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted/50 hover:bg-muted'
@@ -104,6 +104,7 @@ export default function EpisodeList({ episodes, currentEpisodeId, onEpisodeSelec
                 title={`Episode ${ep.number}: ${ep.title}`}
                 >
                 {ep.number}
+                {ep.isFiller && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-destructive rounded-full" title="Filler Episode"></span>}
                 </button>
             ))}
             </div>
