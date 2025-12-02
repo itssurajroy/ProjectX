@@ -10,7 +10,7 @@ service cloud.firestore {
 
     function isAdmin() {
       // In a real app, you would check for a custom claim or a document in an admins collection.
-      // For now, this is a placeholder.
+      // For now, this is a placeholder. It checks for a custom claim.
       return request.auth != null && request.auth.token.admin == true;
     }
     
@@ -47,7 +47,7 @@ service cloud.firestore {
       // Logged-in users can create rooms
       allow create: if isSignedIn();
       // Only the host can update or delete the room
-      allow update, delete: if isSignedIn() && resource.data.hostId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.hostId == request.auth.uid || isAdmin());
 
       // Room Users subcollection
       match /users/{userId} {
@@ -77,22 +77,46 @@ service cloud.firestore {
     match /comments/{animeId}/general/{messageId} {
         allow read: if true;
         allow create: if isSignedIn();
-        allow update, delete: if false; // Future: allow if user is author
+        allow update, delete: if isAdmin(); // Only admins can moderate
     }
     // Episode-specific comments
     match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
          allow read: if true;
          allow create: if isSignedIn();
-         allow update, delete: if false; // Future: allow if user is author
+         allow update, delete: if isAdmin(); // Only admins can moderate
     }
     
     // ╔══════════════════════════════════════════════════════════╗
     // ║                 REPORTS, ADMIN, ETC.                     ║
     // ╚══════════════════════════════════════════════════════════╝
-    // Secure admin collections
+     // Secure admin collections
     match /admin/{document=**} {
       allow read, write: if isAdmin();
     }
+    
+    // Public can create reports, but only admins can manage them
+    match /reports/{reportId} {
+        allow read, update: if isAdmin();
+        allow create: if isSignedIn();
+    }
+
+    // Users can create and view their own appeals, admins can manage all.
+    match /appeals/{appealId} {
+        allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update: if isAdmin();
+    }
+
+    // Only admins can manage bans and warnings
+    match /bans/{userId} {
+        allow read, write: if isAdmin();
+    }
+    
+    match /warnings/{warningId} {
+        allow read: if isAdmin() || (isSignedIn() && resource.data.targetUserId == request.auth.uid);
+        allow create, update: if isAdmin();
+    }
+
 
     // ╔══════════════════════════════════════════════════════════╗
     // ║                   PUBLIC ANIME DATA                      ║
