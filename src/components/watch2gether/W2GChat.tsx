@@ -1,4 +1,3 @@
-
 // src/components/watch2gether/W2GChat.tsx
 'use client';
 
@@ -24,7 +23,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
     const {data: messages, isLoading, error} = useCollection<ChatMessage>(messagesQuery);
     
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }, [messages]);
 
 
@@ -34,7 +33,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
 
         const messageData = {
             userId: user.uid,
-            userName: user.displayName || 'Anonymous',
+            userName: user.displayName || 'Anonymous Guest',
             avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
             text: message,
             timestamp: serverTimestamp(),
@@ -45,7 +44,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col h-full bg-card/20">
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                     {messages?.map((msg, index) => (
@@ -56,21 +55,29 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                             </Avatar>
                             <div>
                                 <p className="text-sm font-semibold">{msg.userName}</p>
-                                <p className="text-sm bg-muted/50 p-2 rounded-lg max-w-full break-words">{msg.text}</p>
+                                <div className="text-sm bg-muted/50 p-2 rounded-lg max-w-full break-words">
+                                    {msg.text}
+                                </div>
                             </div>
                         </div>
                     ))}
                     <div ref={bottomRef} />
                 </div>
+                 {isLoading && (
+                    <div className="flex justify-center items-center h-full">
+                        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                    </div>
+                )}
             </ScrollArea>
             <form onSubmit={handleSendMessage} className="p-4 border-t border-border/50 flex gap-2">
                 <Input 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder={user ? "Type a message..." : "Sign in to chat"}
                     autoComplete="off"
+                    disabled={!user}
                 />
-                <Button type="submit" size="icon">
+                <Button type="submit" size="icon" disabled={!user}>
                     <Send className="w-4 h-4" />
                 </Button>
             </form>

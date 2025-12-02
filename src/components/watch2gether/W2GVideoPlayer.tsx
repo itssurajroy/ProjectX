@@ -1,29 +1,28 @@
-
 // src/components/watch2gether/W2GVideoPlayer.tsx
 'use client';
 
-import { DocumentReference, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { DocumentData, DocumentReference, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import AnimePlayer from '../AnimePlayer';
 import { WatchTogetherRoom } from '@/types/watch2gether';
+import { useDoc } from '@/firebase';
 
 interface W2GVideoPlayerProps {
-    roomRef: DocumentReference;
-    animeId: string;
-    episodeId: string;
-    playerState: WatchTogetherRoom['playerState'];
+    roomRef: DocumentReference<DocumentData>;
     isHost: boolean;
 }
 
-export default function W2GVideoPlayer({ roomRef, animeId, episodeId, playerState, isHost }: W2GVideoPlayerProps) {
+export default function W2GVideoPlayer({ roomRef, isHost }: W2GVideoPlayerProps) {
+    const { data: room } = useDoc<WatchTogetherRoom>(roomRef);
     const videoRef = useRef<HTMLVideoElement>(null);
     const lastUpdateTime = useRef(0);
     const isSeeking = useRef(false);
 
     const updateFirestoreState = async (newState: Partial<WatchTogetherRoom['playerState']>) => {
+        if (!room) return;
         await updateDoc(roomRef, {
             playerState: {
-                ...playerState,
+                ...room.playerState,
                 ...newState,
                 updatedAt: serverTimestamp(),
             },
@@ -46,9 +45,9 @@ export default function W2GVideoPlayer({ roomRef, animeId, episodeId, playerStat
     // Sync from Firestore for non-hosts
     useEffect(() => {
         const video = videoRef.current;
-        if (!video || isHost) return;
+        if (!video || isHost || !room) return;
 
-        const firestoreTime = playerState.currentTime;
+        const firestoreTime = room.playerState.currentTime;
         const localTime = video.currentTime;
         const timeDiff = Math.abs(firestoreTime - localTime);
 
@@ -58,19 +57,29 @@ export default function W2GVideoPlayer({ roomRef, animeId, episodeId, playerStat
         }
 
         // Sync play/pause state
-        if (playerState.isPlaying && video.paused) {
+        if (room.playerState.isPlaying && video.paused) {
             video.play().catch(e => console.warn("Sync play failed", e));
-        } else if (!playerState.isPlaying && !video.paused) {
+        } else if (!room.playerState.isPlaying && !video.paused) {
             video.pause();
         }
 
-    }, [playerState, isHost]);
+    }, [room, isHost]);
     
+    if (!room) {
+        return <div className="w-full aspect-video bg-black flex items-center justify-center"><p>Loading player...</p></div>;
+    }
+
     return (
         <div className="w-full aspect-video bg-black relative">
             {/* The AnimePlayer component needs to be adapted to accept a ref and forward it */}
             {/* For now, we'll simulate it. In a real scenario, you'd pass the ref to the underlying video element. */}
-            <AnimePlayer animeId={animeId} episodeId={episodeId} onNext={() => {}} />
+            <AnimePlayer 
+                animeId={room.animeId} 
+                episodeId={room.episodeId} 
+                onNext={() => {
+                    // In the future, this would advance the episode for the whole room
+                }}
+            />
 
              {!isHost && (
                 <div className="absolute inset-0 bg-transparent z-10" title="Only the host can control the player" />

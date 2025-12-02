@@ -1,4 +1,3 @@
-
 // src/types/watch2gether.ts
 
 import { FieldValue } from 'firebase/firestore';
@@ -7,6 +6,8 @@ export interface WatchTogetherRoom {
   id: string;
   name: string;
   animeId: string;
+  animeName?: string;
+  animePoster?: string;
   episodeId: string;
   episodeNumber: number;
   hostId: string;
