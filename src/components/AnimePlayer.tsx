@@ -12,6 +12,8 @@ import { EpisodeServer, Source, Subtitle } from '@/types/anime';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
+import Confetti from 'react-confetti';
+import { useWindowSize } from '@uidotdev/usehooks';
 
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
@@ -30,6 +32,8 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const [availableServers, setAvailableServers] = useState<EpisodeServer[]>([]);
   const [selectedServer, setSelectedServer] = useState<EpisodeServer | null>(null);
   const [useIframeFallback, setUseIframeFallback] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const { width, height } = useWindowSize();
   
   const episodeNumber = extractEpisodeNumber(episodeId);
 
@@ -37,7 +41,11 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
 
   const handleEpisodeEnd = useCallback(() => {
     if (autoNext) {
-        onNext();
+        setShowConfetti(true);
+        setTimeout(() => {
+            setShowConfetti(false);
+            onNext();
+        }, 3000); // Show confetti for 3 seconds then go next
     }
   }, [autoNext, onNext]);
 
@@ -234,6 +242,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
 
     return (
         <>
+            {showConfetti && width && height && <Confetti width={width} height={height} recycle={false} numberOfPieces={400} />}
             <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" autoPlay={autoPlay} />
             {(error || sources.length === 0) && (
                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
@@ -274,7 +283,3 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     </div>
   );
 }
-
-    
-
-    

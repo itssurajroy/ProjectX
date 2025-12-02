@@ -9,6 +9,7 @@ import { NotificationProvider } from "@/components/notifications/NotificationPro
 import { Suspense } from 'react';
 import Loading from './loading';
 import { FirebaseClientProvider } from "@/firebase";
+import { useWindowSize } from "@uidotdev/usehooks";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
