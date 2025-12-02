@@ -1,12 +1,13 @@
+
 // src/components/watch2gether/W2GChat.tsx
 'use client';
 
-import { collection, query, orderBy, serverTimestamp, addDoc } from 'firebase/firestore';
+import { collection, query, orderBy, serverTimestamp } from 'firebase/firestore';
 import { useUser, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Send } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { ChatMessage } from '@/types/watch2gether';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
@@ -44,7 +45,11 @@ export default function W2GChat({ roomId }: { roomId: string }) {
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-card/20">
+        <div className="h-full flex flex-col bg-card/30">
+             <div className="p-4 border-b border-border/50">
+                <h2 className="font-bold text-lg">Chat Room</h2>
+                <p className="text-xs text-muted-foreground">Chat with your friends</p>
+            </div>
             <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
                     {messages?.map((msg, index) => (
@@ -68,6 +73,11 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                     </div>
                 )}
+                 {!isLoading && messages?.length === 0 && (
+                    <div className="flex justify-center items-center h-full text-sm text-muted-foreground">
+                        Be the first to say something!
+                    </div>
+                 )}
             </ScrollArea>
             <form onSubmit={handleSendMessage} className="p-4 border-t border-border/50 flex gap-2">
                 <Input 
@@ -76,6 +86,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                     placeholder={user ? "Type a message..." : "Sign in to chat"}
                     autoComplete="off"
                     disabled={!user}
+                    className="bg-background/50"
                 />
                 <Button type="submit" size="icon" disabled={!user}>
                     <Send className="w-4 h-4" />
