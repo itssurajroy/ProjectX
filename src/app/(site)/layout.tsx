@@ -3,7 +3,6 @@ import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import BackToTopButton from "@/components/common/BackToTopButton";
-import FloatingDiscordButton from "@/components/common/FloatingDiscordButton";
 
 export default function SiteLayout({
   children,
@@ -17,7 +16,6 @@ export default function SiteLayout({
       <Footer />
       <MobileBottomNav />
       <BackToTopButton />
-      <FloatingDiscordButton />
     </div>
   );
 }
