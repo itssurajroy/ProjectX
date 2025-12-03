@@ -10,6 +10,7 @@ import { Suspense } from 'react';
 import Loading from './loading';
 import { FirebaseClientProvider } from "@/firebase";
 import { useWindowSize } from "@uidotdev/usehooks";
+import { Analytics } from "@vercel/analytics/react";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -55,6 +56,7 @@ export default function RootLayout({
             </FirebaseClientProvider>
           </Providers>
         </Suspense>
+        <Analytics />
       </body>
     </html>
   );
