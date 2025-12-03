@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -17,6 +16,8 @@ import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
@@ -60,6 +61,12 @@ export default function Header() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const { data: suggestionsResult } = useQuery<SearchSuggestionResponse>({
       queryKey: ['searchSuggestions', searchQuery],
@@ -108,9 +115,11 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileMenuOpen(true)}>
-              <Menu className="w-5 h-5" />
-            </Button>
+            {mounted && isMobile && (
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu className="w-5 h-5" />
+              </Button>
+            )}
             <SiteLogo />
             <nav className="hidden lg:flex items-center gap-4">
                 {navItems.map(item => (
@@ -160,14 +169,18 @@ export default function Header() {
 
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}
-          <Link href="/watch2gether" className="hidden sm:flex items-center justify-center w-auto h-9 px-3 rounded-full bg-card hover:bg-muted" title="Watch Together">
-              <span className="text-sm font-medium">Watch Together</span>
-          </Link>
-          <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
-              <Shuffle className="w-4 h-4 text-primary" />
-          </Link>
+          {mounted && !isMobile && (
+            <>
+              <Link href="/watch2gether" className="flex items-center justify-center w-auto h-9 px-3 rounded-full bg-card hover:bg-muted" title="Watch Together">
+                  <span className="text-sm font-medium">Watch Together</span>
+              </Link>
+              <Link href="/random" className="flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
+                  <Shuffle className="w-4 h-4 text-primary" />
+              </Link>
+            </>
+          )}
           
-          {isUserLoading ? (
+          {isUserLoading || !mounted ? (
             <div className="w-20 h-9 bg-muted/50 rounded-md animate-pulse" />
           ) : user ? (
              <DropdownMenu>
@@ -205,7 +218,7 @@ export default function Header() {
 
         </div>
       </div>
-      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+      {mounted && <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />}
     </header>
   );
 }
