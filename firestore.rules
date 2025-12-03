@@ -1,42 +1,8 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // === COMMENTS (anime detail + episode pages) ===
-    match /comments/{animeId} {
-      // This rule applies to the document that might hold anime-level comment metadata.
-      allow read, write: if request.auth != null;
-
-      // Rule for all subcollections (like 'messages') within an anime comment document.
-      // This allows anyone to read comments, but only signed-in users to write.
-      match /{subCollection=**} {
-        allow read: if true;
-        allow create, update, delete: if request.auth != null;
-      }
-    }
-
-    // === USER PROFILES & STATS (gamification) ===
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // === WATCH HISTORY / CONTINUE WATCHING ===
-    match /watchHistory/{userId}/{docId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // === FORUM THREADS & REPLIES (if you add full forum later) ===
-    match /forum/{category}/{threadId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-    }
-
-    // === ANYTHING ELSE (temporary safe fallback) ===
     match /{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read, write: if true;
     }
   }
 }
