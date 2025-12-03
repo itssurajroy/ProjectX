@@ -10,7 +10,7 @@ import {
   CollectionReference,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -72,25 +72,24 @@ export function useCollection<T = any>(
         setError(null);
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
+      async (serverError: FirestoreError) => {
         let path: string;
-        if (memoizedTargetRefOrQuery.type === 'collection') {
-            path = (memoizedTargetRefOrQuery as CollectionReference).path;
+        if ('_query' in memoizedTargetRefOrQuery) {
+          // This is a workaround to get the path from a query.
+          // @ts-ignore - _query is not part of the public API but necessary here.
+          path = (memoizedTargetRefOrQuery as Query)._query.path.segments.join('/');
         } else {
-            // This is a workaround to get the path from a query.
-            // It relies on internal properties that might change, but it's the most reliable way without extra dependencies.
-            // @ts-ignore - _query is not part of the public API but necessary here.
-            path = (memoizedTargetRefOrQuery as Query)._query.path.segments.join('/');
+          path = (memoizedTargetRefOrQuery as CollectionReference).path;
         }
         
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path: path,
-        })
+        } satisfies SecurityRuleContext);
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
         // trigger global error propagation
         errorEmitter.emit('permission-error', contextualError);
