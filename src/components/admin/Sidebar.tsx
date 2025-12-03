@@ -1,7 +1,6 @@
-
 'use client';
 import Link from "next/link";
-import { Home, Users, MessageSquare, AlertCircle, Megaphone, HelpCircle, Link2, Cache, Globe, Settings, Activity } from "lucide-react";
+import { Home, Users, MessageSquare, AlertCircle, Megaphone, HelpCircle, Link2, Trash2, Globe, Settings, Activity } from "lucide-react";
 
 const nav = [
   { name: "Dashboard", href: "/admin", icon: Home },
@@ -11,7 +10,7 @@ const nav = [
   { name: "Announcements", href: "/admin/announcements", icon: Megaphone, badge: 5 },
   { name: "Requests", href: "/admin/requests", icon: HelpCircle },
   { name: "Socials", href: "/admin/socials", icon: Link2 },
-  { name: "Cache", href: "/admin/cache", icon: Cache },
+  { name: "Cache", href: "/admin/cache", icon: Trash2 },
   { name: "SEO", href: "/admin/seo", icon: Globe },
   { name: "Settings", href: "/admin/settings", icon: Settings },
   { name: "Logs", href: "/admin/logs", icon: Activity },
