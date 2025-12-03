@@ -1,3 +1,4 @@
+
 // src/app/(site)/forum/page.tsx
 import ForumCategories from "@/components/forum/ForumCategories";
 import ForumSidebar from "@/components/forum/ForumSidebar";
