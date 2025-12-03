@@ -2,7 +2,7 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function SEOPage() {
   return (
-    <AdminLayout current="seo">
+    <AdminLayout>
       <div className="max-w-6xl mx-auto space-y-12">
         <h1 className="text-7xl font-black text-center bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
           SEO Control Center • 98.9/100

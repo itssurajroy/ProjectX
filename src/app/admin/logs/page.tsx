@@ -10,7 +10,7 @@ export default function LogsPage() {
   ];
 
   return (
-    <AdminLayout current="logs">
+    <AdminLayout>
       <div className="max-w-6xl mx-auto">
         <h1 className="text-7xl font-black text-center mb-20 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
           Admin Action Logs

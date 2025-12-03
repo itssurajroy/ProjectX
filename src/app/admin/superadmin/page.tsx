@@ -4,7 +4,7 @@ import ProtectedRoute from "@/components/admin/ProtectedRoute";
 export default function SuperAdminPanel() {
   return (
     <ProtectedRoute requiredRole="superadmin">
-      <AdminLayout current="superadmin">
+      <AdminLayout>
         <div className="space-y-10">
           <h1 className="text-7xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
             SUPERADMIN CONTROL PANEL

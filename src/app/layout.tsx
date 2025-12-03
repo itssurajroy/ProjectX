@@ -1,4 +1,3 @@
-
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Lexend, Space_Grotesk } from "next/font/google";
@@ -60,25 +59,17 @@ export default function RootLayout({
           fontDisplay.variable
         )}
       >
-        {/* Full height wrapper to prevent layout jumps */}
         <div className="flex flex-col min-h-screen">
           <Suspense fallback={<Loading />}>
             <Providers>
               <FirebaseClientProvider>
                 <NotificationProvider>
-                  {/* Main content area — grows to fill space */}
-                  <main className="flex-1">
-                    {children}
-                  </main>
-
-                  {/* Toast always at bottom */}
+                  <main className="flex-1 flex flex-col">{children}</main>
                   <ShadToaster />
                 </NotificationProvider>
               </FirebaseClientProvider>
             </Providers>
           </Suspense>
-
-          {/* Vercel Analytics */}
           <Analytics />
         </div>
       </body>

@@ -12,7 +12,7 @@ export default function ReportsPage() {
   }));
 
   return (
-    <AdminLayout current="reports">
+    <AdminLayout>
       <div className="space-y-10">
         <h1 className="text-6xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
           Reports Center • 17 Active

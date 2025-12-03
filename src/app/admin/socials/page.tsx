@@ -2,7 +2,7 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function SocialsPage() {
   return (
-    <AdminLayout current="socials">
+    <AdminLayout>
       <div className="max-w-4xl mx-auto space-y-12">
         <h1 className="text-6xl font-black text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
           Social Links Manager

@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -40,7 +39,7 @@ export default function UsersPage() {
   };
 
   return (
-    <AdminLayout current="users">
+    <AdminLayout>
       <div className="space-y-10">
         <h1 className="text-5xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           User Management

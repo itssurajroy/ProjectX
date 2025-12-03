@@ -1,50 +1,66 @@
 'use client';
 import Link from "next/link";
-import { Home, Users, MessageSquare, AlertCircle, Megaphone, HelpCircle, Link2, Trash2, Globe, Settings, Activity } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Home, Users, MessageSquare, AlertCircle, Megaphone, Settings, Activity, Shield, Globe, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const nav = [
-  { name: "Dashboard", href: "/admin", icon: Home },
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Comments", href: "/admin/comments", icon: MessageSquare },
-  { name: "Reports", href: "/admin/reports", icon: AlertCircle, badge: 17 },
-  { name: "Announcements", href: "/admin/announcements", icon: Megaphone, badge: 5 },
-  { name: "Requests", href: "/admin/requests", icon: HelpCircle },
-  { name: "Socials", href: "/admin/socials", icon: Link2 },
-  { name: "Cache", href: "/admin/cache", icon: Trash2 },
-  { name: "SEO", href: "/admin/seo", icon: Globe },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
-  { name: "Logs", href: "/admin/logs", icon: Activity },
+const navItems = [
+  { name: "Dashboard", icon: Home, href: "/admin" },
+  { name: "Users", icon: Users, href: "/admin/users" },
+  { name: "Comments", icon: MessageSquare, href: "/admin/comments" },
+  { name: "Reports", icon: AlertCircle, href: "/admin/reports", badge: 17 },
+  { name: "Announcements", icon: Megaphone, href: "/admin/announcements", badge: 5 },
+  { name: "Cache", icon: Trash2, href: "/admin/cache" },
+  { name: "SEO", icon: Globe, href: "/admin/seo" },
+  { name: "Settings", icon: Settings, href: "/admin/settings" },
+  { name: "Logs", icon: Activity, href: "/admin/logs" },
 ];
 
-export default function Sidebar({ current }: { current: string }) {
+export default function Sidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside className="fixed inset-y-0 left-0 w-80 bg-gray-950 border-r border-purple-500/20 z-50">
-      <div className="p-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-          Project X Admin
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className="p-8 border-b border-purple-500/20">
+        <h1 className="text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
+          ProjectX
         </h1>
+        <p className="text-purple-400 text-sm mt-2">Admin Panel</p>
       </div>
-      <nav className="px-6 space-y-2">
-        {nav.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            className={`flex items-center gap-4 px-6 py-4 rounded-xl transition-all ${
-              current === item.name.toLowerCase().replace(" ", "")
-                ? "bg-purple-900/50 border border-purple-500"
-                : "hover:bg-gray-900"
-            }`}
-          >
-            <item.icon className="w-6 h-6" />
-            <span className="font-medium">{item.name}</span>
-            {item.badge && (
-              <span className="ml-auto px-3 py-1 bg-red-600 rounded-full text-sm font-bold">
-                {item.badge}
-              </span>
-            )}
-          </Link>
-        ))}
+
+      {/* Navigation */}
+      <nav className="flex-1 px-6 py-8 space-y-3 overflow-y-auto">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-5 px-6 py-5 rounded-2xl transition-all duration-200 group",
+                isActive
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-2xl shadow-purple-600/30"
+                  : "hover:bg-gray-800/60 text-gray-300 hover:text-white"
+              )}
+            >
+              <item.icon className={cn("w-7 h-7", isActive && "drop-shadow-glow")} />
+              <span className="text-lg font-semibold">{item.name}</span>
+              {item.badge && (
+                <span className="ml-auto px-3 py-1.5 bg-red-600 rounded-full text-sm font-bold">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
-    </aside>
+
+      <div className="p-6 border-t border-purple-500/20">
+        <div className="text-center text-gray-500 text-sm">
+          © 2025 ProjectX
+        </div>
+      </div>
+    </div>
   );
 }

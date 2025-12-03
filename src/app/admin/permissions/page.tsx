@@ -1,4 +1,3 @@
-
 'use client';
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import PermissionGuard from "@/components/admin/PermissionGuard";
@@ -6,7 +5,7 @@ import PermissionGuard from "@/components/admin/PermissionGuard";
 export default function PermissionManager() {
   return (
     <PermissionGuard permission="promote_admins">
-      <AdminLayout current="permissions">
+      <AdminLayout>
         <div className="max-w-6xl mx-auto">
           <h1 className="text-7xl font-black text-center mb-20 bg-gradient-to-r from-red-600 to-purple-600 bg-clip-text text-transparent">
             ADMIN PERMISSION MATRIX

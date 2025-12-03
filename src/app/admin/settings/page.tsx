@@ -31,7 +31,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <AdminLayout current="settings">
+    <AdminLayout>
       <div className="max-w-5xl mx-auto space-y-12">
         <h1 className="text-7xl font-black text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           Site Configuration • Full Control

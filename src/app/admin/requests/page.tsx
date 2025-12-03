@@ -2,7 +2,7 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function RequestsPage() {
   return (
-    <AdminLayout current="requests">
+    <AdminLayout>
       <div className="space-y-10">
         <h1 className="text-6xl font-black text-center bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
           Anime Requests • 42 Pending

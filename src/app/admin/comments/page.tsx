@@ -33,7 +33,7 @@ export default function CommentsPage() {
   };
 
   return (
-    <AdminLayout current="comments">
+    <AdminLayout>
       <div className="space-y-10">
         <div className="flex justify-between items-center">
           <h1 className="text-5xl font-black bg-gradient-to-r from-red-400 to-pink-400 bg-clip-text text-transparent">

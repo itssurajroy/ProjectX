@@ -2,7 +2,7 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function CachePage() {
   return (
-    <AdminLayout current="cache">
+    <AdminLayout>
       <div className="text-center py-32">
         <h1 className="text-7xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent mb-12">
           Cache Control Panel
