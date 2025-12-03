@@ -9,8 +9,6 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      // In a real app, you would check for a custom claim or a document in an admins collection.
-      // For now, this is a placeholder. It checks for a custom claim.
       return request.auth != null && request.auth.token.admin == true;
     }
     
@@ -26,7 +24,6 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
       allow create: if isSignedIn();
       
-      // Subcollections for user-specific data like watchlist, history, notifications
       match /watchlist/{entryId} {
         allow read, write: if isOwner(userId);
       }
@@ -42,30 +39,20 @@ service cloud.firestore {
     // ║                   WATCH2GETHER ROOMS                     ║
     // ╚══════════════════════════════════════════════════════════╝
     match /watch2gether_rooms/{roomId} {
-      // Anyone can read room details to see what's playing
       allow read: if true;
-      // Logged-in users can create rooms
       allow create: if isSignedIn();
-      // Only the host can update or delete the room
       allow update, delete: if isSignedIn() && (resource.data.hostId == request.auth.uid || isAdmin());
 
-      // Room Users subcollection
       match /users/{userId} {
-        // Any signed-in user can read the list of participants
         allow read: if isSignedIn();
-        // A user can only add or remove themselves from the room
         allow create, delete: if isOwner(userId);
       }
       
-      // Chat Messages subcollection
       match /messages/{messageId} {
-        // Any member of the room can read messages
         allow read: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
-        // A member can only create messages as themselves
         allow create: if isSignedIn() 
                       && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid))
                       && request.resource.data.userId == request.auth.uid;
-        // Disallow editing/deleting for simplicity
         allow update, delete: if false; 
       }
     }
@@ -73,7 +60,7 @@ service cloud.firestore {
     // ╔══════════════════════════════════════════════════════════╗
     // ║                      COMMENTS SYSTEM                     ║
     // ╚══════════════════════════════════════════════════════════╝
-    match /comments/{commentId} {
+    match /comments/{animeId}/{section}/{messageId} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.text.size() < 1000;
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
@@ -88,20 +75,17 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
     
-    // Public can create reports, but only admins can manage them
     match /reports/{reportId} {
         allow read, update: if isAdmin();
         allow create: if isSignedIn();
     }
 
-    // Users can create and view their own appeals, admins can manage all.
     match /appeals/{appealId} {
         allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow update: if isAdmin();
     }
 
-    // Only admins can manage bans and warnings
     match /bans/{userId} {
         allow read, write: if isAdmin();
     }
@@ -117,7 +101,7 @@ service cloud.firestore {
     // ╚══════════════════════════════════════════════════════════╝
     match /anime/{animeId} {
       allow read: if true;
-      allow write: if false; // Should only be updated by a backend process
+      allow write: if false;
     }
   }
 }
