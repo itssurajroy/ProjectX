@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
@@ -218,13 +217,13 @@ function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: nu
 }
 
 
-function AZListPageComponent({ character }: { character: string }) {
+function AZListPageComponent({ params }: { params: { character: string } }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const page = Number(searchParams.get('page') || '1');
-  const sortOption = decodeURIComponent(character);
+  const sortOption = decodeURIComponent(params.character);
   const displayCharacter = sortOption === 'all' ? 'All' : sortOption === 'other' ? '#' : sortOption.toUpperCase();
 
   const {
@@ -279,10 +278,9 @@ function AZListPageComponent({ character }: { character: string }) {
 }
 
 export default function AZListPage({ params }: { params: { character: string } }) {
-    const { character } = params;
     return (
         <Suspense fallback={<div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div></div>}>
-            <AZListPageComponent character={character} />
+            <AZListPageComponent params={params} />
         </Suspense>
     )
 }
