@@ -1,4 +1,3 @@
-
 'use client';
 import Link from "next/link";
 
@@ -12,12 +11,12 @@ const categories = [
 
 export default function ForumCategories() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {categories.map((cat) => (
         <Link
           key={cat.slug}
           href={`/forum/c/${cat.slug}`}
-          className="block p-6 rounded-xl bg-gray-900/50 border border-purple-500/20 hover:border-purple-500 transition-all hover:scale-105"
+          className="block p-6 rounded-xl bg-card/50 border border-border/50 hover:border-primary/50 transition-all duration-300 hover:scale-[1.02]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -27,7 +26,7 @@ export default function ForumCategories() {
                 <p className="text-gray-400">{cat.threads.toLocaleString()} threads</p>
               </div>
             </div>
-            <span className="text-3xl">→</span>
+            <span className="text-3xl transition-transform duration-300 group-hover:translate-x-1">→</span>
           </div>
         </Link>
       ))}
