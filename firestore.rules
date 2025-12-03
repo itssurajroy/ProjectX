@@ -1,19 +1,19 @@
 
-// Firestore Rules (firestore.rules) — FINAL WORKING VERSION 2025
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     // === COMMENTS (anime detail + episode pages) ===
-    match /comments/{animeId}/messages/{commentId} {
-      allow read: if true;  // everyone can read comments
-      allow create: if request.auth != null 
-                    && request.resource.data.text is string
-                    && request.resource.data.text.size() <= 1000;
-      allow update: if request.auth != null 
-                    && resource.data.userId == request.auth.uid;
-      allow delete: if request.auth != null 
-                    && resource.data.userId == request.auth.uid;
+    match /comments/{animeId} {
+      // This rule applies to the document that might hold anime-level comment metadata.
+      allow read, write: if request.auth != null;
+
+      // Rule for all subcollections (like 'messages') within an anime comment document.
+      // This allows anyone to read comments, but only signed-in users to write.
+      match /{subCollection=**} {
+        allow read: if true;
+        allow create, update, delete: if request.auth != null;
+      }
     }
 
     // === USER PROFILES & STATS (gamification) ===
