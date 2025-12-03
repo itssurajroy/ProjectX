@@ -5,6 +5,7 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import ForumCategoryList from '@/components/forum/ForumCategoryList';
+import ForumLiveChat from '@/components/forum/ForumLiveChat';
 
 export default function ForumPage() {
   return (
@@ -16,15 +17,24 @@ export default function ForumPage() {
         </p>
       </div>
 
-      <Suspense
-        fallback={
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          </div>
-        }
-      >
-        <ForumCategoryList />
-      </Suspense>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8">
+            <Suspense
+                fallback={
+                <div className="flex justify-center items-center h-64">
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                </div>
+                }
+            >
+                <ForumCategoryList />
+            </Suspense>
+        </div>
+        <div className="lg:col-span-4">
+            <div className="sticky top-20">
+                <ForumLiveChat />
+            </div>
+        </div>
+      </div>
     </div>
   );
 }

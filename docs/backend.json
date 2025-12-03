@@ -349,6 +349,16 @@
               "schema": { "$ref": "#/backend/entities/ForumReply" },
               "description": "Replies for a specific thread."
           }
+      },
+       {
+        "path": "/forum_chat/{messageId}",
+        "definition": {
+          "entityName": "ChatMessage",
+          "schema": {
+            "$ref": "#/backend/entities/ChatMessage"
+          },
+          "description": "Stores messages for the global forum live chat."
+        }
       }
     ]
   }
