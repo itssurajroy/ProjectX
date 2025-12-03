@@ -187,67 +187,6 @@
         "title",
         "posterUrl"
       ]
-    },
-    "ForumCategory": {
-      "title": "ForumCategory",
-      "type": "object",
-      "description": "Represents a category in the forum.",
-      "properties": {
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "slug": { "type": "string" },
-        "threadCount": { "type": "number", "default": 0 },
-        "postCount": { "type": "number", "default": 0 }
-      },
-      "required": ["name", "slug"]
-    },
-    "ForumThread": {
-        "title": "ForumThread",
-        "type": "object",
-        "description": "Represents a single thread in the forum.",
-        "properties": {
-            "title": { "type": "string" },
-            "content": { "type": "string" },
-            "authorId": { "type": "string" },
-            "categoryId": { "type": "string" },
-            "createdAt": { "type": "string", "format": "date-time" },
-            "updatedAt": { "type": "string", "format": "date-time" },
-            "isLocked": { "type": "boolean", "default": false },
-            "isPinned": { "type": "boolean", "default": false },
-            "replyCount": { "type": "number", "default": 0 },
-            "viewCount": { "type": "number", "default": 0 },
-            "upvotes": { "type": "number", "default": 0 },
-            "downvotes": { "type": "number", "default": 0 }
-        },
-        "required": ["title", "content", "authorId", "categoryId", "createdAt"]
-    },
-    "ForumReply": {
-        "title": "ForumReply",
-        "type": "object",
-        "description": "Represents a reply within a forum thread.",
-        "properties": {
-            "threadId": { "type": "string" },
-            "authorId": { "type": "string" },
-            "content": { "type": "string" },
-            "createdAt": { "type": "string", "format": "date-time" },
-            "parentId": { "type": "string", "description": "ID of the parent reply, for nesting." },
-            "upvotes": { "type": "number", "default": 0 },
-            "downvotes": { "type": "number", "default": 0 }
-        },
-        "required": ["threadId", "authorId", "content", "createdAt"]
-    },
-    "UserForumProfile": {
-      "title": "UserForumProfile",
-      "type": "object",
-      "description": "Stores a user's forum-related stats and gamification progress.",
-      "properties": {
-        "xp": { "type": "number", "default": 0 },
-        "level": { "type": "number", "default": 1 },
-        "rank": { "type": "string", "default": "Newbie Slayer" },
-        "badges": { "type": "array", "items": { "type": "string" } },
-        "dailyStreak": { "type": "number", "default": 0 },
-        "lastPostDate": { "type": "string", "format": "date-time" }
-      }
     }
   },
   "auth": {
@@ -266,14 +205,6 @@
             "$ref": "#/backend/entities/UserProfile"
           },
           "description": "Stores public user profile information."
-        }
-      },
-      {
-        "path": "/users/{userId}/forumProfile/data",
-        "definition": {
-            "entityName": "UserForumProfile",
-            "schema": { "$ref": "#/backend/entities/UserForumProfile" },
-            "description": "Stores a user's forum-related stats and gamification progress."
         }
       },
       {
@@ -324,40 +255,6 @@
             "$ref": "#/backend/entities/Anime"
           },
           "description": "Stores information about anime series and movies."
-        }
-      },
-      {
-        "path": "/forum_categories/{categoryId}",
-        "definition": {
-            "entityName": "ForumCategory",
-            "schema": { "$ref": "#/backend/entities/ForumCategory" },
-            "description": "List of all forum categories."
-        }
-      },
-      {
-          "path": "/forum_threads/{threadId}",
-          "definition": {
-              "entityName": "ForumThread",
-              "schema": { "$ref": "#/backend/entities/ForumThread" },
-              "description": "Collection of all forum threads."
-          }
-      },
-      {
-          "path": "/forum_threads/{threadId}/replies/{replyId}",
-          "definition": {
-              "entityName": "ForumReply",
-              "schema": { "$ref": "#/backend/entities/ForumReply" },
-              "description": "Replies for a specific thread."
-          }
-      },
-       {
-        "path": "/forum_chat/{messageId}",
-        "definition": {
-          "entityName": "ChatMessage",
-          "schema": {
-            "$ref": "#/backend/entities/ChatMessage"
-          },
-          "description": "Stores messages for the global forum live chat."
         }
       }
     ]

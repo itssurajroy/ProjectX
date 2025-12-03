@@ -23,7 +23,6 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
       { href: "/home", label: "Home" },
       { href: "/movies", label: "Movies" },
       { href: "/tv", label: "TV Shows" },
-      { href: "/forum", label: "Forum" },
     ];
     
     return (
@@ -102,7 +101,6 @@ export default function Header() {
     { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
-    { href: "/forum", label: "Forum" },
   ];
   
   const handleLogout = () => {

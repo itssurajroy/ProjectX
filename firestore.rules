@@ -9,15 +9,13 @@ service cloud.firestore {
     }
 
     function isAdmin() {
+      // In a real app, you would check for a custom claim or a document in an admins collection.
+      // For now, this is a placeholder. It checks for a custom claim.
       return request.auth != null && request.auth.token.admin == true;
     }
     
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
-    }
-
-    function isIncrement(field) {
-      return request.resource.data[field] == resource.data[field] + 1;
     }
 
 
@@ -28,6 +26,7 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
       allow create: if isSignedIn();
       
+      // Subcollections for user-specific data like watchlist, history, notifications
       match /watchlist/{entryId} {
         allow read, write: if isOwner(userId);
       }
@@ -37,33 +36,36 @@ service cloud.firestore {
       match /notifications/{notifId} {
         allow read, write: if isOwner(userId);
       }
-       match /forumProfile/{docId} {
-        allow read: if true;
-        // Only allow user to update their own profile, but don't let them set XP/level
-        allow write: if isOwner(userId)
-                    && !(request.resource.data.xp != resource.data.xp)
-                    && !(request.resource.data.level != resource.data.level);
-      }
     }
     
     // ╔══════════════════════════════════════════════════════════╗
     // ║                   WATCH2GETHER ROOMS                     ║
     // ╚══════════════════════════════════════════════════════════╝
     match /watch2gether_rooms/{roomId} {
+      // Anyone can read room details to see what's playing
       allow read: if true;
+      // Logged-in users can create rooms
       allow create: if isSignedIn();
+      // Only the host can update or delete the room
       allow update, delete: if isSignedIn() && (resource.data.hostId == request.auth.uid || isAdmin());
 
+      // Room Users subcollection
       match /users/{userId} {
+        // Any signed-in user can read the list of participants
         allow read: if isSignedIn();
+        // A user can only add or remove themselves from the room
         allow create, delete: if isOwner(userId);
       }
       
+      // Chat Messages subcollection
       match /messages/{messageId} {
+        // Any member of the room can read messages
         allow read: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
+        // A member can only create messages as themselves
         allow create: if isSignedIn() 
                       && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid))
                       && request.resource.data.userId == request.auth.uid;
+        // Disallow editing/deleting for simplicity
         allow update, delete: if false; 
       }
     }
@@ -71,65 +73,41 @@ service cloud.firestore {
     // ╔══════════════════════════════════════════════════════════╗
     // ║                      COMMENTS SYSTEM                     ║
     // ╚══════════════════════════════════════════════════════════╝
+    // General anime comments
     match /comments/{animeId}/general/{messageId} {
         allow read: if true;
         allow create: if isSignedIn();
-        allow update, delete: if isAdmin();
+        allow update, delete: if isAdmin(); // Only admins can moderate
     }
+    // Episode-specific comments
     match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
          allow read: if true;
          allow create: if isSignedIn();
-         allow update, delete: if isAdmin();
-    }
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                         FORUM                            ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /forum_categories/{categoryId} {
-        allow list, read: if true;
-        allow write: if isAdmin();
-    }
-    match /forum_threads/{threadId} {
-        allow list, read: if true;
-        allow create: if isSignedIn();
-        allow update: if (isOwner(request.resource.data.authorId) && !resource.data.isLocked) 
-                      || (isSignedIn() && (isIncrement('upvotes') || isIncrement('downvotes')))
-                      || isAdmin();
-        allow delete: if isAdmin();
-    }
-    match /forum_threads/{threadId}/replies/{replyId} {
-        allow list, read: if true;
-        allow create: if isSignedIn() && !get(/databases/$(database)/documents/forum_threads/$(threadId)).data.isLocked;
-        allow update: if isOwner(request.resource.data.authorId) 
-                      || (isSignedIn() && (isIncrement('upvotes') || isIncrement('downvotes')))
-                      || isAdmin();
-        allow delete: if isAdmin();
-    }
-    
-    match /forum_chat/{messageId} {
-      allow read, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isOwner(request.resource.data.userId) || isAdmin();
+         allow update, delete: if isAdmin(); // Only admins can moderate
     }
 
     // ╔══════════════════════════════════════════════════════════╗
     // ║                 REPORTS, ADMIN, ETC.                     ║
     // ╚══════════════════════════════════════════════════════════╝
+     // Secure admin collections
     match /admin/{document=**} {
       allow read, write: if isAdmin();
     }
     
+    // Public can create reports, but only admins can manage them
     match /reports/{reportId} {
         allow read, update: if isAdmin();
         allow create: if isSignedIn();
     }
 
+    // Users can create and view their own appeals, admins can manage all.
     match /appeals/{appealId} {
         allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
         allow update: if isAdmin();
     }
 
+    // Only admins can manage bans and warnings
     match /bans/{userId} {
         allow read, write: if isAdmin();
     }
