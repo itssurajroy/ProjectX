@@ -1,10 +1,10 @@
-// src/app/admin/page.tsx
+
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import Dashboard from "@/components/admin/Dashboard";
 
-export default function AdminPage() {
+export default function AdminDashboard() {
   return (
-    <AdminLayout>
+    <AdminLayout current="dashboard">
       <Dashboard />
     </AdminLayout>
   );
