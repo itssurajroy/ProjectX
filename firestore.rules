@@ -5,7 +5,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // === COMMENTS (anime detail + episode pages) ===
-    match /comments/{animeId}/{commentId} {
+    match /comments/{animeId}/messages/{commentId} {
       allow read: if true;  // everyone can read comments
       allow create: if request.auth != null 
                     && request.resource.data.text is string
