@@ -32,7 +32,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const [error, setError] = useState<string | null>(null);
   const [availableServers, setAvailableServers] = useState<EpisodeServer[]>([]);
   const [selectedServer, setSelectedServer] = useState<EpisodeServer | null>(null);
-  const [useIframeFallback, setUseIframeFallback = useState(false);
+  const [useIframeFallback, setUseIframeFallback] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const { width, height } = useWindowSize();
   
