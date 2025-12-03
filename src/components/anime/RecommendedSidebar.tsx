@@ -38,7 +38,7 @@ export default function RankedAnimeSidebar({ title, animes, icon }: { title: str
                         <div className="flex-1 overflow-hidden">
                             <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{anime.name}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-red-500/20 text-red-300"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
+                                {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/20 text-primary/90"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
                                 {anime.episodes?.dub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
                                 <span className='hidden sm:inline'>{anime.type}</span>
                             </div>
