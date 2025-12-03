@@ -11,7 +11,7 @@ export function initializeFirebase() {
   let firebaseApp: FirebaseApp;
   if (!getApps().length) {
     try {
-      firebaseApp = initializeApp();
+      firebaseApp = initializeApp(firebaseConfig);
     } catch (e) {
       if (process.env.NODE_ENV === "production") {
         console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
@@ -34,9 +34,7 @@ export function getSdks(firebaseApp: FirebaseApp) {
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
-    googleProvider: new GoogleAuthProvider(),
-    githubProvider: new GithubAuthProvider()
+    firestore: getFirestore(firebaseApp)
   };
 }
 
@@ -51,3 +49,6 @@ export * from './errors';
 export * from './error-emitter';
 export { GoogleAuthProvider, GithubAuthProvider };
 
+
+
+    
