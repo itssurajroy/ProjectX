@@ -1,25 +1,30 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admins collection (protected)
-    match /adminRoles/{userId} {
-      allow read, write: if request.auth != null && 
-        (request.auth.uid == userId || 
-         exists(/databases/$(database)/documents/adminRoles/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/adminRoles/$(request.auth.uid)).data.role in ["superadmin", "admin"]);
+    // Only authenticated users can read/write their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Only superadmin can create/delete roles
+    // Admin-only collections
     match /adminRoles/{userId} {
-      allow create, delete: if request.auth != null && 
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
         exists(/databases/$(database)/documents/adminRoles/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/adminRoles/$(request.auth.uid)).data.role == "superadmin";
     }
 
-    // Rest of your rules...
+    // Public anime data
+    match /anime/{animeId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Default deny all other collections for security
     match /{document=**} {
-      allow read, write: if true; // Keep open for now (or tighten later)
+      allow read, write: if false;
     }
   }
 }

@@ -3,7 +3,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { setDocumentNonBlocking } from './non-blocking-updates';
@@ -74,14 +74,17 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribe = onAuthStateChanged(
       auth,
       (firebaseUser) => { // Auth state determined
-        if (firebaseUser) {
+        if (firebaseUser && !firebaseUser.isAnonymous) {
           const userRef = doc(firestore, 'users', firebaseUser.uid);
           const userData = {
-            displayName: firebaseUser.displayName || 'Anonymous',
+            displayName: firebaseUser.displayName,
+            email: firebaseUser.email,
             photoURL: firebaseUser.photoURL,
-            role: 'user',
             createdAt: serverTimestamp(),
             lastLogin: serverTimestamp(),
+            role: "user",
+            level: 1,
+            xp: 0
           };
           setDocumentNonBlocking(userRef, userData, { merge: true });
         }

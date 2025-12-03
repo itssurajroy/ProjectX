@@ -1,18 +1,12 @@
 
 'use client';
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth, initiateEmailSignIn, initiateEmailSignUp, initiateAnonymousSignIn, initiateGoogleSignIn } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { FirebaseError } from 'firebase/app';
-import toast from 'react-hot-toast';
-import Link from 'next/link';
-import { X } from 'lucide-react';
+import { signInWithPopup, signOut } from "firebase/auth";
+import { useAuth, useUser } from "@/firebase";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { GoogleAuthProvider } from "firebase/auth";
 
 const GoogleIcon = () => (
     <svg className="w-4 h-4 mr-2" viewBox="0 0 48 48">
@@ -23,127 +17,57 @@ const GoogleIcon = () => (
     </svg>
 );
 
-
 export default function LoginPage() {
+  const { user } = useUser();
   const auth = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [authAction, setAuthAction] = useState<'signIn' | 'signUp' | 'anonymous' | 'google' | null>(null);
 
-  const handleAuthAction = async (action: 'signIn' | 'signUp' | 'anonymous' | 'google') => {
-    setLoading(true);
-    setAuthAction(action);
+  const login = async () => {
     try {
-      if (action === 'anonymous') {
-        await initiateAnonymousSignIn(auth);
-      } else if (action === 'signIn') {
-        await initiateEmailSignIn(auth, email, password);
-      } else if (action === 'google') {
-        await initiateGoogleSignIn(auth);
-      } else {
-        await initiateEmailSignUp(auth, email, password);
-      }
-      toast.success("Redirecting...");
-      router.push('/home');
-    } catch (error) {
-      if (error instanceof FirebaseError) {
-        if (error.code === 'auth/invalid-credential') {
-            toast.error('Invalid email or password.');
-        } else {
-            toast.error(error.message);
-        }
-      } else {
-        toast.error('An unexpected error occurred.');
-      }
-    } finally {
-      setLoading(false);
-      setAuthAction(null);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      router.push("/admin");
+    } catch (err: any) {
+      alert(err.message);
     }
   };
-  
+
+  const logout = async () => {
+    await signOut(auth);
+    router.push("/");
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <div className="w-full max-w-md relative">
-        <Link href="/home" className="absolute top-4 right-4 text-muted-foreground hover:text-foreground z-10">
-            <X className="w-5 h-5" />
-        </Link>
-        <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Login</TabsTrigger>
-            <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-            <Card>
-                <CardHeader>
-                <CardTitle>Login</CardTitle>
-                <CardDescription>Access your account to continue.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button variant="outline" className="w-full" onClick={() => handleAuthAction('google')} disabled={loading}>
-                      {loading && authAction === 'google' ? 'Signing in...' : <><GoogleIcon /> Sign in with Google</>}
-                  </Button>
-                  <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
-                      </div>
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="email-login">Email</Label>
-                      <Input id="email-login" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="password-login">Password</Label>
-                      <Input id="password-login" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                  </div>
-                  <Button onClick={() => handleAuthAction('signIn')} disabled={loading} className="w-full">
-                      {loading && authAction === 'signIn' ? 'Logging in...' : 'Login'}
-                  </Button>
-                  <Button variant="outline" onClick={() => handleAuthAction('anonymous')} disabled={loading} className="w-full">
-                      {loading && authAction === 'anonymous' ? 'Signing in...' : 'Continue as Guest'}
-                  </Button>
-                </CardContent>
-            </Card>
-            </TabsContent>
-            <TabsContent value="signup">
-            <Card>
-                <CardHeader>
-                <CardTitle>Sign Up</CardTitle>
-                <CardDescription>Create a new account to get started.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button variant="outline" className="w-full" onClick={() => handleAuthAction('google')} disabled={loading}>
-                      {loading && authAction === 'google' ? 'Signing up...' : <><GoogleIcon /> Sign up with Google</>}
-                  </Button>
-                  <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                          <span className="bg-card px-2 text-muted-foreground">Or sign up with email</span>
-                      </div>
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="email-signup">Email</Label>
-                      <Input id="email-signup" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="password-signup">Password</Label>
-                      <Input id="password-signup" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                  </div>
-                  <Button onClick={() => handleAuthAction('signUp')} disabled={loading} className="w-full">
-                      {loading && authAction === 'signUp' ? 'Creating account...' : 'Sign Up'}
-                  </Button>
-                </CardContent>
-            </Card>
-            </TabsContent>
-        </Tabs>
-      </div>
+    <div className="flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+            <CardTitle>Welcome</CardTitle>
+            <CardDescription>
+                {user ? "You are logged in." : "Login to access the admin panel."}
+            </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center gap-4">
+            {user ? (
+                <div className="flex flex-col items-center gap-4">
+                    <Avatar className="w-16 h-16">
+                        <AvatarImage src={user.photoURL || ""} alt="avatar" />
+                        <AvatarFallback>{user.displayName?.[0] || user.email?.[0] || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-bold">{user.displayName || user.email}</span>
+                    <Button onClick={logout} variant="destructive">
+                    Logout
+                    </Button>
+                </div>
+            ) : (
+                <Button
+                    onClick={login}
+                    className="w-full font-bold text-base hover:scale-105 transition"
+                >
+                    <GoogleIcon /> Login with Google
+                </Button>
+            )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
