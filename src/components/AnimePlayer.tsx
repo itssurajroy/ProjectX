@@ -339,3 +339,5 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     </div>
   );
 }
+
+    
