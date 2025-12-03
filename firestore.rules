@@ -3,84 +3,45 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                    PUBLIC READ ACCESS                    ║
-    // ╚══════════════════════════════════════════════════════════╝
-    // Everyone can read anime data, episodes, servers, sources (scraping-safe)
-    match /anime/{animeId} {
-      allow read: if true;
-      allow write: if false;
+    // Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
     }
-    match /episodes/{episodeId} {
-      allow read: if true;
-      allow write: if false;
+
+    function isAdmin() {
+      // In a real app, you would check for a custom claim or a document in an admins collection.
+      // For now, this is a placeholder. It checks for a custom claim.
+      return request.auth != null && request.auth.token.admin == true;
     }
-    match /servers/{serverId} {
-      allow read: if true;
-      allow write: if false;
+    
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
     }
+
 
     // ╔══════════════════════════════════════════════════════════╗
     // ║                       USER DATA                         ║
     // ╚══════════════════════════════════════════════════════════╝
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null;
+      allow read, write: if isOwner(userId);
+      allow create: if isSignedIn();
       
-      // Subcollections
+      // Subcollections for user-specific data like watchlist, history, notifications
       match /watchlist/{entryId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
       }
-      match /history/{entryId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /history/{animeId} {
+        allow read, write: if isOwner(userId);
       }
       match /notifications/{notifId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if isOwner(userId);
+      }
+       match /forumProfile/{docId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
       }
     }
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                      COMMENTS SYSTEM                     ║
-    // ╚══════════════════════════════════════════════════════════╝
-    // General anime comments (Corrected Path)
-    match /comments/{animeId}/general/{messageId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if false; // Future: allow if user is author
-    }
-    // Episode-specific comments
-    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
-         allow read: if true;
-         allow create: if request.auth != null;
-         allow update, delete: if false; // Future: allow if user is author
-    }
     
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                     REPORTS & APPEALS                    ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /reports/{reportId} {
-      allow read: if isAdmin();
-      allow create: if request.auth != null;
-      allow update: if isAdmin();
-    }
-    match /appeals/{appealId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if isAdmin();
-    }
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                   MODERATION & BANS                      ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /bans/{userId} {
-      allow read, write: if isAdmin();
-    }
-    match /warnings/{warningId} {
-      allow read: if request.auth != null && (resource.data.targetUserId == request.auth.uid || isAdmin());
-      allow create, update: if isAdmin();
-    }
-
     // ╔══════════════════════════════════════════════════════════╗
     // ║                   WATCH2GETHER ROOMS                     ║
     // ╚══════════════════════════════════════════════════════════╝
@@ -88,50 +49,105 @@ service cloud.firestore {
       // Anyone can read room details to see what's playing
       allow read: if true;
       // Logged-in users can create rooms
-      allow create: if request.auth != null;
+      allow create: if isSignedIn();
       // Only the host can update or delete the room
-      allow update, delete: if request.auth != null && (resource.data.hostId == request.auth.uid || isAdmin());
+      allow update, delete: if isSignedIn() && (resource.data.hostId == request.auth.uid || isAdmin());
 
       // Room Users subcollection
       match /users/{userId} {
         // Any signed-in user can read the list of participants
-        allow read: if request.auth != null;
+        allow read: if isSignedIn();
         // A user can only add or remove themselves from the room
-        allow create, delete: if request.auth != null && request.auth.uid == userId;
+        allow create, delete: if isOwner(userId);
       }
       
       // Chat Messages subcollection
       match /messages/{messageId} {
         // Any member of the room can read messages
-        allow read: if request.auth != null && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
+        allow read: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
         // A member can only create messages as themselves
-        allow create: if request.auth != null 
+        allow create: if isSignedIn() 
                       && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid))
                       && request.resource.data.userId == request.auth.uid;
         // Disallow editing/deleting for simplicity
         allow update, delete: if false; 
       }
     }
-
+    
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                      COMMENTS SYSTEM                     ║
+    // ╚══════════════════════════════════════════════════════════╝
+    // General anime comments
+    match /comments/{animeId}/general/{messageId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isAdmin(); // Only admins can moderate
+    }
+    // Episode-specific comments
+    match /comments/{animeId}/episodes/{episodeId}/messages/{messageId} {
+         allow read: if true;
+         allow create: if isSignedIn();
+         allow update, delete: if isAdmin(); // Only admins can moderate
+    }
 
     // ╔══════════════════════════════════════════════════════════╗
-    // ║                     ADMIN ONLY                           ║
+    // ║                         FORUM                            ║
     // ╚══════════════════════════════════════════════════════════╝
+    match /forum_categories/{categoryId} {
+        allow read: if true;
+        allow write: if isAdmin(); // Only admins can create/edit categories
+    }
+    match /forum_threads/{threadId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update: if (isOwner(request.resource.data.authorId) && !resource.data.isLocked) || isAdmin();
+        allow delete: if isAdmin();
+    }
+    match /forum_threads/{threadId}/replies/{replyId} {
+        allow read: if true;
+        allow create: if isSignedIn() && !get(/databases/$(database)/documents/forum_threads/$(threadId)).data.isLocked;
+        allow update: if isOwner(request.resource.data.authorId) || isAdmin();
+        allow delete: if isAdmin();
+    }
+    
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                 REPORTS, ADMIN, ETC.                     ║
+    // ╚══════════════════════════════════════════════════════════╝
+     // Secure admin collections
     match /admin/{document=**} {
       allow read, write: if isAdmin();
     }
-    match /settings/site {
-      allow read: if true;
-      allow write: if isAdmin();
+    
+    // Public can create reports, but only admins can manage them
+    match /reports/{reportId} {
+        allow read, update: if isAdmin();
+        allow create: if isSignedIn();
     }
 
+    // Users can create and view their own appeals, admins can manage all.
+    match /appeals/{appealId} {
+        allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update: if isAdmin();
+    }
+
+    // Only admins can manage bans and warnings
+    match /bans/{userId} {
+        allow read, write: if isAdmin();
+    }
+    
+    match /warnings/{warningId} {
+        allow read: if isAdmin() || (isSignedIn() && resource.data.targetUserId == request.auth.uid);
+        allow create, update: if isAdmin();
+    }
+
+
     // ╔══════════════════════════════════════════════════════════╗
-    // ║                     HELPER FUNCTIONS                     ║
+    // ║                   PUBLIC ANIME DATA                      ║
     // ╚══════════════════════════════════════════════════════════╝
-    function isAdmin() {
-      // In a real app, you would check for a custom claim or a document in an admins collection.
-      // For now, this is a placeholder. It checks for a custom claim.
-      return request.auth != null && request.auth.token.admin == true;
+    match /anime/{animeId} {
+      allow read: if true;
+      allow write: if false; // Should only be updated by a backend process
     }
   }
 }
