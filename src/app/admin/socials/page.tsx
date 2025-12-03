@@ -1,16 +1,5 @@
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
-
 export default function SocialsPage() {
-  return (
-    <AdminLayout current="socials">
-      <div className="space-y-6">
-        <h1 className="text-4xl font-bold">Socials</h1>
-        <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-800">
-          <p className="text-xl text-gray-300">Full control panel for socials</p>
-          {/* Add your content here */}
-        </div>
-      </div>
-    </AdminLayout>
-  );
+  return <AdminLayout current="socials"><div className="p-10 text-center text-4xl font-bold text-pink-400">Update Discord / Twitter / Reddit Links</div></AdminLayout>;
 }

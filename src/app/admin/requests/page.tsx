@@ -1,16 +1,5 @@
 
 import { AdminLayout } from "@/components/admin/AdminLayout";
-
 export default function RequestsPage() {
-  return (
-    <AdminLayout current="requests">
-      <div className="space-y-6">
-        <h1 className="text-4xl font-bold">Requests</h1>
-        <div className="bg-gray-900/50 rounded-2xl p-8 border border-gray-800">
-          <p className="text-xl text-gray-300">Full control panel for requests</p>
-          {/* Add your content here */}
-        </div>
-      </div>
-    </AdminLayout>
-  );
+  return <AdminLayout current="requests"><div className="p-10 text-center text-4xl font-bold text-purple-400">Anime Requests (42 Pending)</div></AdminLayout>;
 }
