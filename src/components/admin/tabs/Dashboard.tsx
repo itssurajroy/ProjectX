@@ -1,4 +1,3 @@
-// src/components/admin/tabs/Dashboard.tsx
 'use client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useEffect, useState } from "react";
@@ -17,14 +16,14 @@ export default function Dashboard() {
   });
 
   // Example of how you might fetch real data
-  // useEffect(() => {
-  //   if (!firestore) return;
-  //   const usersQuery = query(collection(firestore, "users"));
-  //   const unsub = onSnapshot(usersQuery, (snap) => {
-  //     setStats(prev => ({...prev, totalUsers: snap.size}));
-  //   });
-  //   return unsub;
-  // }, [firestore]);
+  useEffect(() => {
+    if (!firestore) return;
+    const usersQuery = query(collection(firestore, "users"));
+    const unsub = onSnapshot(usersQuery, (snap) => {
+      setStats(prev => ({...prev, totalUsers: snap.size}));
+    });
+    return unsub;
+  }, [firestore]);
 
   const chartData = [
     { day: "Mon", users: 2100 }, { day: "Tue", users: 2400 }, { day: "Wed", users: 2200 },
