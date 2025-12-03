@@ -102,13 +102,15 @@ service cloud.firestore {
         allow create: if isSignedIn();
         allow update: if (isOwner(request.resource.data.authorId) && !resource.data.isLocked) || isAdmin();
         allow delete: if isAdmin();
+        
+        match /replies/{replyId} {
+            allow read: if true;
+            allow create: if isSignedIn() && !get(/databases/$(database)/documents/forum_threads/$(threadId)).data.isLocked;
+            allow update: if isOwner(request.resource.data.authorId) || isAdmin();
+            allow delete: if isAdmin();
+        }
     }
-    match /forum_threads/{threadId}/replies/{replyId} {
-        allow read: if true;
-        allow create: if isSignedIn() && !get(/databases/$(database)/documents/forum_threads/$(threadId)).data.isLocked;
-        allow update: if isOwner(request.resource.data.authorId) || isAdmin();
-        allow delete: if isAdmin();
-    }
+    
     
     // ╔══════════════════════════════════════════════════════════╗
     // ║                 REPORTS, ADMIN, ETC.                     ║
