@@ -13,6 +13,16 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Breadcrumb from '@/components/common/Breadcrumb';
 import { AnimeCard } from '@/components/AnimeCard';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -61,6 +71,7 @@ function WatchPageComponent() {
 
   const [language, setLanguage] = useState<Language>('sub');
   const { isFocusMode, toggleFocusMode } = usePlayerSettings();
+  const [showFillerAlert, setShowFillerAlert] = useState(false);
   
   const {
     data: aboutResponse,
@@ -111,6 +122,12 @@ function WatchPageComponent() {
       }) || episodes[0]
     );
   }, [episodes, episodeParam]);
+
+  useEffect(() => {
+    if (currentEpisode?.isFiller) {
+      setShowFillerAlert(true);
+    }
+  }, [currentEpisode]);
 
   const { 
     data: sourcesData, 
@@ -246,6 +263,23 @@ function WatchPageComponent() {
           { label: `Episode ${currentEpisode?.number}` },
         ]}
       />
+
+      <AlertDialog open={showFillerAlert} onOpenChange={setShowFillerAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>This is a Filler Episode</AlertDialogTitle>
+            <AlertDialogDescription>
+              This episode is marked as filler content. You can choose to watch it or skip directly to the next episode.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Watch Anyway</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigateEpisode('next')}>
+              Skip to Next Episode
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-6">
         <div className="hidden lg:block lg:col-span-3">
