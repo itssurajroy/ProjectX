@@ -1,8 +1,11 @@
+
 'use client';
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, Users, MessageSquare, AlertCircle, Megaphone, Settings, Activity, Shield, Globe, Trash2 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, Users, MessageSquare, AlertCircle, Megaphone, Settings, Activity, Shield, Cache, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/admin" },
@@ -10,7 +13,7 @@ const navItems = [
   { name: "Comments", icon: MessageSquare, href: "/admin/comments" },
   { name: "Reports", icon: AlertCircle, href: "/admin/reports", badge: 17 },
   { name: "Announcements", icon: Megaphone, href: "/admin/announcements", badge: 5 },
-  { name: "Cache", icon: Trash2, href: "/admin/cache" },
+  { name: "Cache", icon: Cache, href: "/admin/cache" },
   { name: "SEO", icon: Globe, href: "/admin/seo" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
   { name: "Logs", icon: Activity, href: "/admin/logs" },
@@ -18,6 +21,12 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    signOut(auth);
+    router.push("/login");
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -57,7 +66,10 @@ export default function Sidebar() {
       </nav>
 
       <div className="p-6 border-t border-purple-500/20">
-        <div className="text-center text-gray-500 text-sm">
+        <button onClick={handleLogout} className="w-full mt-auto px-6 py-4 bg-red-600 rounded-xl text-lg font-bold hover:bg-red-700">
+          Logout
+        </button>
+        <div className="text-center text-gray-500 text-sm mt-4">
           © 2025 ProjectX
         </div>
       </div>
