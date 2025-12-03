@@ -8,34 +8,33 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Rocket, Sparkles, Star, Users } from 'lucide-react';
+import { Zap, SkipForward, Info, Bug } from 'lucide-react';
 
 const features = [
   {
-    title: 'Complete Streaming Experience',
-    description: 'Watch your favorite anime with our new modern player, complete with server selection and episode tracking.',
-    icon: <Rocket className="w-5 h-5 text-primary" />,
+    title: 'Filler Episode Skipper',
+    description: 'A popup now warns you about filler episodes, giving you the option to skip directly to the next canon episode.',
+    icon: <SkipForward className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'Community & Comments',
-    description: 'Discuss episodes and series with the community through our brand new, real-time comment sections.',
-    icon: <Users className="w-5 h-5 text-primary" />,
+    title: 'Performance & Stability Boost',
+    description: 'Upgraded our core framework to Next.js 15 and squashed numerous bugs for a faster, more reliable experience.',
+    icon: <Zap className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'Personalized Watchlist & History',
-    description: 'Log in to keep track of shows you want to watch and what you\'ve already seen.',
-    icon: <Star className="w-5 h-5 text-primary" />,
+    title: 'A-Z List Tooltips Restored',
+    description: 'Anime information tooltips on the A-Z list page are now fully functional again.',
+    icon: <Info className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'Watch Together',
-    description: 'Create or join public rooms to watch anime in sync with friends and other fans.',
-    icon: <Sparkles className="w-5 h-5 text-primary" />,
+    title: 'Persistent Bug Fixes',
+    description: 'Finally eliminated the stubborn "Missing Permissions" error and resolved all dependency conflicts.',
+    icon: <Bug className="w-5 h-5 text-primary" />,
   },
 ];
 
-const CHANGELOG_VERSION = '1.0';
+const CHANGELOG_VERSION = '1.01';
 
 export default function ChangelogPopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,11 +56,11 @@ export default function ChangelogPopup() {
       <DialogContent className="max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
-            <Rocket className="w-7 h-7 text-primary" />
-            Welcome to ProjectX v1.0!
+            <Zap className="w-7 h-7 text-primary" />
+            What's New in v1.01
           </DialogTitle>
           <DialogDescription>
-            We've launched a brand new version of the site, packed with features for the community.
+            We've rolled out some quality-of-life updates and major bug fixes to improve your viewing experience!
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-4">
@@ -76,7 +75,7 @@ export default function ChangelogPopup() {
           ))}
         </div>
         <div className="mt-6 flex justify-end">
-          <Button onClick={() => setIsOpen(false)}>Start Watching</Button>
+          <Button onClick={() => setIsOpen(false)}>Continue Watching</Button>
         </div>
       </DialogContent>
     </Dialog>
