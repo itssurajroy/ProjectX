@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/tooltip"
 import { QtipAnime } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
-import { Star, Tv, Clapperboard, Calendar, Clock } from "lucide-react";
+import { Star, Tv, Clapperboard } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
 import { AnimeService } from "@/lib/AnimeService";
+import { useState } from "react";
 
 const TooltipSkeleton = () => (
     <div className="p-2 space-y-3">
@@ -26,14 +27,25 @@ const TooltipSkeleton = () => (
     </div>
 )
 
-export function AnimeTooltip({ anime: anime, children }: { anime: QtipAnime | undefined, children: React.ReactNode }) {
+export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { data: qtipResult, isLoading } = useQuery<{anime: QtipAnime}>({
+    queryKey: ['qtip', animeId],
+    queryFn: () => AnimeService.qtip(animeId),
+    enabled: isOpen, // Only fetch when the tooltip is opened
+    staleTime: Infinity, // Cache forever
+    refetchOnWindowFocus: false,
+  });
+  
+  const anime = qtipResult?.anime;
 
   return (
     <TooltipProvider delayDuration={100}>
-      <Tooltip>
+      <Tooltip open={isOpen} onOpenChange={setIsOpen}>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
         <TooltipContent side="right" className="w-80 bg-card border-border shadow-lg p-0">
-          {!anime ? (
+          {isLoading || !anime ? (
             <TooltipSkeleton />
           ) : (
             <div className="p-3 space-y-3">

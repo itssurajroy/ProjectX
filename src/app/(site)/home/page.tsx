@@ -131,7 +131,7 @@ const PollSection = () => (
     </div>
 )
 
-const SmallListSection = ({ title, animes, qtips }: { title: string, animes: AnimeBase[] | undefined, qtips: Record<string, QtipAnime> }) => {
+const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[] | undefined }) => {
     if (!animes || animes.length === 0) return null;
 
     return (
@@ -233,7 +233,7 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
 };
 
 
-const TrendingSidebar = ({ top10Animes, qtips }: { top10Animes: HomeData['top10Animes'] | undefined, qtips: Record<string, QtipAnime> }) => {
+const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes'] | undefined }) => {
     const [trendingPeriod, setTrendingPeriod] = useState<'today' | 'week' | 'month'>('today');
     if (!top10Animes) return null;
 
@@ -288,41 +288,9 @@ const TrendingSidebar = ({ top10Animes, qtips }: { top10Animes: HomeData['top10A
 
 
 export default function MainDashboardPage() {
-  const { data, isLoading, error, refetch } = useQuery<HomeDataWithQtips>({
+  const { data, isLoading, error, refetch } = useQuery<HomeData>({
     queryKey: ['homeData'],
-    queryFn: async () => {
-        const homeData = await AnimeService.home();
-        
-        // Collect all anime IDs
-        const animeIds = new Set<string>();
-        Object.values(homeData).forEach(value => {
-            if(Array.isArray(value)) {
-                value.forEach(item => {
-                    if(item && typeof item === 'object' && 'id' in item) animeIds.add(item.id);
-                });
-            } else if (value && typeof value === 'object' && 'today' in value) { // for top10Animes
-                 Object.values(value).flat().forEach(item => {
-                    if(item && typeof item === 'object' && 'id' in item) animeIds.add(item.id);
-                });
-            }
-        })
-        
-        // Fetch all qtips in parallel
-        const qtipPromises = Array.from(animeIds).map(id => AnimeService.qtip(id).catch(e => {
-            console.warn(`Failed to fetch qtip for ${id}`, e);
-            return null;
-        }));
-        const qtipResults = await Promise.all(qtipPromises);
-
-        const qtips: Record<string, QtipAnime> = {};
-        qtipResults.forEach(result => {
-            if(result && result.anime) {
-                qtips[result.anime.id] = result.anime;
-            }
-        });
-        
-        return { ...homeData, qtips };
-    },
+    queryFn: AnimeService.home,
   });
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
@@ -330,7 +298,7 @@ export default function MainDashboardPage() {
     return <ErrorDisplay onRetry={refetch} />;
   }
   
-  const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes, qtips } = data;
+  const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = data;
 
 
   return (
@@ -342,18 +310,18 @@ export default function MainDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
-                <AnimeSection title="Trending" animes={trendingAnimes} category="trending" qtips={qtips} isSpecial="trending" />
-                <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} category="latest-episodes" qtips={qtips} />
+                <AnimeSection title="Trending" animes={trendingAnimes} category="trending" isSpecial="trending" />
+                <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} category="latest-episodes" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <SmallListSection title="Top Airing" animes={topAiringAnimes} qtips={qtips} />
-                    <SmallListSection title="Top Upcoming" animes={topUpcomingAnimes} qtips={qtips} />
-                    <SmallListSection title="Completed" animes={latestCompletedAnimes} qtips={qtips} />
+                    <SmallListSection title="Top Airing" animes={topAiringAnimes} />
+                    <SmallListSection title="Top Upcoming" animes={topUpcomingAnimes} />
+                    <SmallListSection title="Completed" animes={latestCompletedAnimes} />
                 </div>
-                <AnimeSection title="Most Popular" animes={mostPopularAnimes} category="most-popular" qtips={qtips} />
-                <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} category="most-favorite" qtips={qtips} />
+                <AnimeSection title="Most Popular" animes={mostPopularAnimes} category="most-popular" />
+                <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} category="most-favorite" />
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
-                <TrendingSidebar top10Animes={top10Animes} qtips={qtips} />
+                <TrendingSidebar top10Animes={top10Animes} />
                 {topAiringAnimes && <ScheduleSidebar topAiringAnimes={topAiringAnimes} />}
             </div>
         </div>
@@ -365,4 +333,5 @@ export default function MainDashboardPage() {
     
 
     
+
 

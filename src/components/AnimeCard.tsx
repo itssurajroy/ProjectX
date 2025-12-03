@@ -1,5 +1,5 @@
 
-import { AnimeBase, QtipAnime } from "@/types/anime"
+import { AnimeBase } from "@/types/anime"
 import Image from "next/image"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
@@ -8,20 +8,19 @@ import { cn } from "@/lib/utils"
 
 type AnimeCardProps = {
   anime: AnimeBase;
-  qtip?: QtipAnime;
-  rank?: number; // Added support for ranking (e.g., Top 10 lists)
-  variant?: "portrait" | "landscape"; // Optional: for future flexibility
+  rank?: number;
+  variant?: "portrait" | "landscape";
 }
 
-export function AnimeCard({ anime, qtip, rank }: AnimeCardProps) {
+export function AnimeCard({ anime, rank }: AnimeCardProps) {
   const isAdult = anime.rating === 'R' || anime.rating === 'R+' || anime.rating === 'Rx';
   
   return (
-    <AnimeTooltip anime={qtip}>
+    <AnimeTooltip animeId={anime.id}>
       <Link href={`/anime/${anime.id}`} className="group relative block w-full h-full">
         
         {/* --- Card Container --- */}
-        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-900 shadow-md transition-all duration-300 group-hover:shadow-[0_0_20px_rgba(var(--primary),0.3)] group-hover:-translate-y-1">
+        <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl bg-gray-900 shadow-md transition-all duration-300 group-hover:shadow-[0_0_20px_hsl(var(--primary)_/_0.3)] group-hover:-translate-y-1">
           
           {/* Rank Badge (Conditional) */}
           {rank && (

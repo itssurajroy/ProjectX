@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeBase, QtipAnime } from "@/types/anime";
+import { AnimeBase } from "@/types/anime";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from "lucide-react";
@@ -9,7 +9,7 @@ import { useState } from "react";
 import AnimeListModal from "./AnimeListModal";
 import Link from "next/link";
 
-export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { title: string, animes: AnimeBase[] | undefined, category: string, qtips: Record<string, QtipAnime>, isSpecial?: string }) => {
+export const AnimeSection = ({ title, animes, category, isSpecial }: { title: string, animes: AnimeBase[] | undefined, category: string, isSpecial?: string }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     if (!animes || !Array.isArray(animes) || animes.length === 0) return null;
@@ -39,7 +39,7 @@ export const AnimeSection = ({ title, animes, category, qtips, isSpecial }: { ti
             </div>
             <div className="grid-cards">
                 {animes.slice(0, 12).map((anime, index) => (
-                    <AnimeCard key={`${anime.id}-${index}`} anime={anime} qtip={qtips ? qtips[anime.id] : undefined} />
+                    <AnimeCard key={`${anime.id}-${index}`} anime={anime} />
                 ))}
             </div>
 

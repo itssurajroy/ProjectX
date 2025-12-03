@@ -160,8 +160,6 @@ const LoadingSkeleton = () => (
     </div>
 );
 
-type AZListResult = SearchResult & { qtips: Record<string, QtipAnime> };
-
 function AZListPageComponent({ params }: { params: { character: string } }) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -178,21 +176,9 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-  } = useInfiniteQuery<AZListResult, Error>({
+  } = useInfiniteQuery<SearchResult, Error>({
     queryKey: ['az-list', sortOption],
-    queryFn: async ({ pageParam = 1 }) => {
-      const result = await AnimeService.getAZList(sortOption, pageParam);
-      const animeIds = result.animes.map((a: AnimeBase) => a.id);
-      const qtipPromises = animeIds.map((id: string) => AnimeService.qtip(id).catch(() => null));
-      const qtipResults = await Promise.all(qtipPromises);
-      const qtips: Record<string, QtipAnime> = {};
-      qtipResults.forEach(res => {
-        if (res?.anime) {
-          qtips[res.anime.id] = res.anime;
-        }
-      });
-      return { ...result, qtips };
-    },
+    queryFn: ({ pageParam = 1 }) => AnimeService.getAZList(sortOption, pageParam),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       return lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined
@@ -200,7 +186,6 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
   });
 
   const animes = data?.pages.flatMap(page => page.animes) ?? [];
-  const qtips = data?.pages.reduce((acc, page) => ({ ...acc, ...page.qtips }), {}) ?? {};
 
   const handlePageChange = (newPage: number) => {
     if (newPage > (data?.pages.length || 0) && hasNextPage) {
@@ -236,7 +221,7 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
       <>
           <div className="grid-cards">
           {animes.map((anime: any) => (
-              <AnimeCard key={anime.id} anime={anime} qtip={qtips[anime.id]} />
+              <AnimeCard key={anime.id} anime={anime} />
           ))}
           </div>
           {data?.pages[0].totalPages && <Pagination currentPage={data?.pages.length || 1} totalPages={data?.pages[0].totalPages || 1} hasNextPage={!!hasNextPage} />}
