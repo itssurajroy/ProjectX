@@ -28,23 +28,15 @@ export default function ServerToggle({ onLanguageChange }: ServerToggleProps) {
              <Button 
                 size="sm" 
                 variant={language === "sub" ? 'secondary' : 'ghost'} 
-                className='font-semibold text-xs' 
+                className='font-semibold text-xs px-4' 
                 onClick={() => handleLanguageClick("sub")}
              >
-                 Hard Sub
-            </Button>
-            <Button 
-                size="sm" 
-                variant={'ghost'} 
-                className='font-semibold text-xs text-muted-foreground'
-                disabled
-             >
-                 Soft Sub
+                 Sub
             </Button>
             <Button 
                 size="sm" 
                 variant={language === "dub" ? 'secondary' : 'ghost'} 
-                className='font-semibold text-xs' 
+                className='font-semibold text-xs px-4' 
                 onClick={() => handleLanguageClick("dub")}
             >
                 Dub
@@ -53,3 +45,4 @@ export default function ServerToggle({ onLanguageChange }: ServerToggleProps) {
     </div>
   );
 }
+
