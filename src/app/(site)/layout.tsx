@@ -6,6 +6,7 @@ import Footer from "@/components/layout/footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import BackToTopButton from "@/components/common/BackToTopButton";
 import { usePathname } from "next/navigation";
+import ChangelogPopup from "@/components/ChangelogPopup";
 
 export default function SiteLayout({
   children,
@@ -29,6 +30,7 @@ export default function SiteLayout({
       <Footer />
       <MobileBottomNav />
       <BackToTopButton />
+      <ChangelogPopup />
     </div>
   );
 }
