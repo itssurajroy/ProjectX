@@ -1,19 +1,12 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // EXPLICITLY ALLOW LIST ON ROOT COLLECTIONS
-    match /comments {
-      allow list, get, create, update, delete: if true;
-    }
-
-    match /users {
-      allow list, get, create, update, delete: if true;
-    }
-
-    // WILDCARD FOR EVERYTHING ELSE
+    // Open access for development
     match /{document=**} {
       allow read, write: if true;
     }
   }
 }
+
+    

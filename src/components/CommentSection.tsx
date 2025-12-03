@@ -22,21 +22,15 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
   const commentsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     
-    let q: Query<DocumentData>;
+    let commentsCollectionPath: string;
     if (episodeId) {
-        // Query for episode-specific comments
-        const commentsRef = collection(firestore, `comments`, animeId, "episodes", episodeId, "messages");
-        q = query(commentsRef, orderBy('timestamp', 'asc'));
+        commentsCollectionPath = `comments/${animeId}/episodes/${episodeId}/messages`;
     } else {
-        // Query for anime-level comments, ensuring we only get comments without an episodeId
-        const commentsRef = collection(firestore, `comments`);
-        q = query(commentsRef, 
-            where('animeId', '==', animeId),
-            where('episodeId', '==', null),
-            orderBy('timestamp', 'asc')
-        );
+        commentsCollectionPath = `comments/${animeId}/general`;
     }
-    return q;
+    const commentsRef = collection(firestore, commentsCollectionPath);
+
+    return query(commentsRef, orderBy('timestamp', 'asc'));
   }, [firestore, animeId, episodeId]);
 
   const { data: fetchedComments, isLoading } = useCollection<Comment>(commentsQuery);
@@ -49,14 +43,12 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
 
 
   const postComment = async () => {
-    if (!input.trim() || !user || !firestore) return;
+    if (!input.trim() || !user || !firestore || !commentsQuery) return;
     
     let commentsRef: CollectionReference<DocumentData>;
     if (episodeId) {
         commentsRef = collection(firestore, `comments`, animeId, "episodes", episodeId, "messages");
     } else {
-        // For general anime comments, we'll place them in a different subcollection
-        // to keep things organized and avoid querying issues.
         commentsRef = collection(firestore, `comments`, animeId, "general");
     }
 
@@ -80,15 +72,9 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
   };
   
   const likeComment = async (id: string) => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || !commentsQuery) return;
 
-    let commentRef;
-     if (episodeId) {
-        commentRef = doc(firestore, `comments`, animeId, "episodes", episodeId, "messages", id);
-    } else {
-        commentRef = doc(firestore, `comments`, animeId, "general", id);
-    }
-
+    const commentRef = doc(commentsQuery.converter ? commentsQuery.withConverter(null).firestore : firestore, commentsQuery.path, id);
     const comment = comments.find(c => c.id === id);
 
     if (comment?.likes.includes(user.uid)) {
@@ -191,3 +177,5 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
     </div>
   );
 }
+
+    
