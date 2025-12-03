@@ -1,7 +1,7 @@
 
 'use client';
 import { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { getFirebaseErrorMessage } from "@/lib/firebaseErrors";
 import { AlertCircle } from "lucide-react";
