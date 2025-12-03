@@ -243,7 +243,7 @@
       "properties": {
         "xp": { "type": "number", "default": 0 },
         "level": { "type": "number", "default": 1 },
-        "rank": { "type": "string", "default": "Genin" },
+        "rank": { "type": "string", "default": "Newbie Slayer" },
         "badges": { "type": "array", "items": { "type": "string" } },
         "dailyStreak": { "type": "number", "default": 0 },
         "lastPostDate": { "type": "string", "format": "date-time" }
