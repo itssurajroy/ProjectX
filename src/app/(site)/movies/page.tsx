@@ -1,20 +1,22 @@
 
 'use client';
 
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Film, Sparkles, Filter, ChevronDown, RefreshCw } from 'lucide-react';
+import { Film, Sparkles, Filter, ChevronDown, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Suspense, useState, useMemo } from 'react';
+import { Suspense, useState, useMemo, useCallback } from 'react';
 import { AnimeService } from '@/lib/AnimeService';
 import { HomeData, SearchResult } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { years } from '@/lib/data';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Image from 'next/image';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 
 function MoviesFilter() {
@@ -59,27 +61,91 @@ function MoviesFilter() {
   )
 }
 
+function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: number, totalPages: number, onPageChange: (page: number) => void }) {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+
+    let startPage: number, endPage: number;
+    if (totalPages <= maxPagesToShow) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        if (currentPage <= 3) {
+            startPage = 1;
+            endPage = maxPagesToShow;
+        } else if (currentPage + 2 >= totalPages) {
+            startPage = totalPages - maxPagesToShow + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - 2;
+            endPage = currentPage + 2;
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+    }
+    
+    return (
+        <div className="flex justify-center items-center gap-2 mt-12">
+            <button onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
+                <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {startPage > 1 && (
+                <>
+                    <button onClick={() => onPageChange(1)} className="px-4 py-2 text-sm rounded-md bg-card/50 hover:bg-muted">1</button>
+                    {startPage > 2 && <span className="px-2">...</span>}
+                </>
+            )}
+
+            {pageNumbers.map(number => (
+                 <button key={number} onClick={() => onPageChange(number)} className={cn("px-4 py-2 text-sm rounded-md", currentPage === number ? 'bg-primary text-primary-foreground' : 'bg-card/50 hover:bg-muted')}>
+                    {number}
+                </button>
+            ))}
+
+             {endPage < totalPages && (
+                <>
+                    {endPage < totalPages - 1 && <span className="px-2">...</span>}
+                    <button onClick={() => onPageChange(totalPages)} className="px-4 py-2 text-sm rounded-md bg-card/50 hover:bg-muted">{totalPages}</button>
+                </>
+            )}
+
+            <button onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages} className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-card/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed">
+                <ChevronRight className="w-4 h-4" />
+            </button>
+        </div>
+    )
+}
 
 function MoviesPageContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const page = Number(searchParams.get('page') || '1');
+
   const {
     data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
     isLoading,
     isError,
     error,
     refetch,
-  } = useInfiniteQuery<SearchResult>({
-    queryKey: ['movies'],
-    queryFn: ({ pageParam = 1 }) => AnimeService.movies(pageParam),
-    getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
-    initialPageParam: 1,
+  } = useQuery<SearchResult>({
+    queryKey: ['movies', page],
+    queryFn: () => AnimeService.movies(page),
     staleTime: 15 * 60 * 1000,
     retry: 2,
   });
 
-  const movies = useMemo(() => data?.pages.flatMap(p => p.animes).filter(Boolean) || [], [data]);
+  const handlePageChange = useCallback((newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(newPage));
+    router.push(`${pathname}?${params.toString()}`);
+  }, [searchParams, router, pathname]);
+  
+  const movies = data?.animes || [];
+  const totalAnimes = data?.totalAnimes || 0;
 
   return (
     <>
@@ -100,10 +166,10 @@ function MoviesPageContent() {
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
               Explore thousands of animated films, from timeless classics to the latest blockbusters.
             </p>
-            {movies.length > 0 && (
+            {totalAnimes > 0 && (
                 <div className="mt-8 text-lg text-muted-foreground flex items-center justify-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
-                <strong>{movies.length.toLocaleString()}+</strong> movies loaded and ready to watch.
+                <strong>{totalAnimes.toLocaleString()}+</strong> movies loaded and ready to watch.
                 </div>
             )}
         </motion.div>
@@ -140,19 +206,8 @@ function MoviesPageContent() {
               ))}
             </motion.div>
 
-            {hasNextPage && (
-              <div className="flex justify-center mt-16">
-                <Button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  size="lg"
-                  className="px-12 py-6 text-base font-bold shadow-lg shadow-primary/20 transform hover:scale-105 transition-transform"
-                >
-                  {isFetchingNextPage ? (
-                      <><RefreshCw className="w-5 h-5 mr-2 animate-spin"/> Loading...</>
-                  ) : 'Load More Movies'}
-                </Button>
-              </div>
+            {data?.totalPages && data.totalPages > 1 && (
+              <Pagination currentPage={page} totalPages={data.totalPages} onPageChange={handlePageChange} />
             )}
           </>
         )}
@@ -181,5 +236,3 @@ export default function MoviesPage() {
         </Suspense>
     )
 }
-
-    
