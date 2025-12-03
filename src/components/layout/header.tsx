@@ -26,30 +26,41 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     ];
     
     return (
-        <div className={cn("fixed inset-0 z-50 bg-background/95 backdrop-blur-sm transition-transform duration-300 ease-in-out lg:hidden", isOpen ? "translate-x-0" : "-translate-x-full")}>
-            <div className="p-4 border-b border-border flex items-center justify-between">
-                <SiteLogo />
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                    <X className="w-5 h-5" />
-                </Button>
-            </div>
-            <nav className="flex flex-col gap-2 mt-4 p-4">
-               {navItems.map(item => (
-                 <Link key={item.href} href={item.href} className="text-lg font-medium p-2 rounded-md hover:bg-muted" onClick={onClose}>
-                   {item.label}
-                 </Link>
-               ))}
-                <div className="space-y-1 pt-4">
-                    <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
-                    <div className="max-h-64 overflow-y-auto">
-                        {genres.map(genre => (
-                        <Link key={genre} href={`/genre/${genre.toLowerCase().replace(/ /g, '-')}`} onClick={onClose} className="block p-2 text-base font-medium rounded-md hover:bg-muted">
-                            {genre}
-                        </Link>
-                        ))}
-                    </div>
+        <div className={cn("fixed inset-0 z-50 flex lg:hidden", isOpen ? "pointer-events-auto" : "pointer-events-none")}>
+            {/* Overlay */}
+            <div 
+                onClick={onClose}
+                className={cn(
+                    "absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity",
+                    isOpen ? "opacity-100" : "opacity-0"
+                )}
+            />
+            {/* Menu Panel */}
+            <div className={cn("relative z-10 w-full max-w-xs bg-background border-r border-border h-full flex flex-col transition-transform duration-300 ease-in-out", isOpen ? "translate-x-0" : "-translate-x-full")}>
+                <div className="p-4 border-b border-border flex items-center justify-between">
+                    <SiteLogo />
+                    <Button variant="ghost" size="icon" onClick={onClose}>
+                        <X className="w-5 h-5" />
+                    </Button>
                 </div>
-            </nav>
+                <nav className="flex flex-col gap-2 mt-4 p-4 overflow-y-auto">
+                    {navItems.map(item => (
+                        <Link key={item.href} href={item.href} className="text-lg font-medium p-2 rounded-md hover:bg-muted" onClick={onClose}>
+                        {item.label}
+                        </Link>
+                    ))}
+                    <div className="space-y-1 pt-4">
+                        <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
+                        <div className="max-h-64 overflow-y-auto">
+                            {genres.map(genre => (
+                            <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} onClick={onClose} className="block p-2 text-base font-medium rounded-md hover:bg-muted">
+                                {genre}
+                            </Link>
+                            ))}
+                        </div>
+                    </div>
+                </nav>
+            </div>
         </div>
     )
 }
