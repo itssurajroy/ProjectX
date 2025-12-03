@@ -1,107 +1,19 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
-    function isSignedIn() {
-      return request.auth != null;
+    // EXPLICITLY ALLOW LIST ON ROOT COLLECTIONS
+    match /comments {
+      allow list, get, create, update, delete: if true;
     }
 
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
-    }
-    
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+    match /users {
+      allow list, get, create, update, delete: if true;
     }
 
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                       USER DATA                         ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
-      allow create: if isSignedIn();
-      
-      match /watchlist/{entryId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /history/{animeId} {
-        allow read, write: if isOwner(userId);
-      }
-      match /notifications/{notifId} {
-        allow read, write: if isOwner(userId);
-      }
-    }
-    
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                   WATCH2GETHER ROOMS                     ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /watch2gether_rooms/{roomId} {
-      allow read: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (resource.data.hostId == request.auth.uid || isAdmin());
-
-      match /users/{userId} {
-        allow read: if isSignedIn();
-        allow create, delete: if isOwner(userId);
-      }
-      
-      match /messages/{messageId} {
-        allow read: if isSignedIn() && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid));
-        allow create: if isSignedIn() 
-                      && exists(/databases/$(database)/documents/watch2gether_rooms/$(roomId)/users/$(request.auth.uid))
-                      && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if false; 
-      }
-    }
-    
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                      COMMENTS SYSTEM                     ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /comments/{animeId}/{section}/{messageId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.text.size() < 1000;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid || isAdmin();
-    }
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                 REPORTS, ADMIN, ETC.                     ║
-    // ╚══════════════════════════════════════════════════════════╝
-     // Secure admin collections
-    match /admin/{document=**} {
-      allow read, write: if isAdmin();
-    }
-    
-    match /reports/{reportId} {
-        allow read, update: if isAdmin();
-        allow create: if isSignedIn();
-    }
-
-    match /appeals/{appealId} {
-        allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        allow update: if isAdmin();
-    }
-
-    match /bans/{userId} {
-        allow read, write: if isAdmin();
-    }
-    
-    match /warnings/{warningId} {
-        allow read: if isAdmin() || (isSignedIn() && resource.data.targetUserId == request.auth.uid);
-        allow create, update: if isAdmin();
-    }
-
-
-    // ╔══════════════════════════════════════════════════════════╗
-    // ║                   PUBLIC ANIME DATA                      ║
-    // ╚══════════════════════════════════════════════════════════╝
-    match /anime/{animeId} {
-      allow read: if true;
-      allow write: if false;
+    // WILDCARD FOR EVERYTHING ELSE
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
