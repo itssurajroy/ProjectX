@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -16,14 +17,13 @@ import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
-import { useIsMobile } from '@/hooks/use-mobile';
-
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
       { href: "/home", label: "Home" },
       { href: "/movies", label: "Movies" },
       { href: "/tv", label: "TV Shows" },
+      { href: "/forum", label: "Forum" },
     ];
     
     return (
@@ -62,7 +62,6 @@ export default function Header() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     setMounted(true);
@@ -103,6 +102,7 @@ export default function Header() {
     { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
+    { href: "/forum", label: "Forum" },
   ];
   
   const handleLogout = () => {
@@ -115,8 +115,8 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-4">
-            {mounted && isMobile && (
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+            {mounted && (
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden">
                 <Menu className="w-5 h-5" />
               </Button>
             )}
@@ -169,7 +169,7 @@ export default function Header() {
 
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}
-          {mounted && !isMobile && (
+          {mounted && (
             <>
               <Link href="/watch2gether" className="flex items-center justify-center w-auto h-9 px-3 rounded-full bg-card hover:bg-muted" title="Watch Together">
                   <span className="text-sm font-medium">Watch Together</span>

@@ -36,6 +36,10 @@ service cloud.firestore {
       match /notifications/{notifId} {
         allow read, write: if isOwner(userId);
       }
+       match /forumProfile/{docId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
     }
     
     // ╔══════════════════════════════════════════════════════════╗
@@ -84,6 +88,26 @@ service cloud.firestore {
          allow read: if true;
          allow create: if isSignedIn();
          allow update, delete: if isAdmin(); // Only admins can moderate
+    }
+
+    // ╔══════════════════════════════════════════════════════════╗
+    // ║                         FORUM                            ║
+    // ╚══════════════════════════════════════════════════════════╝
+    match /forum_categories/{categoryId} {
+        allow read: if true;
+        allow write: if isAdmin(); // Only admins can create/edit categories
+    }
+    match /forum_threads/{threadId} {
+        allow read: if true;
+        allow create: if isSignedIn();
+        allow update: if (isOwner(request.resource.data.authorId) && !resource.data.isLocked) || isAdmin();
+        allow delete: if isAdmin();
+    }
+    match /forum_threads/{threadId}/replies/{replyId} {
+        allow read: if true;
+        allow create: if isSignedIn() && !get(/databases/$(database)/documents/forum_threads/$(threadId)).data.isLocked;
+        allow update: if isOwner(request.resource.data.authorId) || isAdmin();
+        allow delete: if isAdmin();
     }
     
     // ╔══════════════════════════════════════════════════════════╗
