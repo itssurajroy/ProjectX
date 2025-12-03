@@ -1,35 +1,35 @@
 'use client';
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query, where, deleteDoc, doc, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { collection, query, where, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 
 export default function CommentsPage() {
-  const firestore = useFirestore();
+  const [comments, setComments] = useState<any[]>([]);
   const [filter, setFilter] = useState("all");
-  
-  const commentsCollection = useMemoFirebase(() => collection(firestore, "comments"), [firestore]);
 
-  const commentsQuery = useMemoFirebase(() => {
-    let q = query(commentsCollection);
+  useEffect(() => {
+    let q;
+    const commentsCol = collection(db, "comments"); // Assuming a top-level comments collection for simplicity
     if (filter === "flagged") {
-        // Assuming a 'reports' field exists which is an array of report objects
-        q = query(commentsCollection, where("reports", "!=", []));
+        q = query(commentsCol, where("reports", ">", 0));
+    } else if (filter === "today") {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        q = query(commentsCol, where("timestamp", ">=", today));
+    } else {
+        q = query(commentsCol);
     }
-    if (filter === "today") {
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-        q = query(commentsCollection, where("timestamp", ">=", startOfToday));
-    }
-    return q;
-  }, [filter, commentsCollection]);
 
-  const { data: comments, isLoading } = useCollection<any>(commentsQuery);
+    const unsub = onSnapshot(q, (snap) => {
+      setComments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, [filter]);
 
   const deleteComment = async (id: string) => {
-    // Note: The path to comments might be nested, e.g., /comments/{animeId}/general/{commentId}
-    // This simplified example assumes a top-level 'comments' collection.
-    await deleteDoc(doc(firestore, "comments", id));
+    // This assumes a simple structure. For nested comments, you need the full path.
+    await deleteDoc(doc(db, "comments", id));
   };
 
   return (
@@ -50,11 +50,11 @@ export default function CommentsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-10 rounded-3xl text-center">
-            <p className="text-6xl font-black">{isLoading ? '...' : (comments?.length || 0).toLocaleString()}</p>
+            <p className="text-6xl font-black">{comments.length.toLocaleString()}</p>
             <p className="text-2xl mt-4 opacity-90">Total Comments</p>
           </div>
           <div className="bg-gradient-to-br from-red-600 to-orange-600 p-10 rounded-3xl text-center">
-            <p className="text-6xl font-black">127</p>
+            <p className="text-6xl font-black">{comments.filter(c => c.reports > 0).length}</p>
             <p className="text-2xl mt-4 opacity-90">Flagged</p>
           </div>
           <div className="bg-gradient-to-br from-green-600 to-emerald-600 p-10 rounded-3xl text-center">
@@ -64,9 +64,8 @@ export default function CommentsPage() {
         </div>
 
         <div className="space-y-6">
-          {isLoading && <div className="text-center p-10">Loading comments...</div>}
-          {comments?.map((c: any) => (
-            <div key={c.id} className={`p-8 rounded-3xl border ${c.reports?.length > 0 ? "border-red-500/50 bg-red-900/20" : "border-purple-500/20"} backdrop-blur-xl`}>
+          {comments.map((c: any) => (
+            <div key={c.id} className={`p-8 rounded-3xl border ${c.reports > 0 ? "border-red-500/50 bg-red-900/20" : "border-purple-500/20"} backdrop-blur-xl`}>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-6 mb-4">
@@ -82,7 +81,7 @@ export default function CommentsPage() {
                   <p className="text-gray-500 mt-4">Posted {c.timestamp ? new Date(c.timestamp?.seconds * 1000).toLocaleString() : 'a while ago'}</p>
                 </div>
                 <div className="flex flex-col gap-4 ml-8">
-                  {c.reports?.length > 0 && <span className="px-6 py-3 bg-red-600 rounded-2xl font-bold">REPORTED {c.reports.length}x</span>}
+                  {c.reports > 0 && <span className="px-6 py-3 bg-red-600 rounded-2xl font-bold">REPORTED {c.reports}x</span>}
                   <button onClick={() => deleteComment(c.id)} className="px-8 py-4 bg-red-600 rounded-2xl font-bold hover:bg-red-700 transition">
                     DELETE
                   </button>

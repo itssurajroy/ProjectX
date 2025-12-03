@@ -2,10 +2,9 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
+import { db } from "@/lib/firebase";
 
 export default function Dashboard() {
-  const firestore = useFirestore();
   const [stats, setStats] = useState({
     totalUsers: 12847,
     activeToday: 892,
@@ -15,15 +14,15 @@ export default function Dashboard() {
     profitMargin: 0
   });
 
-  // Example of how you might fetch real data
+  const [userCount, setUserCount] = useState(0);
+
   useEffect(() => {
-    if (!firestore) return;
-    const usersQuery = query(collection(firestore, "users"));
-    const unsub = onSnapshot(usersQuery, (snap) => {
-      setStats(prev => ({...prev, totalUsers: snap.size}));
+    const q = query(collection(db, "users"));
+    const unsub = onSnapshot(q, (snap) => {
+      setUserCount(snap.size);
     });
     return unsub;
-  }, [firestore]);
+  }, []);
 
   const chartData = [
     { day: "Mon", users: 2100 }, { day: "Tue", users: 2400 }, { day: "Wed", users: 2200 },
@@ -44,7 +43,7 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
         {[
-          { label: "Total Users", value: stats.totalUsers.toLocaleString(), change: "+18%", color: "from-cyan-500 to-blue-600" },
+          { label: "Total Users", value: userCount.toLocaleString(), change: "+18%", color: "from-cyan-500 to-blue-600" },
           { label: "Active Today", value: stats.activeToday.toLocaleString(), change: "+12%", color: "from-green-500 to-emerald-600" },
           { label: "Views This Week", value: (stats.viewsThisWeek / 1000000).toFixed(1) + "M", change: "+42%", color: "from-purple-500 to-pink-600" },
           { label: "Revenue", value: "$" + stats.revenue, change: "+0%", color: "from-yellow-500 to-orange-600" },

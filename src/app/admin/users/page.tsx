@@ -1,68 +1,91 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection, query } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { toast } from "sonner";
 
 export default function UsersPage() {
-  const firestore = useFirestore();
-  const usersCollection = useMemoFirebase(() => collection(firestore, "users"), [firestore]);
-  const usersQuery = useMemoFirebase(() => query(usersCollection), [usersCollection]);
-  const { data: users, isLoading } = useCollection<any>(usersQuery);
+  const [users, setUsers] = useState<any[]>([]);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [xpInput, setXpInput] = useState("");
 
+  useEffect(() => {
+    const q = query(collection(db, "users"));
+    const unsub = onSnapshot(q, (snap) => {
+      setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, []);
+
+  const updateXP = async (userId: string) => {
+    if (!xpInput || isNaN(parseInt(xpInput))) {
+      toast.error("Invalid XP value");
+      return;
+    }
+    await updateDoc(doc(db, "users", userId), { xp: parseInt(xpInput) });
+    toast.success("XP updated!");
+    setEditingUser(null);
+  };
+
+  const banUser = async (userId: string) => {
+    await updateDoc(doc(db, "users", userId), { banned: true, bannedAt: new Date() });
+    toast.success("User banned");
+  };
+
+  const deleteUser = async (userId: string) => {
+    if (confirm("Delete this user permanently?")) {
+      await deleteDoc(doc(db, "users", userId));
+      toast.success("User deleted");
+    }
+  };
 
   return (
     <AdminLayout current="users">
-      <div className="space-y-10">
-        <div className="flex justify-between items-center">
-          <h1 className="text-5xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-            User Management
-          </h1>
-          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl font-bold text-xl hover:scale-105 transition">
-            Export All Users
-          </button>
-        </div>
+      <div className="space-y-8">
+        <h1 className="text-5xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+          User Management • Full CRUD
+        </h1>
 
-        <div className="bg-gray-900/60 backdrop-blur-xl rounded-3xl border border-purple-500/30 overflow-hidden">
-          <div className="p-8 border-b border-purple-500/20">
-            <input type="text" placeholder="Search by name, email, UID..." className="w-full px-8 py-5 bg-gray-800/50 rounded-2xl text-xl focus:outline-none focus:ring-4 focus:ring-purple-500" />
-          </div>
-
-          <div className="divide-y divide-purple-500/20">
-             {isLoading && <div className="p-8 text-center text-gray-400">Loading users...</div>}
-            {!isLoading && users?.length === 0 && <div className="p-8 text-center text-gray-400">No users found.</div>}
-            {users?.map((user: any) => (
-              <div key={user.id} className="p-8 hover:bg-purple-900/20 transition-all flex items-center justify-between">
+        <div className="space-y-6">
+          {users.map(user => (
+            <div key={user.id} className="bg-gray-900/60 rounded-3xl p-8 border border-purple-500/30">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-8">
-                  <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-3xl font-black">
+                  <div className="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center text-3xl font-bold">
                     {user.displayName?.[0] || "A"}
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{user.displayName || "Anonymous"}</p>
-                    <p className="text-purple-400 text-lg">{user.email}</p>
-                    <p className="text-gray-400">Level {user.level || 1} • {user.xp || 0} XP • Joined {user.createdAt ? new Date(user.createdAt?.seconds * 1000).toLocaleDateString() : 'N/A'}</p>
+                    <p className="text-3xl font-bold">{user.displayName}</p>
+                    <p className="text-xl text-purple-400">{user.email}</p>
+                    <div className="flex items-center gap-4 mt-4">
+                      <span className="text-2xl">Level {user.level || 1}</span>
+                      {editingUser === user.id ? (
+                        <div className="flex gap-3">
+                          <input
+                            type="number"
+                            value={xpInput}
+                            onChange={(e) => setXpInput(e.target.value)}
+                            className="w-32 px-4 py-2 bg-gray-800 rounded-xl"
+                            placeholder="XP"
+                          />
+                          <button onClick={() => updateXP(user.id)} className="px-6 py-2 bg-green-600 rounded-xl">Save</button>
+                        </div>
+                      ) : (
+                        <span className="text-2xl text-yellow-400">{user.xp || 0} XP</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <span className={`px-6 py-3 rounded-full font-bold text-lg ${
-                    user.role === "banned" ? "bg-red-900/80 text-red-400" :
-                    user.role === "warned" ? "bg-yellow-900/80 text-yellow-400" :
-                    "bg-green-900/80 text-green-400"
-                  }`}>
-                    {user.role?.toUpperCase() || 'ACTIVE'}
-                  </span>
-                  {user.role !== "banned" && (
-                    <>
-                      <button className="px-6 py-3 bg-yellow-600 rounded-xl font-bold hover:bg-yellow-700">Warn</button>
-                      <button className="px-6 py-3 bg-red-600 rounded-xl font-bold hover:bg-red-700">Ban</button>
-                    </>
-                  )}
-                  <button className="px-6 py-3 bg-purple-600 rounded-xl font-bold hover:bg-purple-700">Edit XP</button>
+                <div className="flex gap-4">
+                  <button onClick={() => { setEditingUser(user.id); setXpInput(user.xp || "0"); }} className="px-6 py-3 bg-blue-600 rounded-xl font-bold">Edit XP</button>
+                  <button onClick={() => banUser(user.id)} className="px-6 py-3 bg-red-600 rounded-xl font-bold">Ban</button>
+                  <button onClick={() => deleteUser(user.id)} className="px-6 py-3 bg-gray-700 rounded-xl font-bold">Delete</button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
     </AdminLayout>
