@@ -212,7 +212,8 @@
   "auth": {
     "providers": [
       "email",
-      "anonymous"
+      "anonymous",
+      "google"
     ]
   },
   "firestore": {
