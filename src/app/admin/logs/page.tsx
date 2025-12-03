@@ -1,4 +1,4 @@
-
+// src/app/admin/logs/page.tsx
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function LogsPage() {
   return (

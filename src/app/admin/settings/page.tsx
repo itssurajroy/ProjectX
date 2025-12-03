@@ -1,4 +1,4 @@
-
+// src/app/admin/settings/page.tsx
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function SettingsPage() {
   return (

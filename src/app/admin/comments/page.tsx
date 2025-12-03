@@ -1,4 +1,4 @@
-
+// src/app/admin/comments/page.tsx
 import { AdminLayout } from "@/components/admin/AdminLayout";
 
 export default function CommentsPage() {

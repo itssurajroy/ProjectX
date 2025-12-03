@@ -1,4 +1,4 @@
-
+// src/app/admin/cache/page.tsx
 import { AdminLayout } from "@/components/admin/AdminLayout";
 export default function CachePage() {
   return (
