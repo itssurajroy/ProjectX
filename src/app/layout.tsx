@@ -1,4 +1,5 @@
 
+// src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Lexend, Space_Grotesk } from "next/font/google";
 import "./globals.css";
@@ -6,26 +7,30 @@ import { cn } from "@/lib/utils";
 import Providers from "./providers";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
-import { Suspense } from 'react';
-import Loading from './loading';
+import { Suspense } from "react";
+import Loading from "./loading";
 import { FirebaseClientProvider } from "@/firebase";
-import { useWindowSize } from "@uidotdev/usehooks";
 import { Analytics } from "@vercel/analytics/react";
 
-const fontSans = Lexend({ 
+const fontSans = Lexend({
   subsets: ["latin"],
-  variable: '--font-primary',
+  variable: "--font-primary",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const fontDisplay = Space_Grotesk({
   subsets: ["latin"],
-  variable: '--font-display',
+  variable: "--font-display",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "ProjectX - Watch Your Favorite Shows",
   description: "A modern streaming platform for all your favorite shows.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export const viewport: Viewport = {
@@ -41,22 +46,41 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark h-full w-full m-0 p-0" suppressHydrationWarning>
-       <head>
-         <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
-       </head>
-      <body className={cn("h-full w-full min-h-screen bg-black text-white font-sans antialiased overflow-x-hidden", fontSans.variable, fontDisplay.variable)}>
-        <Suspense fallback={<Loading />}>
-          <Providers>
-            <FirebaseClientProvider>
-              <NotificationProvider>
-                <ShadToaster />
-                {children}
-              </NotificationProvider>
-            </FirebaseClientProvider>
-          </Providers>
-        </Suspense>
-        <Analytics />
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
+        <link rel="manifest" href="/manifest.json" />
+      </head>
+
+      <body
+        className={cn(
+          "min-h-screen w-full bg-black text-white antialiased overflow-x-hidden",
+          "font-sans", // default font
+          fontSans.variable,
+          fontDisplay.variable
+        )}
+      >
+        {/* Full height wrapper to prevent layout jumps */}
+        <div className="flex flex-col min-h-screen">
+          <Suspense fallback={<Loading />}>
+            <Providers>
+              <FirebaseClientProvider>
+                <NotificationProvider>
+                  {/* Main content area — grows to fill space */}
+                  <main className="flex-1">
+                    {children}
+                  </main>
+
+                  {/* Toast always at bottom */}
+                  <ShadToaster />
+                </NotificationProvider>
+              </FirebaseClientProvider>
+            </Providers>
+          </Suspense>
+
+          {/* Vercel Analytics */}
+          <Analytics />
+        </div>
       </body>
     </html>
   );
