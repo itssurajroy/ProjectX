@@ -1,3 +1,4 @@
+
 // src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -34,7 +35,7 @@ export async function middleware(request: NextRequest) {
         admin: ["/admin/cache"]
       };
 
-      if (role && blockedPaths[role]?.some(p => path.startsWith(p))) {
+      if (role && blockedPaths[role as keyof typeof blockedPaths]?.some(p => path.startsWith(p))) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
 
