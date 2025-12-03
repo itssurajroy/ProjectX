@@ -23,7 +23,6 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
       { href: "/home", label: "Home" },
       { href: "/movies", label: "Movies" },
       { href: "/tv", label: "TV Shows" },
-      { href: "/az-list/all", label: "A-Z List" },
     ];
     
     return (
@@ -97,8 +96,6 @@ export default function Header() {
     { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
-    { href: "/az-list/all", label: "A-Z List" },
-    { href: "/watch2gether", label: "Watch Together"}
   ];
   
   const handleLogout = () => {
@@ -110,23 +107,20 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/90 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto flex items-center justify-between gap-4">
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setIsMobileMenuOpen(true)}>
               <Menu className="w-5 h-5" />
             </Button>
-            <div className="hidden lg:block">
-                <SiteLogo />
-            </div>
+            <SiteLogo />
+            <nav className="hidden lg:flex items-center gap-4">
+                {navItems.map(item => (
+                    <Link key={item.href} href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                        {item.label}
+                    </Link>
+                ))}
+            </nav>
         </div>
 
-        <nav className="hidden lg:flex items-center gap-4">
-            {navItems.map(item => (
-                <Link key={item.href} href={item.href} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                    {item.label}
-                </Link>
-            ))}
-        </nav>
-        
         <div className="flex-1 flex justify-center items-center gap-2 lg:ml-8">
             <div ref={searchContainerRef} className="w-full max-w-lg relative">
               <form onSubmit={handleSearch} className="relative">
@@ -166,6 +160,9 @@ export default function Header() {
 
         <div className="flex items-center gap-2">
           {user && <NotificationBell />}
+          <Link href="/watch2gether" className="hidden sm:flex items-center justify-center w-auto h-9 px-3 rounded-full bg-card hover:bg-muted" title="Watch Together">
+              <span className="text-sm font-medium">Watch Together</span>
+          </Link>
           <Link href="/random" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
               <Shuffle className="w-4 h-4 text-primary" />
           </Link>
