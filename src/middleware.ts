@@ -7,9 +7,8 @@ export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (path.startsWith('/admin')) {
-    // In Edge middleware, we can't reliably verify a Firebase token without Node.js APIs.
-    // The most we can do is check for the presence of the session cookie.
-    // Client-side checks will handle the actual validation and role enforcement.
+    // In Edge middleware, we only check for the presence of the session cookie.
+    // The client-side ProtectedRoute will handle the actual token verification and role enforcement.
     const token = request.cookies.get('__session')?.value || request.cookies.get('auth-token')?.value;
 
     if (!token) {
@@ -30,6 +29,3 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: '/admin/:path*',
 };
-
-
-    
