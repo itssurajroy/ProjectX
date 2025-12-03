@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, LogOut, User as UserIcon } from 'lucide-react';
+import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +17,7 @@ import { useUser, useAuth } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
+import { useAdminRole } from '@/hooks/useAdminRole';
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
@@ -65,6 +66,58 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
     )
 }
 
+function UserProfileMenu() {
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+  const { role, isLoading } = useAdminRole(user?.uid);
+
+  const handleLogout = () => {
+    auth.signOut();
+    router.push('/login');
+  };
+
+  if (!user) return null;
+
+  return (
+     <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt={user.displayName || 'user'} />
+                    <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
+                </Avatar>
+            </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">{user.isAnonymous ? 'Guest User' : (user.displayName || 'User')}</p>
+                {!user.isAnonymous && <p className="text-xs leading-none text-muted-foreground">{user.email}</p>}
+            </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Profile</span>
+            </DropdownMenuItem>
+            
+            {!isLoading && role && (
+              <DropdownMenuItem onClick={() => router.push('/admin')}>
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Admin</span>
+              </DropdownMenuItem>
+            )}
+
+            <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+     </DropdownMenu>
+  )
+}
+
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
@@ -84,8 +137,6 @@ export default function Header() {
   });
 
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -113,11 +164,6 @@ export default function Header() {
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
   ];
-  
-  const handleLogout = () => {
-    auth.signOut();
-    router.push('/login');
-  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/90 backdrop-blur-sm border-b border-border">
@@ -192,33 +238,7 @@ export default function Header() {
           {isUserLoading || !mounted ? (
             <div className="w-20 h-9 bg-muted/50 rounded-md animate-pulse" />
           ) : user ? (
-             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                        <Avatar className="h-9 w-9">
-                            <AvatarImage src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt={user.displayName || 'user'} />
-                            <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user.isAnonymous ? 'Guest User' : (user.displayName || 'User')}</p>
-                        {!user.isAnonymous && <p className="text-xs leading-none text-muted-foreground">{user.email}</p>}
-                    </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-             </DropdownMenu>
+             <UserProfileMenu />
           ) : (
             <Button asChild>
                 <Link href="/login">Login</Link>
