@@ -53,7 +53,7 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, googleProvider);
       router.push('/admin');
-    } catch (err: any) => {
+    } catch (err: any) {
       const message = getFirebaseErrorMessage(err.code);
 
       if (err.code === "auth/popup-blocked") {
