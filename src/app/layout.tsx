@@ -10,7 +10,6 @@ import { Suspense } from 'react';
 import Loading from './loading';
 import { FirebaseClientProvider } from "@/firebase";
 import { useWindowSize } from "@uidotdev/usehooks";
-import GlobalLiveChat from "@/components/chat/GlobalLiveChat";
 
 const fontSans = Lexend({ 
   subsets: ["latin"],
@@ -52,7 +51,6 @@ export default function RootLayout({
               <NotificationProvider>
                 <ShadToaster />
                 {children}
-                <GlobalLiveChat />
               </NotificationProvider>
             </FirebaseClientProvider>
           </Providers>
