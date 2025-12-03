@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { getFirebaseErrorMessage } from "@/lib/firebaseErrors";
@@ -19,9 +19,14 @@ export default function LoginPage() {
   const router = useRouter();
   const { user } = useUser();
 
+  useEffect(() => {
+    if (user) {
+      router.push('/admin');
+    }
+  }, [user, router]);
+
   if (user) {
-    router.push('/admin');
-    return null;
+    return null; // Render nothing while redirecting
   }
 
   const handleEmailLogin = async (e: React.FormEvent) => {
@@ -48,9 +53,8 @@ export default function LoginPage() {
     try {
       await signInWithPopup(auth, googleProvider);
       router.push('/admin');
-    } catch (err: any) {
+    } catch (err: any) => {
       const message = getFirebaseErrorMessage(err.code);
-      setError(message);
 
       if (err.code === "auth/popup-blocked") {
         setError("Popup blocked! Please allow popups and try again.");
