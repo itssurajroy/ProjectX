@@ -102,7 +102,7 @@ function UserProfileMenu() {
                 <span>Profile</span>
             </DropdownMenuItem>
             
-            {!isLoading && role && (
+            {!isLoading && role === 'superadmin' && (
               <DropdownMenuItem onClick={() => router.push('/admin')}>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Admin</span>
