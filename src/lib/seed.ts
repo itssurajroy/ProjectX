@@ -1,4 +1,3 @@
-
 // src/lib/seed.ts
 import { initializeAdminFirebase } from '@/firebase/server-admin';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -12,14 +11,12 @@ async function seedDatabase() {
   console.log('Firestore initialized.');
 
   try {
-    console.log('Seeding admin role...');
+    console.log('Seeding superadmin role...');
 
     // =================================================================
-    // IMPORTANT: REPLACE THIS UID WITH THE FIREBASE UID OF YOUR ADMIN
+    // UID for surajrai1204@gmail.com has been set.
     // =================================================================
-    // You can find the UID in the Firebase Console under:
-    // Authentication > Users > User UID column
-    const adminUID = 'REPLACE_WITH_YOUR_FIREBASE_UID';
+    const adminUID = 'tuQCbp5nLIP8ZSEbsSAICAByLF42';
 
     if (adminUID === 'REPLACE_WITH_YOUR_FIREBASE_UID') {
       console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
@@ -33,14 +30,14 @@ async function seedDatabase() {
     const adminUserDocRef = doc(adminRolesRef, adminUID);
 
     const adminData = {
-      role: 'admin',
-      name: 'Admin User',
+      role: 'superadmin',
+      name: 'Suraj Rai',
       createdAt: serverTimestamp(),
     };
 
     await setDoc(adminUserDocRef, adminData, { merge: true });
     
-    console.log(`✅ Successfully granted 'admin' role to UID: ${adminUID}`);
+    console.log(`✅ Successfully granted 'superadmin' role to UID: ${adminUID}`);
 
   } catch (error) {
     console.error('❌ Error seeding database:', error);
