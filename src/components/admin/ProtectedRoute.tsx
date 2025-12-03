@@ -1,54 +1,66 @@
+
 'use client';
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { getUserRole } from "@/lib/adminRoles";
+import { getUserRole, type AdminRole } from "@/lib/adminRoles";
 
-export default function ProtectedRoute({ children, requiredRole = "moderator" }: { 
+const ADMIN_ROLES: AdminRole[] = ["superadmin", "admin", "moderator", "viewer"];
+
+export default function ProtectedRoute({ children, requiredRole }: { 
   children: React.ReactNode;
-  requiredRole?: "superadmin" | "admin" | "moderator" | "viewer";
+  requiredRole?: AdminRole;
 }) {
-  const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push("/login");
+        // Not logged in, redirect to login page.
+        router.push("/login?redirect=/admin");
         return;
       }
 
-      const role = await getUserRole(user.uid);
-      if (!role || (role !== "superadmin" && role !== "admin" && role !== "moderator" && role !== "viewer")) {
-        router.push("/");
-        return;
-      }
+      // User is logged in, now check their role.
+      const userRole = await getUserRole(user.uid);
+      
+      // Check if the user's role is one of the valid admin roles.
+      const hasAdminAccess = userRole && ADMIN_ROLES.includes(userRole);
 
-      if (requiredRole && role !== "superadmin" && role !== requiredRole) {
-        router.push("/admin");
-        return;
+      if (hasAdminAccess) {
+        // If a specific role is required, check against it.
+        // The checkPermission logic can be more granular.
+        const hasRequiredRole = requiredRole ? userRole === requiredRole || userRole === 'superadmin' : true;
+        
+        if(hasRequiredRole) {
+            setIsAuthorized(true);
+        } else {
+            // Has admin access but not the required role, redirect to dashboard.
+             router.push("/admin");
+        }
+      } else {
+        // Not an admin user, redirect to home page.
+        router.push("/home");
       }
-
-      setAllowed(true);
-      setLoading(false);
+      
+      setIsLoading(false);
     });
 
-    return () => unsub();
+    return () => unsubscribe();
   }, [router, requiredRole]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-6xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
-          PROJECT X ADMIN
+        <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse">
+          Verifying Clearance...
         </div>
       </div>
     );
   }
 
-  if (!allowed) return null;
-
-  return <>{children}</>;
+  return isAuthorized ? <>{children}</> : null;
 }
