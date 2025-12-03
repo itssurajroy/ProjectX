@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
 import { Bookmark } from 'lucide-react';
-import CommentsContainer from '../comments/CommentsContainer';
+import CommentSection from '@/components/CommentSection';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -271,7 +271,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
                 </section>
               )}
-             <CommentsContainer animeId={id} availableEpisodes={episodes} />
+             <CommentSection animeId={id} />
           </div>
           <div className="lg:col-span-3 space-y-6">
              {relatedAnimes && relatedAnimes.length > 0 && (

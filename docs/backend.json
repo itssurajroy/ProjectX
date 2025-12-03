@@ -158,6 +158,26 @@
       },
       "required": ["userId", "userName", "text", "timestamp"]
     },
+    "Comment": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Comment",
+        "type": "object",
+        "description": "Represents a user comment on an anime or episode.",
+        "properties": {
+          "animeId": { "type": "string" },
+          "episodeId": { "type": "string" },
+          "userId": { "type": "string" },
+          "username": { "type": "string" },
+          "text": { "type": "string" },
+          "parentId": { "type": "string", "description": "ID of the parent comment for threading." },
+          "spoiler": { "type": "boolean" },
+          "likes": { "type": "array", "items": { "type": "string" }, "description": "Array of user IDs who liked the comment." },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "userAvatar": { "type": "string", "format": "uri" },
+          "rank": { "type": "string" }
+        },
+        "required": ["animeId", "userId", "username", "text", "spoiler", "likes", "timestamp"]
+    },
      "Anime": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Anime",
@@ -245,6 +265,16 @@
             "$ref": "#/backend/entities/ChatMessage"
           },
           "description": "Stores chat messages for a specific room."
+        }
+      },
+      {
+        "path": "/comments/{animeId}/messages/{commentId}",
+        "definition": {
+            "entityName": "Comment",
+            "schema": {
+                "$ref": "#/backend/entities/Comment"
+            },
+            "description": "Stores comments for a specific anime or episode."
         }
       },
       {
