@@ -131,7 +131,7 @@ function AdminSidebar() {
 
 
 function AdminPanelContainer({ children }: { children: ReactNode }) {
-    const { isExpanded } = useSidebar();
+    const { isExpanded, isMobile } = useSidebar();
     const pathname = usePathname();
     const getPageTitle = (path: string) => {
         if (path === '/admin') return 'Dashboard';
@@ -140,7 +140,11 @@ function AdminPanelContainer({ children }: { children: ReactNode }) {
     }
 
     return (
-        <div className={cn('transition-all duration-300 ease-in-out', isExpanded ? 'md:pl-64' : 'md:pl-[3.35rem]')}>
+        <div className={cn(
+            'transition-all duration-300 ease-in-out', 
+            !isMobile && (isExpanded ? 'pl-64' : 'pl-[3.35rem]'),
+            isMobile && 'pl-0'
+        )}>
             <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
                 <SidebarTrigger className="md:hidden"/>
                 <h1 className="text-lg font-semibold capitalize">{getPageTitle(pathname)}</h1>
@@ -157,10 +161,12 @@ export default function AdminRootLayout({
 }>) {
   return (
     <SidebarProvider>
-      <AdminSidebar />
-      <AdminPanelContainer>
-        {children}
-      </AdminPanelContainer>
+      <div className="relative flex min-h-screen">
+        <AdminSidebar />
+        <AdminPanelContainer>
+          {children}
+        </AdminPanelContainer>
+      </div>
     </SidebarProvider>
   );
 }
