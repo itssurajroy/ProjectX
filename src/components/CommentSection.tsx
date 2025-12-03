@@ -21,19 +21,22 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
 
   const commentsRef = useMemoFirebase(() => {
     if (!firestore) return null;
-    return collection(firestore, `comments`, animeId, 'messages');
-  }, [firestore, animeId]);
+    return collection(firestore, `comments`);
+  }, [firestore]);
 
   const commentsQuery = useMemoFirebase(() => {
     if (!commentsRef) return null;
-    const queries = [orderBy('timestamp', 'asc')];
+    const queries = [
+      where('animeId', '==', animeId),
+      orderBy('timestamp', 'asc')
+    ];
     if (episodeId) {
         queries.push(where('episodeId', '==', episodeId));
     } else {
         queries.push(where('episodeId', '==', null));
     }
     return query(commentsRef, ...queries);
-  }, [commentsRef, episodeId]);
+  }, [commentsRef, animeId, episodeId]);
 
   const { data: fetchedComments, isLoading } = useCollection<Comment>(commentsQuery as Query<DocumentData> | null);
 
@@ -48,6 +51,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
     if (!input.trim() || !user || !commentsRef) return;
     
     const commentData = {
+      animeId: animeId,
       text: input,
       userId: user.uid,
       username: user.displayName || 'Anonymous',

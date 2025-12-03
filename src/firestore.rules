@@ -73,7 +73,7 @@ service cloud.firestore {
     // ╔══════════════════════════════════════════════════════════╗
     // ║                      COMMENTS SYSTEM                     ║
     // ╚══════════════════════════════════════════════════════════╝
-    match /comments/{animeId}/messages/{commentId} {
+    match /comments/{commentId} {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.text.size() < 1000;
       allow update: if request.auth != null && resource.data.userId == request.auth.uid;
