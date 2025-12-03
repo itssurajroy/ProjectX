@@ -24,14 +24,14 @@ const CommentRules = () => (
         <h3 className="font-bold text-base mb-3 flex items-center gap-2 text-primary"><ShieldCheck className="w-5 h-5"/> PROJECT X COMMENT RULES (Read or get banned)</h3>
         <ol className="list-decimal list-inside space-y-2 text-muted-foreground text-xs [&_strong]:text-foreground/90">
             <li><strong>Be respectful</strong> — no personal attacks, racism, homophobia, death threats, doxxing, or harassment. Instant permanent ban.</li>
-            <li><strong>No spoilers without warning</strong>. Use spoiler tags: `>!spoiler text!`. Spoilers without tags = 7-day ban (first offense), permanent (second).</li>
+            <li><strong>No spoilers without warning</strong>. Use spoiler tags: `&gt;!spoiler text!&lt;`. Spoilers without tags = 7-day ban (first offense), permanent (second).</li>
             <li><strong>No illegal links or piracy discussion</strong>. No asking “where to download”, no torrent links. This is a streaming site, not a warehouse.</li>
             <li><strong>No excessive spam</strong>, copypasta, or all-caps screaming. Chill. We can hear you.</li>
             <li><strong>No advertising or self-promo</strong> in comments. Your own site, Discord, YouTube, TikTok, etc. → banned.</li>
             <li><strong>English only</strong> in main comment section. Other languages → use the translation button or go to your country’s mirror.</li>
             <li><strong>No political or religious debates</strong>. Take that somewhere else.</li>
             <li><strong>No impersonating staff</strong> or other users.</li>
-            <li><strong>Report > argue</strong>. See something bad? Use the report button. Don’t start fights.</li>
+            <li><strong>Report &gt; argue</strong>. See something bad? Use the report button. Don’t start fights.</li>
             <li><strong>Bans are final</strong>. No begging in DMs or alt accounts. We see everything.</li>
         </ol>
         <div className="mt-4 text-xs text-center space-y-1">
