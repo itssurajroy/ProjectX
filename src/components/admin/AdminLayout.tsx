@@ -1,171 +1,81 @@
+
 'use client';
+import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
+import Sidebar from "./Sidebar";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarTrigger,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarGroup,
-  useSidebar,
-} from '@/components/ui/sidebar';
-import Link from 'next/link';
-import {
-  LayoutDashboard,
-  Users,
-  PenSquare,
-  Clock,
-  ShieldAlert,
-  Megaphone,
-  Settings,
-  Trash2,
-  ListTodo,
-  ScrollText,
-  Tags,
-  Share2,
-  Gavel,
-} from 'lucide-react';
-import { usePathname } from 'next/navigation';
-import { ReactNode, useState, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { initializeFirebase } from '@/firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
-
-const { firestore } = initializeFirebase();
-
-function AdminSidebar() {
+export function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
-  const [reportCount, setReportCount] = useState(0);
-  const [requestCount, setRequestCount] = useState(0);
 
+  // Auto-close sidebar on route change
   useEffect(() => {
-    // Real-time listener for active reports
-    const reportsRef = collection(firestore, 'admin', 'reports', 'active');
-    const unsubReports = onSnapshot(reportsRef, (snap) => {
-      setReportCount(snap.size);
-    }, () => {}); // Add empty error handler
+    setSidebarOpen(false);
+  }, [pathname]);
 
-    // Real-time listener for pending requests
-    const requestsRef = collection(firestore, 'admin', 'requests', 'pending');
-    const unsubRequests = onSnapshot(requestsRef, (snap) => {
-      setRequestCount(snap.size);
-    }, () => {}); // Add empty error handler
-
-
-    return () => {
-      unsubReports();
-      unsubRequests();
+  // Close on outside click (mobile)
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+        // Use a class to identify the sidebar and its trigger
+        if (!(e.target as Element).closest('.admin-sidebar') && !(e.target as Element).closest('.admin-sidebar-trigger')) {
+            setSidebarOpen(false);
+        }
     };
-  }, []);
-
-  const adminNavItems = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/admin/users', label: 'Users', icon: Users },
-    { href: '/admin/moderation', label: 'Moderation', icon: Gavel, badge: reportCount },
-    { href: '/admin/overrides', label: 'Overrides', icon: PenSquare },
-    { href: '/admin/skiptimes', label: 'Skiptimes', icon: Clock },
-    { href: '/admin/announcements', label: 'Announcements', icon: Megaphone },
-    { href: '/admin/requests', label: 'Requests', icon: ListTodo, badge: requestCount },
-    { href: '/admin/socials', label: 'Socials', icon: Share2 },
-    { href: '/admin/cache', label: 'Cache', icon: Trash2 },
-    { href: '/admin/seo', label: 'SEO', icon: Tags },
-    { href: '/admin/settings', label: 'Settings', icon: Settings },
-    { href: '/admin/logs', label: 'Logs', icon: ScrollText },
-  ];
+    // Use a timeout to prevent the event from firing immediately on open
+    setTimeout(() => document.addEventListener("click", handleOutsideClick), 0);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [sidebarOpen]);
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2">
-           <Link href="/" className="text-2xl font-bold text-glow">
-            <span className="text-primary">Project</span>
-            <span className="text-white">X</span>
-          </Link>
-          <Badge variant="destructive">Admin</Badge>
+    <div className="flex h-screen bg-black">
+      {/* Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/80 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "admin-sidebar fixed inset-y-0 left-0 z-50 w-80 bg-gray-950 border-r border-purple-500/20 transform transition-transform duration-300 ease-in-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:translate-x-0 lg:static lg:z-auto"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          <Sidebar />
         </div>
-      </SidebarHeader>
-      <SidebarContent className="p-2">
-        <SidebarGroup>
-          <SidebarMenu>
-            {adminNavItems.map((item) => (
-              <SidebarMenuItem key={item.label}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))}
-                  className="w-full justify-start"
-                  icon={<item.icon />}
-                  label={item.label}
-                >
-                  <Link href={item.href}>
-                     {item.badge && item.badge > 0 ? (
-                        <Badge className="ml-auto">{item.badge}</Badge>
-                      ): null}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarHeader className="border-t">
-        <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-                <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=admin`} />
-                <AvatarFallback>A</AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-                <span className="text-sm font-semibold">Admin User</span>
-                <span className="text-xs text-muted-foreground">admin@example.com</span>
-            </div>
-        </div>
-      </SidebarHeader>
-    </Sidebar>
-  );
-}
+      </aside>
 
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Header */}
+        <header className="lg:hidden bg-gray-950 border-b border-purple-500/20 px-6 py-5 flex items-center justify-between">
+          <h1 className="text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            ProjectX
+          </h1>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="admin-sidebar-trigger p-3 bg-purple-600 rounded-xl hover:bg-purple-700 transition"
+          >
+            {sidebarOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
+          </button>
+        </header>
 
-function AdminPanelContainer({ children }: { children: ReactNode }) {
-    const { isExpanded, isMobile } = useSidebar();
-    const pathname = usePathname();
-    const getPageTitle = (path: string) => {
-        if (path === '/admin') return 'Dashboard';
-        const segment = path.split('/').pop()?.replace('-', ' ');
-        return segment ? segment.charAt(0).toUpperCase() + segment.slice(1) : 'Admin';
-    }
-
-    return (
-        <div className={cn(
-            'transition-all duration-300 ease-in-out', 
-            !isMobile && (isExpanded ? 'pl-64' : 'pl-[3.35rem]'),
-            isMobile && 'pl-0'
-        )}>
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-                <SidebarTrigger className="md:hidden"/>
-                <h1 className="text-lg font-semibold capitalize">{getPageTitle(pathname)}</h1>
-            </header>
-            <main className="p-4 sm:p-6">{children}</main>
-        </div>
-    )
-}
-
-export function AdminLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <SidebarProvider>
-      <div className="relative flex min-h-screen">
-        <AdminSidebar />
-        <AdminPanelContainer>
-          {children}
-        </AdminPanelContainer>
+        {/* Scrollable Content */}
+        <main className="flex-1 overflow-y-auto bg-gradient-to-br from-black via-purple-950/10 to-black">
+          <div className="px-6 py-8 lg:px-10 lg:py-12 max-w-7xl mx-auto w-full">
+            {children}
+          </div>
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }
+
+    

@@ -13,7 +13,6 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
-import { useWindowSize } from '@uidotdev/usehooks';
 import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { doc, serverTimestamp } from 'firebase/firestore';
 
@@ -34,7 +33,16 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const [selectedServer, setSelectedServer] = useState<EpisodeServer | null>(null);
   const [useIframeFallback, setUseIframeFallback] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { width, height } = useWindowSize();
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const episodeNumber = extractEpisodeNumber(episodeId);
   const { user } = useUser();
@@ -298,7 +306,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
 
     return (
         <>
-            {showConfetti && width && height && <Confetti width={width} height={height} recycle={false} numberOfPieces={400} />}
+            {showConfetti && windowSize.width && windowSize.height && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={400} />}
             <video ref={videoRef} className="w-full h-full" controls playsInline crossOrigin="anonymous" autoPlay={autoPlay} />
             {(error || sources.length === 0) && (
                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
@@ -339,5 +347,6 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     </div>
   );
 }
+    
 
     
