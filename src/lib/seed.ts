@@ -12,30 +12,21 @@ async function seedDatabase() {
   console.log('Firestore initialized.');
 
   try {
-    console.log('Seeding comments for One Piece...');
+    console.log('Seeding admin role...');
 
-    // Path: /comments/one-piece-100/general/messages/{messageId}
-    const messagesRef = collection(firestore, 'comments', 'one-piece-100', 'general');
+    const adminUID = 'tuQCbp5nLIP8ZSEbsSAICAByLF42';
+    const adminRolesRef = collection(firestore, 'adminRoles');
+    const adminUserDocRef = doc(adminRolesRef, adminUID);
 
-    const sampleMessage = {
-      animeId: 'one-piece-100',
-      episodeId: null,
-      userId: 'system-seed',
-      username: 'Captain Gol D. Roger',
-      userAvatar: 'https://i.pravatar.cc/150?u=goldroger',
-      text: 'Wealth, fame, power... I found everything this world has to offer. My treasure? It\'s yours if you can find it... I left it all in one piece!',
-      parentId: null,
-      spoiler: false,
-      likes: [],
-      timestamp: serverTimestamp(),
-      rank: 'Pirate King',
+    const adminData = {
+      role: 'admin',
+      name: 'Admin User',
+      createdAt: serverTimestamp(),
     };
 
-    // We'll set a document with a specific ID to make it easy to find and prevent duplicates on re-runs.
-    const messageDocRef = doc(messagesRef, 'initial-message');
-    await setDoc(messageDocRef, sampleMessage);
+    await setDoc(adminUserDocRef, adminData, { merge: true });
     
-    console.log('✅ Successfully seeded one comment for One Piece.');
+    console.log(`✅ Successfully granted 'admin' role to UID: ${adminUID}`);
 
   } catch (error) {
     console.error('❌ Error seeding database:', error);
