@@ -5,8 +5,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserSessionPersistence, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { useMemo } from 'react';
-import { FirebaseProvider, FirebaseContext, useAuth } from '@/firebase-provider';
-
 
 // IMPORTANT: This is the single source of truth for Firebase initialization.
 // It is wrapped in a function to ensure it's only called on the client.
@@ -63,7 +61,7 @@ export const useMemoFirebase = (factory: () => any, deps: any[]) => {
 
 
 // Export hooks and providers
-export { FirebaseProvider, FirebaseContext, useAuth };
+export { FirebaseProvider, FirebaseContext, useAuth, useFirestore } from '@/firebase-provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
