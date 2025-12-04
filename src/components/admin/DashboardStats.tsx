@@ -3,12 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { initializeFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import { TrendingUp, TrendingDown, Users, Eye, DollarSign, Activity } from 'lucide-react';
-import { format } from 'date-fns';
-
-const { firestore } = initializeFirebase();
 
 interface Stats {
   totalUsers: number;
@@ -20,6 +17,7 @@ interface Stats {
 }
 
 export default function DashboardStats() {
+  const firestore = useFirestore();
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     activeToday: 0,
@@ -32,6 +30,11 @@ export default function DashboardStats() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!firestore) {
+      setLoading(false);
+      return;
+    };
+    
     // Real-time listeners
     const unsubscribers: (() => void)[] = [];
 
@@ -39,7 +42,8 @@ export default function DashboardStats() {
     const usersRef = collection(firestore, 'users');
     const usersUnsub = onSnapshot(usersRef, (snap) => {
       setStats(prev => ({ ...prev, totalUsers: snap.size }));
-    }, () => {});
+      setLoading(false);
+    }, () => { setLoading(false); });
     unsubscribers.push(usersUnsub);
 
     // 2. Active Today (users with lastActive today)
@@ -63,7 +67,6 @@ export default function DashboardStats() {
     unsubscribers.push(viewsUnsub);
 
     // 4. Revenue (from premium payments + ads)
-    // Assuming you have a 'payments' collection
     const fetchRevenue = async () => {
       try {
         const paymentsSnap = await getDocs(collection(firestore, 'payments'));
@@ -81,11 +84,9 @@ export default function DashboardStats() {
     };
     fetchRevenue();
 
-    setLoading(false);
-
     // Cleanup
     return () => unsubscribers.forEach(unsub => unsub());
-  }, []);
+  }, [firestore]);
 
   const statCards = [
     {
@@ -150,13 +151,13 @@ export default function DashboardStats() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900/80 to-black border border-gray-800 backdrop-blur-xl shadow-2xl"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900/80 to-black border border-border backdrop-blur-xl shadow-lg"
         >
-          <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-20`} />
+          <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-10`} />
           <div className="relative p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 rounded-xl bg-white/10 backdrop-blur">
-                <stat.icon className="w-8 h-8 text-white" />
+              <div className="p-3 rounded-xl bg-white/5 backdrop-blur">
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
               <div className={`flex items-center gap-1 text-sm font-bold ${
                 stat.trend === 'up' ? 'text-green-400' : 'text-red-400'
@@ -165,14 +166,14 @@ export default function DashboardStats() {
                 {stat.change}
               </div>
             </div>
-            <h3 className="text-gray-400 text-sm font-medium">{stat.title}</h3>
+            <h3 className="text-muted-foreground text-sm font-medium">{stat.title}</h3>
             <p className="text-3xl font-black text-white mt-2">
               {stat.value}
             </p>
-            <div className="mt-4 h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div className="mt-4 h-1 bg-white/10 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${Math.min(100, stats.profitMargin || 75)}%` }}
+                animate={{ width: `${Math.min(100, (stats.totalUsers / 1000) * 100 || 75)}%` }}
                 transition={{ duration: 2, ease: "easeOut" }}
                 className={`h-full bg-gradient-to-r ${stat.color}`}
               />
@@ -188,10 +189,13 @@ function StatsSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-gray-900/50 border border-gray-800 rounded-2xl p-6 animate-pulse">
-          <div className="h-12 w-12 bg-gray-800 rounded-xl mb-4" />
-          <div className="h-4 w-32 bg-gray-800 rounded mb-2" />
-          <div className="h-10 w-24 bg-gray-800 rounded" />
+        <div key={i} className="bg-card/50 border border-border rounded-2xl p-6 animate-pulse">
+          <div className="flex justify-between items-center mb-4">
+            <div className="h-10 w-10 bg-muted rounded-xl" />
+            <div className="h-4 w-12 bg-muted rounded" />
+          </div>
+          <div className="h-4 w-32 bg-muted rounded mb-2" />
+          <div className="h-10 w-24 bg-muted rounded" />
         </div>
       ))}
     </div>
