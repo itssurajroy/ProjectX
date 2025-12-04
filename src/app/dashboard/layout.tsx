@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, MessageCircle, List, Download, Bell, Settings, Sparkles, PartyPopper, Palette } from 'lucide-react';
+import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper, Palette } from 'lucide-react';
 import SiteLogo from '@/components/layout/SiteLogo';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -17,14 +17,9 @@ const navItems = [
   { name: 'Profile', icon: User, href: '/dashboard/profile' },
   { name: 'Friends', icon: Users, href: '/dashboard/friends' },
   { name: 'Calendar', icon: Calendar, href: '/dashboard/calendar' },
-  { name: 'Reviews', icon: MessageCircle, href: '/dashboard/reviews' },
-  { name: 'Lists', icon: List, href: '/dashboard/lists' },
-  { name: 'Downloads', icon: Download, href: '/dashboard/downloads' },
-  { name: 'Notifications', icon: Bell, href: '/dashboard/notifications', badge: 7 },
   { name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' },
   { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
   { name: 'Theme Studio', icon: Palette, href: '/dashboard/theme-studio' },
-  { name: 'Settings', icon: Settings, href: '/dashboard/settings' },
 ];
 
 const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: boolean }) => {
@@ -40,9 +35,6 @@ const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: b
         )}>
             <item.icon className="w-5 h-5 shrink-0" />
             {isExpanded && <span className="truncate">{item.name}</span>}
-            {item.badge && isExpanded && (
-                <span className="ml-auto bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">{item.badge}</span>
-            )}
         </Link>
     );
 }
