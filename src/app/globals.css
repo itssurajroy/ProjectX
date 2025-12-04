@@ -32,51 +32,34 @@ img {
   decoding: async;
 }
 
-/* Remove all layout shift */
-.aspect-video, .aspect-\[2\/3\] {
-  position: relative;
-}
-.aspect-video::before, .aspect-\[2\/3\]::before {
-  content: "";
-  display: block;
-  padding-bottom: 56.25%; /* 16:9 */
-}
-.aspect-\[2\/3\]::before {
-  padding-bottom: 150%; /* 2:3 ratio */
-}
-.aspect-video > *, .aspect-\[2\/3\] > * {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-}
-
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 228 9% 10%;
+    --foreground: 210 40% 98%;
  
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 9% 12%;
+    --card-foreground: 210 40% 98%;
  
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 228 9% 10%;
+    --popover-foreground: 210 40% 98%;
  
     --primary: 262 84% 59%;
     --primary-foreground: 270 9% 96%;
  
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
  
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
  
-    --accent: 262 84% 59%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 40% 98%;
  
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
     --ring: 262 84% 59%;
  
     --radius: 0.5rem;
@@ -86,32 +69,32 @@ img {
   }
  
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 228 9% 10%;
+    --foreground: 210 40% 98%;
  
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 222 9% 12%;
+    --card-foreground: 210 40% 98%;
  
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 228 9% 10%;
+    --popover-foreground: 210 40% 98%;
  
     --primary: 262 84% 59%;
     --primary-foreground: 270 9% 96%;
  
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 40% 98%;
  
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 65%;
  
-    --accent: 262 84% 59%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 40% 98%;
  
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
  
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
     --ring: 262 84% 59%;
   }
 }
@@ -171,6 +154,7 @@ img {
 }
 
 /* SCROLLBAR */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #111; }
-::-webkit-scrollbar-thumb { background: hsl(var(--primary)); border-radius: 3px; }
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: hsl(var(--background)); }
+::-webkit-scrollbar-thumb { background: hsl(var(--primary) / 0.6); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary)); }
