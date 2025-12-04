@@ -8,8 +8,9 @@ import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import { Suspense } from "react";
 import Loading from "./loading";
-import { FirebaseClientProvider } from "@/firebase";
 import { Analytics } from "@vercel/analytics/react";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { FirebaseProvider } from "@/firebase";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -62,12 +63,12 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen">
           <Suspense fallback={<Loading />}>
             <Providers>
-              <FirebaseClientProvider>
+              <FirebaseProvider>
                 <NotificationProvider>
                   <main className="flex-1 flex flex-col">{children}</main>
                   <ShadToaster />
                 </NotificationProvider>
-              </FirebaseClientProvider>
+              </FirebaseProvider>
             </Providers>
           </Suspense>
           <Analytics />

@@ -3,10 +3,11 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { setDocumentNonBlocking } from './non-blocking-updates';
+import { UserProfile } from '@/types/user';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -15,23 +16,20 @@ interface FirebaseProviderProps {
   auth: Auth;
 }
 
-// Internal state for user authentication
-interface UserAuthState {
+// Internal state for user authentication and profile
+interface UserState {
   user: User | null;
+  profile: UserProfile | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
 // Combined state for the Firebase context
-export interface FirebaseContextState {
+export interface FirebaseContextState extends UserState {
   areServicesAvailable: boolean; // True if core services (app, firestore, auth instance) are provided
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
-  // User authentication state
-  user: User | null;
-  isUserLoading: boolean; // True during initial auth check
-  userError: Error | null; // Error from auth listener
 }
 
 // Return type for useFirebase()
@@ -40,6 +38,7 @@ export interface FirebaseServicesAndUser {
   firestore: Firestore;
   auth: Auth;
   user: User | null;
+  profile: UserProfile | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -56,24 +55,27 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   firestore,
   auth,
 }) => {
-  const [userAuthState, setUserAuthState] = useState<UserAuthState>({
+  const [userState, setUserState] = useState<UserState>({
     user: null,
+    profile: null,
     isUserLoading: true, // Start loading until first auth event
     userError: null,
   });
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!auth) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
+    if (!auth) {
+      setUserState({ user: null, profile: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    setUserState(prev => ({ ...prev, isUserLoading: true, userError: null }));
 
-    const unsubscribe = onAuthStateChanged(
+    const unsubscribeAuth = onAuthStateChanged(
       auth,
-      (firebaseUser) => { // Auth state determined
+      (firebaseUser) => {
+        setUserState(prev => ({ ...prev, user: firebaseUser, isUserLoading: false, userError: null }));
+
         if (firebaseUser && !firebaseUser.isAnonymous) {
           const userRef = doc(firestore, 'users', firebaseUser.uid);
           const userData = {
@@ -83,21 +85,43 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             createdAt: serverTimestamp(),
             lastLogin: serverTimestamp(),
             role: "user",
-            level: 1,
-            xp: 0
           };
-          // This function is designed to not be awaited.
           setDocumentNonBlocking(userRef, userData, { merge: true });
+        } else {
+            // User logged out or is anonymous, clear profile
+            setUserState(prev => ({ ...prev, profile: null }));
         }
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
-      (error) => { // Auth listener error
+      (error) => {
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
+        setUserState({ user: null, profile: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe(); // Cleanup
+
+    return () => unsubscribeAuth();
   }, [auth, firestore]);
+
+  // Effect to subscribe to user profile document
+  useEffect(() => {
+      if (!userState.user || !firestore) {
+          setUserState(prev => ({ ...prev, profile: null }));
+          return;
+      };
+
+      const profileRef = doc(firestore, 'users', userState.user.uid);
+      const unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
+          if (docSnap.exists()) {
+              setUserState(prev => ({ ...prev, profile: docSnap.data() as UserProfile }));
+          } else {
+              setUserState(prev => ({ ...prev, profile: null }));
+          }
+      }, (error) => {
+          console.error("Error fetching user profile:", error);
+      });
+
+      return () => unsubscribeProfile();
+
+  }, [userState.user, firestore]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
@@ -107,11 +131,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       firebaseApp: servicesAvailable ? firebaseApp : null,
       firestore: servicesAvailable ? firestore : null,
       auth: servicesAvailable ? auth : null,
-      user: userAuthState.user,
-      isUserLoading: userAuthState.isUserLoading,
-      userError: userAuthState.userError,
+      ...userState
     };
-  }, [firebaseApp, firestore, auth, userAuthState]);
+  }, [firebaseApp, firestore, auth, userState]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -141,6 +163,7 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     firestore: context.firestore,
     auth: context.auth,
     user: context.user,
+    profile: context.profile,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
   };

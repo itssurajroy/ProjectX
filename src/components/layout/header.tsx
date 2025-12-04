@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark, Users } from 'lucide-react';
+import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark, Users, Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -67,7 +67,7 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 }
 
 function UserProfileMenu() {
-  const { user } = useUser();
+  const { user, profile } = useUser();
   const auth = useAuth();
   const router = useRouter();
 
@@ -81,7 +81,7 @@ function UserProfileMenu() {
      <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9">
+                <Avatar className="h-9 w-9 ring-2 ring-primary/50">
                     <AvatarImage src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt={user.displayName || 'user'} />
                     <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
                 </Avatar>
@@ -92,6 +92,7 @@ function UserProfileMenu() {
             <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user.isAnonymous ? 'Guest User' : (user.displayName || 'User')}</p>
                 {!user.isAnonymous && <p className="text-xs leading-none text-muted-foreground">{user.email}</p>}
+                {profile && <p className="text-xs leading-none text-primary pt-1">Level {profile.level || 1}</p>}
             </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -244,6 +245,7 @@ export default function Header() {
                   <Users className="w-5 h-5 text-primary" />
                 </Link>
               </Button>
+              <NotificationBell />
               <Button asChild variant="ghost" size="icon">
                 <Link href="/random" title="Random Anime">
                   <Shuffle className="w-5 h-5 text-primary" />
