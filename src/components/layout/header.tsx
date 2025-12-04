@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield } from 'lucide-react';
+import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -102,7 +102,7 @@ function UserProfileMenu() {
                 <span>Watchlist</span>
             </DropdownMenuItem>
             
-            {!isLoading && role && (
+            {!isLoading && role === 'superadmin' && (
               <DropdownMenuItem onClick={() => router.push('/admin')}>
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Admin</span>
@@ -272,7 +272,7 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {mounted && (
             <>
-              <Link href="/watch2gether" className="flex items-center justify-center w-auto h-9 px-3 rounded-full bg-card hover:bg-muted" title="Watch Together">
+              <Link href="/watch2gether" className="hidden sm:flex items-center justify-center w-auto h-9 px-3 rounded-full bg-card hover:bg-muted" title="Watch Together">
                   <span className="text-sm font-medium">Watch Together</span>
               </Link>
               <Link href="/random" className="flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
@@ -289,5 +289,4 @@ export default function Header() {
     </header>
   );
 }
-
     
