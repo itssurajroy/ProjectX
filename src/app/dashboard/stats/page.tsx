@@ -3,7 +3,7 @@
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
-import { UserHistory } from '@/types/anime';
+import { UserHistory, AnimeBase } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import { useMemo } from 'react';
@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import Image from 'next/image';
 
 
 const ActivityHeatmap = dynamic(() => import('@/components/dashboard/ActivityHeatmap'), {
@@ -30,6 +32,19 @@ const StatCard = ({ title, value, icon: Icon }: { title: string, value: string |
         </CardContent>
     </Card>
 )
+
+const MostWatchedAnimeCard = ({ anime, count }: { anime: AnimeBase, count: number }) => (
+    <Link href={`/anime/${anime.id}`} className="flex items-center gap-3 group p-2 rounded-md hover:bg-muted/50 transition-colors">
+        <div className="relative w-12 h-[72px] flex-shrink-0">
+            <Image src={anime.poster} alt={anime.name} fill sizes="48px" className="object-cover rounded-md" />
+        </div>
+        <div className='overflow-hidden flex-1'>
+            <p className='font-semibold text-sm group-hover:text-primary line-clamp-1'>{anime.name}</p>
+            <p className="text-xs text-muted-foreground">{count} episodes watched</p>
+        </div>
+    </Link>
+);
+
 
 const COLORS = ["#a855f7", "#ec4899", "#f97316", "#10b981", "#3b82f6", "#fde047"];
 
@@ -75,10 +90,14 @@ export default function StatsPage() {
             totalHours: 0,
             genreCounts: [],
             activity: {},
+            mostWatchedAnime: [],
         };
 
         const totalMinutes = history.reduce((acc, item) => acc + (item.progress / 60), 0);
-        const uniqueEpisodes = new Set(history.map(item => item.episodeId)).size;
+        
+        const watchedEpisodes = new Set();
+        history.forEach(item => watchedEpisodes.add(item.episodeId));
+        const uniqueEpisodes = watchedEpisodes.size;
         
         const genreCounts: Record<string, number> = {};
         history.forEach(item => {
@@ -99,11 +118,28 @@ export default function StatsPage() {
             activity[date] = (activity[date] || 0) + 1;
         });
 
+        const animeEpisodeCounts: Record<string, Set<string>> = {};
+        history.forEach(item => {
+            if (!animeEpisodeCounts[item.animeId]) {
+                animeEpisodeCounts[item.animeId] = new Set();
+            }
+            animeEpisodeCounts[item.animeId].add(item.episodeId);
+        });
+
+        const mostWatched = Object.entries(animeEpisodeCounts)
+            .map(([animeId, episodes]) => ({
+                animeId,
+                count: episodes.size,
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
         return {
             totalEpisodes: uniqueEpisodes,
             totalHours: Math.round(totalMinutes / 60),
             genreCounts: sortedGenres,
             activity,
+            mostWatchedAnime: mostWatched,
         };
 
     }, [history, animeDetails]);
@@ -157,8 +193,18 @@ export default function StatsPage() {
                     <CardHeader>
                         <CardTitle className="text-xl">Most Watched Anime</CardTitle>
                     </CardHeader>
-                     <CardContent className="text-center py-16 text-muted-foreground">
-                        <p>More detailed anime stats coming soon!</p>
+                     <CardContent className="space-y-2">
+                        {stats.mostWatchedAnime.length > 0 ? (
+                            stats.mostWatchedAnime.map(({ animeId, count }) => {
+                                const anime = animeDetails?.[animeId]?.info;
+                                if (!anime) return null;
+                                return <MostWatchedAnimeCard key={animeId} anime={anime} count={count} />;
+                            })
+                        ) : (
+                            <div className="text-center py-16 text-muted-foreground">
+                                <p>Start watching to see your most watched anime!</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
