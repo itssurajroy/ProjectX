@@ -12,31 +12,27 @@ let firestore: Firestore;
 // IMPORTANT: This is the single source of truth for Firebase initialization.
 // It is wrapped in a function to ensure it's only called on the client.
 export function initializeFirebase() {
-  // Firebase configuration is now defined INSIDE the function.
-  // This ensures process.env is accessed only on the client side when this function is called.
   const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    apiKey: "AIzaSyBQSy1kHNRYvp2b-l0jnsUd44P-cXkJZDY",
+    authDomain: "studio-8183683078-60ab0.firebaseapp.com",
+    projectId: "studio-8183683078-60ab0",
+    storageBucket: "studio-8183683078-60ab0.appspot.com",
+    messagingSenderId: "20761769952",
+    appId: "1:20761769952:web:1a66600ebcca874bc81d85"
   };
 
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);
-    auth = getAuth(firebaseApp);
-    firestore = getFirestore(firebaseApp);
-
-    // Set session persistence to ensure user stays logged in.
-    // This is a client-side only operation.
-    if (typeof window !== 'undefined') {
-      setPersistence(auth, browserSessionPersistence);
-    }
   } else {
     firebaseApp = getApp();
-    auth = getAuth(firebaseApp);
-    firestore = getFirestore(firebaseApp);
+  }
+  
+  auth = getAuth(firebaseApp);
+  firestore = getFirestore(firebaseApp);
+
+  // Set session persistence to ensure user stays logged in.
+  if (typeof window !== 'undefined') {
+    setPersistence(auth, browserSessionPersistence);
   }
   
   return {
