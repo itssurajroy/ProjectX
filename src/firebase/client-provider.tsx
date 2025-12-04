@@ -1,11 +1,11 @@
-
+// src/firebase/client-provider.tsx
 'use client';
 
 import React, { useMemo, type ReactNode } from 'react';
 import { initializeApp, getApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
-import { FirebaseProvider } from '@/firebase';
+import { FirebaseProvider } from '@/firebase-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 // Centralized Firebase configuration
@@ -48,3 +48,15 @@ export function FirebaseClientProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Renamed from useUserPanel to avoid confusion with useUser
+export const useUserPanel = () => {
+    // This hook will now get its data from the FirebaseProvider's context.
+    // The implementation of that provider needs to be updated to supply this.
+    // For now, this is a placeholder.
+    return {
+        user: null,
+        profile: null,
+        isUserLoading: true,
+        firestore: null,
+    }
+}

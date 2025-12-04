@@ -1,9 +1,11 @@
-
+// src/firebase/index.ts
 'use client';
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserSessionPersistence, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
+import { useMemo } from 'react';
+import { FirebaseProvider, FirebaseContext, useAuth } from '@/firebase-provider';
 
 
 // IMPORTANT: This is the single source of truth for Firebase initialization.
@@ -43,8 +45,25 @@ export function initializeFirebase() {
   };
 }
 
+/**
+ * A hook that memoizes a Firestore query or reference.
+ * This is CRITICAL to prevent infinite loops in `useCollection` and `useDoc` hooks.
+ * @param factory A function that returns a Firestore query or reference.
+ * @param deps The dependency array for the factory function.
+ * @returns A memoized Firestore query or reference.
+ */
+export const useMemoFirebase = (factory: () => any, deps: any[]) => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const memoizedQuery = useMemo(factory, deps);
+    if(memoizedQuery) {
+        (memoizedQuery as any).__memo = true;
+    }
+    return memoizedQuery;
+}
+
+
 // Export hooks and providers
-export * from './provider';
+export { FirebaseProvider, FirebaseContext, useAuth };
 export * from './client-provider';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
@@ -57,4 +76,3 @@ export * from './error-emitter';
 // Export auth providers for convenience
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
-
