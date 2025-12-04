@@ -3,7 +3,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { Firestore, doc, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { setDocumentNonBlocking } from './non-blocking-updates';
@@ -87,7 +87,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             xp: 0
           };
           // This function is designed to not be awaited.
-          setDoc(userRef, userData, { merge: true });
+          setDocumentNonBlocking(userRef, userData, { merge: true });
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
