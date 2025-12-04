@@ -19,7 +19,7 @@
         "role": {
           "type": "string",
           "description": "User role for permissions.",
-          "enum": ["user", "moderator", "admin"],
+          "enum": ["user"],
           "default": "user"
         },
         "createdAt": {

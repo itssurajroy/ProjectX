@@ -26,12 +26,10 @@ export default function MobileBottomNav() {
         { href: "/home", icon: Home, label: "Home" },
         { href: "/movies", icon: Clapperboard, label: "Movies" },
         { href: "/tv", icon: Tv, label: "TV" },
-        { href: "/watchlist", icon: Bookmark, label: "Watchlist" },
-        { href: "/history", icon: History, label: "History" },
     ];
     return (
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden">
-            <div className="grid grid-cols-5 items-center justify-around h-full">
+            <div className="grid grid-cols-3 items-center justify-around h-full">
                 {navItems.map(item => (
                     <NavLink key={item.href} {...item} />
                 ))}
