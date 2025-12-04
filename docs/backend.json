@@ -44,6 +44,20 @@
       },
       "required": ["animeId", "episodeId", "episodeNumber", "watchedAt", "progress", "duration"]
     },
+    "WatchlistItem": {
+      "title": "WatchlistItem",
+      "type": "object",
+      "description": "An item in a user's watchlist.",
+      "properties": {
+        "animeId": { "type": "string" },
+        "name": { "type": "string" },
+        "poster": { "type": "string", "format": "uri" },
+        "status": { "type": "string", "enum": ["Watching", "Completed", "On-Hold", "Dropped", "Plan to Watch"] },
+        "addedAt": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" }
+      },
+      "required": ["animeId", "name", "poster", "status", "addedAt"]
+    },
     "WatchTogetherRoom": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "WatchTogetherRoom",
@@ -236,6 +250,16 @@
             "$ref": "#/backend/entities/UserHistory"
           },
           "description": "Stores user watch history."
+        }
+      },
+      {
+        "path": "/users/{userId}/watchlist/{animeId}",
+        "definition": {
+            "entityName": "WatchlistItem",
+            "schema": {
+                "$ref": "#/backend/entities/WatchlistItem"
+            },
+            "description": "Stores a user's watchlist."
         }
       },
       {
