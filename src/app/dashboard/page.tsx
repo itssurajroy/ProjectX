@@ -2,24 +2,13 @@
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { AnimeBase, UserHistory } from '@/types/anime';
+import { AnimeBase, UserHistory, HomeData } from '@/types/anime';
 import { Flame, Activity, TrendingUp, Sparkles, Users, Loader2 } from 'lucide-react';
 import { AnimeCard } from '@/components/AnimeCard';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import Link from 'next/link';
-
-// Mock data for sections that are not yet connected to real data
-const mockNewEpisodes: AnimeBase[] = [
-    { id: '1', name: 'Jujutsu Kaisen', poster: 'https://picsum.photos/seed/jujutsu/400/600', episodes: { sub: 24, dub: 24 } },
-    { id: '2', name: 'Attack on Titan', poster: 'https://picsum.photos/seed/aot/400/600', episodes: { sub: 88, dub: 88 } },
-    { id: '3', name: 'One Piece', poster: 'https://picsum.photos/seed/onepiece/400/600', episodes: { sub: 1088, dub: 1000 } },
-    { id: '4', name: 'Solo Leveling', poster: 'https://picsum.photos/seed/solo/400/600', episodes: { sub: 12, dub: 12 } },
-    { id: '5', name: 'Frieren: Beyond Journey\'s End', poster: 'https://picsum.photos/seed/frieren/400/600', episodes: { sub: 28, dub: 28 } },
-    { id: '6', name: 'Chainsaw Man', poster: 'https://picsum.photos/seed/csm/400/600', episodes: { sub: 12, dub: 12 } },
-];
-
 
 const Section = ({ title, icon: Icon, children }: { title: string, icon: React.ElementType, children: React.ReactNode }) => (
     <section className="space-y-4">
@@ -96,13 +85,18 @@ const ContinueWatchingSection = () => {
     }
 
     if (!history || history.length === 0) {
-        return <p className="text-muted-foreground text-sm">You haven't watched anything yet. Start watching to see your history here!</p>;
+        return (
+            <div className="text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
+                <p className="text-muted-foreground text-sm">You haven't watched anything yet.</p>
+                <Link href="/home" className="text-primary font-semibold text-sm hover:underline mt-2 inline-block">Start Watching Now</Link>
+            </div>
+        )
     }
     
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {history.map(item => {
-                const details = animeDetails?.[item.animeId];
+                const details = animeDetails?.[item.id];
                 if (!details) return null;
                 return <ContinueWatchingCard key={item.id} historyItem={item} animeDetails={details} />;
             })}
@@ -113,6 +107,18 @@ const ContinueWatchingSection = () => {
 
 export default function DashboardHomePage() {
     const { user } = useUser();
+     const { data: homeData, isLoading: isLoadingHome } = useQuery<HomeData>({
+        queryKey: ['homeData'],
+        queryFn: AnimeService.home,
+    });
+
+    if (isLoadingHome) {
+        return (
+             <div className="flex items-center justify-center h-[50vh]">
+                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-12">
@@ -126,29 +132,44 @@ export default function DashboardHomePage() {
             <Section title="Continue Watching" icon={Activity}>
                  <ContinueWatchingSection />
             </Section>
-
-            <Section title="New Episodes Today" icon={Flame}>
-                 <div className="grid-cards">
-                    {mockNewEpisodes.slice(0,6).map(anime => (
-                        <AnimeCard key={anime.id} anime={anime} />
-                    ))}
-                </div>
-            </Section>
             
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
-                <Section title="Because You Watched One Piece" icon={Sparkles}>
-                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {mockNewEpisodes.slice(3,6).map(anime => (
+            {homeData?.latestEpisodeAnimes && homeData.latestEpisodeAnimes.length > 0 && (
+                <Section title="New Episodes Today" icon={Flame}>
+                     <div className="grid-cards">
+                        {homeData.latestEpisodeAnimes.slice(0,6).map(anime => (
                             <AnimeCard key={anime.id} anime={anime} />
                         ))}
                     </div>
                 </Section>
+            )}
+            
+            
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
+                {homeData?.top10Animes?.week && homeData.top10Animes.week.length > 0 && (
+                     <Section title="Trending This Week" icon={TrendingUp}>
+                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {homeData.top10Animes.week.slice(0,3).map(anime => (
+                                <AnimeCard key={anime.id} anime={anime} />
+                            ))}
+                        </div>
+                    </Section>
+                )}
                 <Section title="Friends Activity" icon={Users}>
-                    <div className="space-y-3">
-                        <p className="text-muted-foreground text-sm">No friend activity yet. Invite some friends!</p>
+                    <div className="space-y-3 text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
+                        <p className="text-muted-foreground text-sm">Friend activity is coming soon!</p>
                     </div>
                 </Section>
             </div>
+
+            {homeData?.mostPopularAnimes && homeData.mostPopularAnimes.length > 0 && (
+                <Section title="Most Popular" icon={Sparkles}>
+                     <div className="grid-cards">
+                        {homeData.mostPopularAnimes.slice(0,6).map(anime => (
+                            <AnimeCard key={anime.id} anime={anime} />
+                        ))}
+                    </div>
+                </Section>
+            )}
         </div>
     )
 }
