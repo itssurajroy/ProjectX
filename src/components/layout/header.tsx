@@ -33,7 +33,7 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
             <div 
                 onClick={onClose}
                 className={cn(
-                    "absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity",
+                    "absolute inset-0 bg-black/80 transition-opacity",
                     isOpen ? "opacity-100" : "opacity-0"
                 )}
             />
