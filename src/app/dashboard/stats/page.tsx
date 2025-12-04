@@ -11,10 +11,13 @@ import { BarChart3, Clock, Tv, Loader2, Star, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format, eachDayOfInterval, startOfYear, endOfYear, isSameDay } from 'date-fns';
+import dynamic from 'next/dynamic';
 
+
+const ActivityHeatmap = dynamic(() => import('@/components/dashboard/ActivityHeatmap'), {
+    ssr: false,
+    loading: () => <div className="h-[200px] w-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin"/></div>
+});
 
 const StatCard = ({ title, value, icon: Icon }: { title: string, value: string | number, icon: React.ElementType }) => (
     <Card className="bg-card/50 border-border/50">
@@ -92,7 +95,7 @@ export default function StatsPage() {
 
         const activity: Record<string, number> = {};
         history.forEach(item => {
-            const date = format(item.watchedAt.toDate(), 'yyyy-MM-dd');
+            const date = new Date(item.watchedAt.seconds * 1000).toISOString().split('T')[0];
             activity[date] = (activity[date] || 0) + 1;
         });
 
@@ -105,43 +108,6 @@ export default function StatsPage() {
 
     }, [history, animeDetails]);
 
-    const ActivityHeatmap = () => {
-        const year = new Date().getFullYear();
-        const yearStart = startOfYear(new Date(year, 0, 1));
-        const yearEnd = endOfYear(new Date(year, 11, 31));
-        const days = eachDayOfInterval({ start: yearStart, end: yearEnd });
-      
-        return (
-          <Calendar
-            showOutsideDays={false}
-            numberOfMonths={12}
-            pagedNavigation
-            className="w-full"
-            classNames={{
-                months: 'flex flex-col sm:flex-row flex-wrap gap-y-6',
-                month: 'space-y-4 w-full sm:w-1/2 md:w-1/3 lg:w-1/4',
-                caption_label: 'text-base font-bold',
-                day: (date) => {
-                    const dateString = format(date, 'yyyy-MM-dd');
-                    const count = stats.activity[dateString] || 0;
-                    if (count > 0) {
-                        if (count > 8) return "bg-primary/90 text-primary-foreground";
-                        if (count > 5) return "bg-primary/70 text-primary-foreground";
-                        if (count > 3) return "bg-primary/50 text-primary-foreground";
-                        if (count > 0) return "bg-primary/30";
-                    }
-                    return '';
-                }
-            }}
-            modifiers={{
-                activity: (date) => (stats.activity[format(date, 'yyyy-MM-dd')] || 0) > 0
-            }}
-            modifiersClassNames={{
-                activity: 'font-bold'
-            }}
-          />
-        );
-      }
       
     if (isLoadingHistory || isLoadingAnimeDetails) {
         return (
@@ -202,7 +168,7 @@ export default function StatsPage() {
                     <CardTitle className="text-xl">Watch Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
-                   <ActivityHeatmap />
+                   <ActivityHeatmap activity={stats.activity} />
                 </CardContent>
             </Card>
 
