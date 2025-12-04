@@ -25,10 +25,6 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
-  if (user) {
-    return null; // Render nothing while redirecting
-  }
-
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -58,11 +54,17 @@ export default function LoginPage() {
 
       if (err.code === "auth/popup-blocked") {
         setError("Popup blocked! Please allow popups and try again.");
+      } else {
+        setError(message);
       }
     } finally {
       setLoading(false);
     }
   };
+
+  if (user) {
+    return null; // Render nothing while redirecting
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen">

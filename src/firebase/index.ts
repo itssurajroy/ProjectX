@@ -34,7 +34,9 @@ export function getSdks(firebaseApp: FirebaseApp) {
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
+    firestore: getFirestore(firebaseApp),
+    googleProvider: new GoogleAuthProvider(),
+    githubProvider: new GithubAuthProvider(),
   };
 }
 
@@ -48,7 +50,3 @@ export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
 export { GoogleAuthProvider, GithubAuthProvider };
-
-
-
-    

@@ -13,12 +13,12 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import NotificationBell from '../notifications/NotificationBell';
 import { AnimeService } from '@/lib/AnimeService';
-import { useUser, useAuth, GoogleAuthProvider } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
 import { useAdminRole } from '@/hooks/useAdminRole';
-import { signInWithPopup } from 'firebase/auth';
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
@@ -272,12 +272,16 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {mounted && (
             <>
-              <Link href="/watch2gether" className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Watch Together">
-                  <Users className="w-4 h-4 text-primary" />
-              </Link>
-              <Link href="/random" className="flex items-center justify-center w-9 h-9 rounded-full bg-card hover:bg-muted" title="Random Anime">
-                  <Shuffle className="w-4 h-4 text-primary" />
-              </Link>
+              <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
+                <Link href="/watch2gether" title="Watch Together">
+                  <Users className="w-5 h-5 text-primary" />
+                </Link>
+              </Button>
+              <Button asChild variant="ghost" size="icon">
+                <Link href="/random" title="Random Anime">
+                  <Shuffle className="w-5 h-5 text-primary" />
+                </Link>
+              </Button>
             </>
           )}
           
@@ -289,4 +293,3 @@ export default function Header() {
     </header>
   );
 }
-    

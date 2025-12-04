@@ -86,7 +86,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             level: 1,
             xp: 0
           };
-          setDocumentNonBlocking(userRef, userData, { merge: true });
+          // This function is designed to not be awaited.
+          setDoc(userRef, userData, { merge: true });
         }
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
@@ -96,7 +97,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth, firestore]); // Depends on the auth instance
+  }, [auth, firestore]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
