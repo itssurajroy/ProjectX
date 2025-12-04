@@ -9,13 +9,21 @@ import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
-const Section = ({ title, icon: Icon, children }: { title: string, icon: React.ElementType, children: React.ReactNode }) => (
+const Section = ({ title, icon: Icon, children, href }: { title: string, icon: React.ElementType, children: React.ReactNode, href?: string }) => (
     <section className="space-y-4">
-        <h2 className="text-2xl font-bold font-display flex items-center gap-3">
-            <Icon className="w-6 h-6 text-primary" />
-            {title}
-        </h2>
+        <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold font-display flex items-center gap-3">
+                <Icon className="w-6 h-6 text-primary" />
+                {title}
+            </h2>
+            {href && (
+                <Button asChild variant="link">
+                    <Link href={href}>View All</Link>
+                </Button>
+            )}
+        </div>
         {children}
     </section>
 );
@@ -96,7 +104,7 @@ const ContinueWatchingSection = () => {
     return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {history.map(item => {
-                const details = animeDetails?.[item.id];
+                const details = animeDetails?.[item.animeId];
                 if (!details) return null;
                 return <ContinueWatchingCard key={item.id} historyItem={item} animeDetails={details} />;
             })}
@@ -129,7 +137,7 @@ export default function DashboardHomePage() {
                 <p className="text-muted-foreground mt-1">Here's what's happening in your anime world.</p>
             </header>
             
-            <Section title="Continue Watching" icon={Activity}>
+            <Section title="Continue Watching" icon={Activity} href="/dashboard/history">
                  <ContinueWatchingSection />
             </Section>
             
@@ -154,9 +162,12 @@ export default function DashboardHomePage() {
                         </div>
                     </Section>
                 )}
-                <Section title="Friends Activity" icon={Users}>
+                <Section title="Friends Activity" icon={Users} href="/dashboard/friends">
                     <div className="space-y-3 text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
                         <p className="text-muted-foreground text-sm">Friend activity is coming soon!</p>
+                         <Button asChild variant="link">
+                            <Link href="/dashboard/friends">Manage Friends</Link>
+                        </Button>
                     </div>
                 </Section>
             </div>
