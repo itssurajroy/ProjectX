@@ -2,13 +2,13 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, Clapperboard, List, Bookmark, History, Tv } from "lucide-react";
+import { Home, Clapperboard, Bookmark, History, Tv } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
     const pathname = usePathname();
-    const isActive = pathname === href || (href !== '/home' && pathname.startsWith(href));
+    const isActive = pathname === href;
 
     return (
         <Link href={href} className={cn(
