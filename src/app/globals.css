@@ -1,5 +1,5 @@
 /* src/app/globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -26,7 +26,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ultra-fast image loading */
 img {
   loading: lazy;
   decoding: async;
@@ -34,67 +33,67 @@ img {
 
 @layer base {
   :root {
-    --background: 228 9% 10%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #ffffff */
  
-    --card: 222 9% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 4%; /* #0a0a0a */
+    --card-foreground: 0 0% 100%;
  
-    --popover: 228 9% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
  
-    --primary: 262 84% 59%;
-    --primary-foreground: 270 9% 96%;
+    --primary: 262 84% 59%; /* #a855f7 */
+    --primary-foreground: 0 0% 100%;
  
-    --secondary: 215 28% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 5% 15%; /* #27272a with a bit of blue tint */
+    --secondary-foreground: 0 0% 100%;
  
-    --muted: 215 28% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 5% 9%; /* #18181b */
+    --muted-foreground: 240 4% 65%;
  
-    --accent: 215 28% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 336 83% 61%; /* #ec4899 */
+    --accent-foreground: 0 0% 100%;
  
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%; /* #ef4444 */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
+    --border: 240 4% 16%; /* #27272a */
+    --input: 240 4% 16%;
     --ring: 262 84% 59%;
  
     --radius: 0.5rem;
 
-    --font-primary: 'Lexend', system-ui, sans-serif;
-    --font-display: 'Space Grotesk', sans-serif;
+    --font-primary: 'Inter', system-ui, sans-serif;
+    --font-display: 'Poppins', sans-serif;
   }
  
   .dark {
-    --background: 228 9% 10%;
-    --foreground: 210 40% 98%;
+    --background: 0 0% 0%; /* #000000 */
+    --foreground: 0 0% 100%; /* #ffffff */
  
-    --card: 222 9% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 4%; /* #0a0a0a */
+    --card-foreground: 0 0% 100%;
  
-    --popover: 228 9% 10%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
  
-    --primary: 262 84% 59%;
-    --primary-foreground: 270 9% 96%;
+    --primary: 262 84% 59%; /* #a855f7 */
+    --primary-foreground: 0 0% 100%;
  
-    --secondary: 215 28% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 100%;
  
-    --muted: 215 28% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 5% 9%; /* #18181b */
+    --muted-foreground: 240 4% 65%;
  
-    --accent: 215 28% 17%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 336 83% 61%; /* #ec4899 */
+    --accent-foreground: 0 0% 100%;
  
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%; /* #ef4444 */
+    --destructive-foreground: 0 0% 100%;
  
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
+    --border: 240 4% 16%; /* #27272a */
+    --input: 240 4% 16%;
     --ring: 262 84% 59%;
   }
 }
@@ -143,13 +142,13 @@ img {
     @media (min-width: 1280px) { .grid-cards { @apply grid-cols-6; } }
     @media (min-width: 1536px) { .grid-cards { @apply grid-cols-8 gap-6; } }
 
-    .text-title { @apply text-2xl leading-8; }
-    .text-subtitle { @apply text-base leading-6; }
-    .text-body { @apply text-sm leading-5; }
+    .text-title { @apply text-2xl font-bold font-display; }
+    .text-subtitle { @apply text-base; }
+    .text-body { @apply text-sm; }
 
     @media (min-width: 640px) {
-      .text-title { @apply text-3xl leading-9; }
-      .text-subtitle { @apply text-lg leading-7; }
+      .text-title { @apply text-3xl; }
+      .text-subtitle { @apply text-lg; }
     }
 }
 

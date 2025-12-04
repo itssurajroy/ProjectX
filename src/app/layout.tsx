@@ -1,6 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
-import { Lexend, Space_Grotesk } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "./providers";
@@ -11,16 +11,16 @@ import Loading from "./loading";
 import { FirebaseClientProvider } from "@/firebase";
 import { Analytics } from "@vercel/analytics/react";
 
-const fontSans = Lexend({
+const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-primary",
   weight: ["300", "400", "500", "600", "700"],
 });
 
-const fontDisplay = Space_Grotesk({
+const fontDisplay = Poppins({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f0f17",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -53,7 +53,7 @@ export default function RootLayout({
 
       <body
         className={cn(
-          "min-h-screen w-full bg-black text-white antialiased overflow-x-hidden",
+          "min-h-screen w-full bg-background text-foreground antialiased overflow-x-hidden",
           "font-sans", // default font
           fontSans.variable,
           fontDisplay.variable

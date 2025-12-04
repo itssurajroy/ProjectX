@@ -60,7 +60,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
                     sizes="100vw"
                     className={cn(
                         'object-cover transition-opacity duration-1000',
-                        index === currentIndex ? 'opacity-60' : 'opacity-0'
+                        index === currentIndex ? 'opacity-30' : 'opacity-0'
                     )}
                     priority
                 />
@@ -72,7 +72,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
            <div key={currentIndex} className="animate-banner-fade-in w-full">
               <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold my-3 text-glow max-w-2xl line-clamp-2">{spotlight.name}</h1>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-display my-3 text-glow max-w-2xl line-clamp-2">{spotlight.name}</h1>
               <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4 flex-wrap">
                   {spotlight.otherInfo.map((info, i) => (
                     <span key={i} className="flex items-center gap-1.5">
@@ -80,13 +80,13 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
                     </span>
                   ))}
               </div>
-              <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-xs md:text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
+              <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-sm md:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
               
               <div className="flex gap-3 items-center">
-                  <Link href={`/watch/${spotlight.id}`} className="bg-accent text-white px-4 md:px-6 py-3 rounded-lg font-bold text-sm md:text-base flex items-center gap-2 hover:bg-accent/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-accent/30">
-                      <Play className="w-5 h-5" /> Watch Now
+                  <Link href={`/watch/${spotlight.id}`} className="bg-primary text-primary-foreground px-6 md:px-8 py-3 rounded-lg font-bold text-base md:text-lg flex items-center gap-2 hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
+                      <Play className="w-6 h-6" /> Watch Now
                   </Link>
-                  <Link href={`/anime/${spotlight.id}`} className="border border-white/50 text-white px-4 py-3 rounded-lg font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-colors">
+                  <Link href={`/anime/${spotlight.id}`} className="border border-white/50 text-white p-3.5 rounded-lg font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-colors">
                       <Bookmark className="w-5 h-5"/>
                   </Link>
               </div>
@@ -113,19 +113,19 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
 };
 
 const PollSection = () => (
-    <div className="bg-card/50 p-3 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border/50">
+    <div className="bg-card p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border">
         <div className="flex items-center gap-3">
             <Heart className="w-8 h-8 text-primary" />
             <div>
-                <h3 className="font-bold">💖 Love this site?</h3>
+                <h3 className="font-bold font-display text-lg">💖 Love this site?</h3>
                 <p className="text-xs text-muted-foreground">Share it with others to let them know!</p>
             </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">💖 40k</button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">🤯 4.4k</button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">😢 6.5k</button>
-            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted/50 hover:border-primary/50 border-2 border-transparent">😂 5.8k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">💖 40k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">🤯 4.4k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">😢 6.5k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">😂 5.8k</button>
             <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-red-500/20 text-red-300 hover:border-red-500/50 border-2 border-transparent">😠 18.3k</button>
         </div>
     </div>
@@ -137,12 +137,12 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">{title}</h2>
+                <h2 className="text-xl font-bold font-display">{title}</h2>
             </div>
-            <div className="bg-card/50 p-2 rounded-lg border border-border/50">
+            <div className="bg-card p-2 rounded-lg border border-border">
                 <div className="space-y-2">
                     {animes.slice(0, 7).map((anime, index) => (
-                        <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors group">
+                        <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
                                 <Image src={anime.poster} alt={anime.name} fill sizes="48px" className="object-cover rounded-md" />
                             </div>
@@ -182,11 +182,11 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
     const scheduledAnimes = scheduleData?.scheduledAnimes || [];
     
     return (
-        <section className='bg-card/50 p-4 rounded-lg border border-border/50'>
+        <section className='bg-card p-4 rounded-lg border border-border'>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold flex items-center gap-2">Schedule 🗓️</h2>
+                <h2 className="text-lg font-bold font-display flex items-center gap-2">🗓️ Schedule</h2>
             </div>
-            <div className="flex justify-between items-center bg-card p-1 rounded-lg mb-4 flex-wrap">
+            <div className="flex justify-between items-center bg-background p-1 rounded-lg mb-4 flex-wrap">
                 <button onClick={() => handleDateChange(-1)} className="p-2 rounded-md hover:bg-muted">
                     <ChevronLeft className="w-5 h-5"/>
                 </button>
@@ -240,10 +240,10 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
     const animesToDisplay = top10Animes[trendingPeriod] || [];
 
     return (
-        <div className='bg-card/50 p-4 rounded-lg border border-border/50'>
+        <div className='bg-card p-4 rounded-lg border border-border'>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-                <h2 className="text-lg font-bold flex items-center gap-2">Top 10 🏆</h2>
-                <div className="flex items-center text-sm bg-card p-1 rounded-md gap-1">
+                <h2 className="text-lg font-bold font-display flex items-center gap-2">🏆 Top 10</h2>
+                <div className="flex items-center text-sm bg-background p-1 rounded-md gap-1">
                     <button onClick={() => setTrendingPeriod('today')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'today' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Today</button>
                     <button onClick={() => setTrendingPeriod('week')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'week' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Week</button>
                     <button onClick={() => setTrendingPeriod('month')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'month' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Month</button>
@@ -254,14 +254,14 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                 <Link
                     key={anime.id}
                     href={`/anime/${anime.id}`}
-                    className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
+                    className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
                 >
                     <Image
                         src={anime.poster}
                         alt={anime.name}
                         fill
                         sizes="200px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-60"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-20"
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
                     
@@ -273,7 +273,7 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                         <div className="flex-1 overflow-hidden">
                             <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{anime.name}</p>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/20 text-primary/90"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
+                                {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/20 text-primary"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
                                 {anime.episodes?.dub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
                                 <span className='hidden sm:inline'>{anime.type}</span>
                             </div>
@@ -305,7 +305,7 @@ export default function MainDashboardPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SpotlightSection spotlights={spotlightAnimes} />
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-[-4rem] md:mt-[-6rem] space-y-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-[-4rem] md:mt-[-6rem] space-y-12">
         <PollSection />
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
@@ -329,9 +329,3 @@ export default function MainDashboardPage() {
     </div>
   );
 }
-
-    
-
-    
-
-

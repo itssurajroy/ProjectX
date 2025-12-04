@@ -6,6 +6,7 @@ import { Home, Users, MessageSquare, AlertCircle, Megaphone, Settings, Activity,
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import SiteLogo from "../layout/SiteLogo";
 
 const navItems = [
   { name: "Dashboard", icon: Home, href: "/admin" },
@@ -17,6 +18,7 @@ const navItems = [
   { name: "SEO", icon: Globe, href: "/admin/seo" },
   { name: "Settings", icon: Settings, href: "/admin/settings" },
   { name: "Logs", icon: Activity, href: "/admin/logs" },
+  { name: "Permissions", icon: Shield, href: "/admin/permissions" },
 ];
 
 export default function Sidebar() {
@@ -30,16 +32,11 @@ export default function Sidebar() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="p-8 border-b border-purple-500/20">
-        <h1 className="text-4xl font-black bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
-          ProjectX
-        </h1>
-        <p className="text-purple-400 text-sm mt-2">Admin Panel</p>
+      <div className="p-4 border-b border-border h-16 flex items-center">
+        <SiteLogo />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-6 py-8 space-y-3 overflow-y-auto">
+      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
           return (
@@ -47,16 +44,16 @@ export default function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-5 px-6 py-5 rounded-2xl transition-all duration-200 group",
+                "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group text-sm font-medium",
                 isActive
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-2xl shadow-purple-600/30"
-                  : "hover:bg-gray-800/60 text-gray-300 hover:text-white"
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className={cn("w-7 h-7", isActive && "drop-shadow-glow")} />
-              <span className="text-lg font-semibold">{item.name}</span>
+              <item.icon className="w-5 h-5" />
+              <span>{item.name}</span>
               {item.badge && (
-                <span className="ml-auto px-3 py-1.5 bg-red-600 rounded-full text-sm font-bold">
+                <span className="ml-auto px-2 py-0.5 bg-destructive text-destructive-foreground rounded-full text-xs font-bold">
                   {item.badge}
                 </span>
               )}
@@ -65,11 +62,11 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="p-6 border-t border-purple-500/20">
-        <button onClick={handleLogout} className="w-full mt-auto px-6 py-4 bg-red-600 rounded-xl text-lg font-bold hover:bg-red-700">
+      <div className="p-4 border-t border-border">
+        <button onClick={handleLogout} className="w-full mt-auto px-3 py-2 bg-destructive text-destructive-foreground rounded-md text-sm font-bold hover:bg-destructive/90">
           Logout
         </button>
-        <div className="text-center text-gray-500 text-sm mt-4">
+        <div className="text-center text-muted-foreground text-xs mt-4">
           © 2025 ProjectX
         </div>
       </div>

@@ -41,26 +41,8 @@ const PVCarousel = dynamic(() => import('@/components/anime/PVCarousel'), {
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 
-const SidebarAnimeCard = ({ anime }: { anime: AnimeBase }) => (
-    <Link href={`/anime/${anime.id}`} passHref>
-        <div className="flex gap-4 items-center group cursor-pointer p-2 rounded-lg hover:bg-muted/50 transition-colors">
-            <div className="relative w-16 h-24 flex-shrink-0">
-                <Image src={anime.poster} alt={anime.name} fill loading="lazy" className="rounded-md object-cover shadow-md" />
-            </div>
-            <div className="overflow-hidden">
-                <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">{anime.name}</h3>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                    {anime.type && <span className="flex items-center gap-1">{anime.type}</span>}
-                    {anime.episodes?.sub && <span>{anime.episodes.sub} EPs</span>}
-                </div>
-            </div>
-        </div>
-    </Link>
-);
-
-
 const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
-    <div className="bg-card/50 rounded-lg overflow-hidden flex border border-border/50">
+    <div className="bg-card rounded-lg overflow-hidden flex border border-border">
         {/* Character */}
         <div className="w-1/2 flex items-center gap-3 p-3">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
@@ -74,7 +56,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 
         {/* Voice Actor */}
         {cv.voiceActor && (
-            <div className="w-1/2 flex items-center gap-3 p-3 bg-card/40 justify-end text-right">
+            <div className="w-1/2 flex items-center gap-3 p-3 bg-muted/30 justify-end text-right">
                 <div className="overflow-hidden">
                     <p className="font-bold text-sm truncate">{cv.voiceActor.name}</p>
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
@@ -181,20 +163,20 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                 alt={animeInfo.name}
                 width={250}
                 height={380}
-                className="rounded-lg shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
+                className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
                 priority
               />
             </div>
             
             <div className="lg:col-span-9 flex flex-col justify-center h-full text-center lg:text-left">
               <div className="text-sm text-muted-foreground hidden sm:block">Home &gt; {stats.type} &gt; {animeInfo.name}</div>
-              <h1 className="text-title font-bold mt-2 text-glow">{animeInfo.name}</h1>
+              <h1 className="text-4xl lg:text-5xl font-display font-bold mt-2 text-glow">{animeInfo.name}</h1>
               
               <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
                   {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'secondary'} className="px-2 py-1">{stats.rating}</Badge>}
-                  <span className="px-2 py-1 bg-card/50 rounded-md border border-border/50">{stats.quality}</span>
+                  <span className="px-2 py-1 bg-card rounded-md border border-border">{stats.quality}</span>
                   {stats.episodes.sub && (
-                      <span className="flex items-center gap-1 px-2 py-1 bg-card/50 rounded-md border border-border/50">
+                      <span className="flex items-center gap-1 px-2 py-1 bg-card rounded-md border border-border">
                           <Clapperboard className="w-3 h-3" /> SUB {stats.episodes.sub}
                       </span>
                   )}
@@ -212,13 +194,13 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
               <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
                 {firstEpisodeWatchId && (
-                  <Button asChild size="lg" className="shadow-lg shadow-accent/30 bg-accent text-white hover:bg-accent/80">
+                  <Button asChild size="lg" className="shadow-lg shadow-primary/30 bg-primary text-primary-foreground hover:bg-primary/90 text-lg h-12 px-8">
                     <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2">
                         <Play /> Watch Now
                     </Link>
                   </Button>
                 )}
-                 <Button size="lg" variant="secondary">
+                 <Button size="lg" variant="secondary" className="h-12 px-8 text-lg">
                     <Bookmark /> Add to Watchlist
                 </Button>
               </div>
@@ -232,7 +214,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
       <div className="container mx-auto -mt-10 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-3 bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start">
+          <div className="lg:col-span-3 bg-card p-4 rounded-xl border border-border self-start">
                 <div className="space-y-3 text-sm">
                     {Object.entries(moreInfo).map(([key, value]) => {
                        if (!value || (Array.isArray(value) && value.length === 0)) return null;
@@ -244,7 +226,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                             {key === 'genres' && Array.isArray(value) ? (
                                 <div className="flex flex-wrap items-center justify-end gap-1 max-w-[60%]">
                                     {value.map((genre: string) => (
-                                        <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted/50 text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted">{genre}</Link>
+                                        <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted/50">{genre}</Link>
                                     ))}
                                 </div>
                             ) : (
@@ -259,11 +241,11 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
           <div className="lg:col-span-6 space-y-12">
               <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
 
-              <PVCarousel videos={promotionalVideos} />
+              <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
               
               {characters.length > 0 && (
                 <section>
-                   <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
+                   <h2 className="text-title mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
                     <div className="grid grid-cols-1 gap-2">
                         {characters.slice(0, 10).map(cv => (
                             <CharacterCard key={cv.character.id} cv={cv} />

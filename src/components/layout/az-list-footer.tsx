@@ -11,9 +11,9 @@ export default function AZList() {
     }
 
     return (
-        <div className="p-4 rounded-lg bg-card/50 border border-border/50">
+        <div className="p-4 rounded-lg bg-background border border-border">
             <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-lg">A-Z List</h3>
+                <h3 className="font-bold text-lg font-display">A-Z List</h3>
                 <p className="text-xs text-muted-foreground">Searching anime order by alphabet name A to Z.</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -23,7 +23,7 @@ export default function AZList() {
                         <Link 
                             key={char} 
                             href={`/az-list/${charPath}`}
-                            className="flex-grow text-center px-2 py-2 text-sm font-semibold rounded-md transition-colors bg-muted/40 hover:bg-muted"
+                            className="flex-grow text-center px-2 py-2 text-sm font-semibold rounded-md transition-colors bg-muted hover:bg-primary hover:text-primary-foreground"
                         >
                             {char}
                         </Link>

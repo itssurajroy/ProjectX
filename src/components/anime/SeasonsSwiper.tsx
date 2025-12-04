@@ -25,14 +25,14 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
 
     return (
         <section>
-            <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">Seasons</h2>
+            <h2 className="text-title mb-4 border-l-4 border-primary pl-3">Seasons</h2>
             <Carousel opts={{ align: "start" }} className="w-full">
                 <CarouselContent>
                     {seasons.map(season => (
                         <CarouselItem key={season.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5">
                              <Link href={`/anime/${season.id}`}>
                                 <div className={cn(
-                                    "relative aspect-[2/3] rounded-md overflow-hidden group border-2 transition-all", 
+                                    "relative aspect-[2/3] rounded-lg overflow-hidden group border-2 transition-all", 
                                     season.id === currentAnimeId ? "border-primary shadow-lg shadow-primary/30" : "border-transparent hover:border-primary/50"
                                 )}>
                                     <Image src={season.poster} alt={season.title} fill className="object-cover transition-transform group-hover:scale-105" />

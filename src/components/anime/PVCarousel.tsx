@@ -28,7 +28,7 @@ export default function PVCarousel({ videos, fallbackPoster }: PVCarouselProps) 
 
   return (
     <section>
-      <h2 className="text-title font-bold mb-4 border-l-4 border-primary pl-3">Promotional Videos</h2>
+      <h2 className="text-title mb-4 border-l-4 border-primary pl-3">Promotional Videos</h2>
       <Carousel
         opts={{
           align: "start",
