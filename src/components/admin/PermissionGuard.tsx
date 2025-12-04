@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/firebase";
 import { hasPermission } from "@/lib/adminRoles";
 import { Permission } from "@/lib/permissions";
 

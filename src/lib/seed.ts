@@ -1,5 +1,5 @@
 // src/lib/seed.ts
-import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { initializeFirebase } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // This is a server-side script to seed the database.
@@ -7,7 +7,7 @@ import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 async function seedDatabase() {
   console.log('Initializing admin Firebase...');
-  const { firestore } = initializeAdminFirebase();
+  const { firestore } = initializeFirebase();
   console.log('Firestore initialized.');
 
   try {

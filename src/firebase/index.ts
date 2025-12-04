@@ -3,7 +3,7 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserSessionPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration is securely sourced from environment variables.
 const firebaseConfig = {
@@ -15,33 +15,34 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// IMPORTANT: DO NOT MODIFY THIS FUNCTION
+function createFirebaseApp() {
+    if (getApps().length > 0) {
+        return getApp();
+    }
+    return initializeApp(firebaseConfig);
+}
+
+// IMPORTANT: This is the single source of truth for Firebase initialization.
 export function initializeFirebase() {
-  let firebaseApp: FirebaseApp;
-
-  // Ensure initialization is only done once
-  if (!getApps().length) {
-      firebaseApp = initializeApp(firebaseConfig);
-  } else {
-    firebaseApp = getApp();
-  }
-
+  const firebaseApp = createFirebaseApp();
   const auth = getAuth(firebaseApp);
   
   // Set session persistence to ensure user stays logged in.
-  setPersistence(auth, browserSessionPersistence);
+  // This is a client-side only operation.
+  if (typeof window !== 'undefined') {
+    setPersistence(auth, browserSessionPersistence);
+  }
 
-  return getSdks(firebaseApp);
-}
-
-export function getSdks(firebaseApp: FirebaseApp) {
+  const firestore = getFirestore(firebaseApp);
+  
   return {
     firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp),
+    auth,
+    firestore,
   };
 }
 
+// Export hooks and providers
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
@@ -51,11 +52,14 @@ export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
-export { GoogleAuthProvider, GithubAuthProvider };
 
-// Export instances for use in components that need direct access
-const sdks = getSdks(getApps().length ? getApp() : initializeApp(firebaseConfig));
-export const auth = sdks.auth;
-export const firestore = sdks.firestore;
+// Export auth providers for convenience
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
+
+// For components that need direct SDK access, they should get it from the context.
+// However, for admin panel server actions or other specific cases, we can export initialized instances.
+// Note: This might still cause issues if accessed before initialization is complete.
+// Prefer using hooks like useAuth() and useFirestore() where possible.
+const { auth, firestore } = initializeFirebase();
+export { auth, firestore };

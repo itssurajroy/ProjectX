@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/firebase";
 import Loading from "@/app/loading";
 
 export default function ProtectedAdmin({ children }: { children: React.ReactNode }) {

@@ -3,9 +3,9 @@
 import { doc, deleteDoc } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { AdminError, handleAdminError } from './utils';
-import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { initializeFirebase } from '@/firebase';
 
-const { firestore } = initializeAdminFirebase();
+const { firestore } = initializeFirebase();
 
 // NOTE: VERCEL_TOKEN is a placeholder. You would need to set this in your environment variables.
 const VERCEL_TOKEN = process.env.ADMIN_REVALIDATE_TOKEN;

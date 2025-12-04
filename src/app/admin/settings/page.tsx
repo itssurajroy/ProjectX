@@ -1,13 +1,13 @@
 'use client';
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { db } from "@/lib/firebase";
+import { firestore } from "@/firebase";
 import { doc, onSnapshot, updateDoc, setDoc } from "firebase/firestore";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<any>({});
-  const settingsRef = doc(db, "config", "site");
+  const settingsRef = doc(firestore, "config", "site");
 
   useEffect(() => {
     const unsub = onSnapshot(settingsRef, (doc) => {

@@ -3,12 +3,12 @@
 import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 import { handleAdminError, AdminError } from './utils';
-import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { initializeFirebase } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 
-const { firestore } = initializeAdminFirebase();
+const { firestore } = initializeFirebase();
 
 type UserRole = 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
 

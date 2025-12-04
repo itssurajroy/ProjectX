@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { db } from "@/lib/firebase";
+import { firestore } from "@/firebase";
 import { collection, query, where, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 
 export default function CommentsPage() {
@@ -10,7 +10,7 @@ export default function CommentsPage() {
 
   useEffect(() => {
     let q;
-    const commentsCol = collection(db, "comments"); // Assuming a top-level comments collection for simplicity
+    const commentsCol = collection(firestore, "comments"); // Assuming a top-level comments collection for simplicity
     if (filter === "flagged") {
         q = query(commentsCol, where("reports", ">", 0));
     } else if (filter === "today") {
@@ -29,7 +29,7 @@ export default function CommentsPage() {
 
   const deleteComment = async (id: string) => {
     // This assumes a simple structure. For nested comments, you need the full path.
-    await deleteDoc(doc(db, "comments", id));
+    await deleteDoc(doc(firestore, "comments", id));
   };
 
   return (

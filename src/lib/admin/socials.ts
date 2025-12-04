@@ -1,9 +1,9 @@
 'use server';
 
 import { doc, setDoc } from 'firebase/firestore';
-import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { initializeFirebase } from '@/firebase';
 
-const { firestore } = initializeAdminFirebase();
+const { firestore } = initializeFirebase();
 
 export async function updateSocials(links: {
   discord?: string;

@@ -1,5 +1,5 @@
 // src/lib/adminRoles.ts
-import { db } from "./firebase";
+import { firestore } from "@/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { RolePermissions, Permission } from "./permissions";
 
@@ -7,7 +7,7 @@ export type AdminRole = "superadmin" | "admin" | "moderator" | "viewer" | null;
 
 export async function getUserRole(uid: string): Promise<AdminRole> {
   try {
-    const docSnap = await getDoc(doc(db, "adminRoles", uid));
+    const docSnap = await getDoc(doc(firestore, "adminRoles", uid));
     if (docSnap.exists()) {
       return docSnap.data().role as AdminRole;
     }
@@ -19,7 +19,7 @@ export async function getUserRole(uid: string): Promise<AdminRole> {
 
 export async function getUserPermissions(uid: string): Promise<Permission[]> {
   try {
-    const docSnap = await getDoc(doc(db, "adminRoles", uid));
+    const docSnap = await getDoc(doc(firestore, "adminRoles", uid));
     if (!docSnap.exists()) return [];
 
     const data = docSnap.data();

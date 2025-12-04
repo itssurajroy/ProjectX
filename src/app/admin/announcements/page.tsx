@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { db } from "@/lib/firebase";
+import { firestore } from "@/firebase";
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 import { toast } from "sonner";
 
@@ -11,7 +11,7 @@ export default function AnnouncementsPage() {
   const [newMessage, setNewMessage] = useState("");
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "announcements"), (snap) => {
+    const unsub = onSnapshot(collection(firestore, "announcements"), (snap) => {
       setAnnouncements(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return unsub;
@@ -19,7 +19,7 @@ export default function AnnouncementsPage() {
 
   const createAnnouncement = async () => {
     if (!newTitle || !newMessage) return;
-    await addDoc(collection(db, "announcements"), {
+    await addDoc(collection(firestore, "announcements"), {
       title: newTitle,
       message: newMessage,
       active: true,
@@ -30,7 +30,7 @@ export default function AnnouncementsPage() {
   };
 
   const deleteAnnouncement = async (id: string) => {
-    await deleteDoc(doc(db, "announcements", id));
+    await deleteDoc(doc(firestore, "announcements", id));
     toast.success("Announcement deleted");
   };
 

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Home, Users, MessageSquare, AlertCircle, Megaphone, Settings, Activity, Shield, Cache, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/firebase";
 import SiteLogo from "../layout/SiteLogo";
 
 const navItems = [

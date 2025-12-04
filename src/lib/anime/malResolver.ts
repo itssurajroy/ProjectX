@@ -2,10 +2,10 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { AnimeService } from '../AnimeService';
 import { MALService } from '../MALService';
-import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { initializeFirebase } from '@/firebase';
 
 // Use the server-side initialized firestore instance
-const { firestore } = initializeAdminFirebase();
+const { firestore } = initializeFirebase();
 
 
 export async function getMALId(animeId: string): Promise<number | null> {

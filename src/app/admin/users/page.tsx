@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import { db } from "@/lib/firebase";
+import { firestore } from "@/firebase";
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { toast } from "sonner";
 import PermissionGuard from "@/components/admin/PermissionGuard";
@@ -18,7 +18,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   
   useEffect(() => {
-    const q = query(collection(db, "users"));
+    const q = query(collection(firestore, "users"));
     const unsub = onSnapshot(q, (snap) => {
       setUsers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
@@ -26,13 +26,13 @@ export default function UsersPage() {
   }, []);
 
   const banUser = async (userId: string) => {
-    await updateDoc(doc(db, "users", userId), { banned: true });
+    await updateDoc(doc(firestore, "users", userId), { banned: true });
     toast.success("User has been banned.");
   };
 
   const deleteUser = async (userId: string) => {
     if (confirm("Are you sure you want to permanently delete this user?")) {
-      await deleteDoc(doc(db, "users", userId));
+      await deleteDoc(doc(firestore, "users", userId));
       toast.success("User deleted.");
     }
   };

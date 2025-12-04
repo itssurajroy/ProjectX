@@ -3,12 +3,12 @@
 
 import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { handleAdminError } from './utils';
-import { initializeAdminFirebase } from '@/firebase/server-admin';
+import { initializeFirebase } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { SecurityRuleContext } from '@/firebase/errors';
 
-const { firestore } = initializeAdminFirebase();
+const { firestore } = initializeFirebase();
 
 // This is a placeholder. In a real app, you'd get this from your auth state.
 const mockAuth = { currentUser: { uid: 'admin-user-placeholder' } };
