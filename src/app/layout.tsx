@@ -9,8 +9,7 @@ import { NotificationProvider } from "@/components/notifications/NotificationPro
 import { Suspense } from "react";
 import Loading from "./loading";
 import { Analytics } from "@vercel/analytics/react";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { FirebaseProvider } from "@/firebase";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -63,12 +62,12 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen">
           <Suspense fallback={<Loading />}>
             <Providers>
-              <FirebaseProvider>
+              <FirebaseClientProvider>
                 <NotificationProvider>
                   <main className="flex-1 flex flex-col">{children}</main>
                   <ShadToaster />
                 </NotificationProvider>
-              </FirebaseProvider>
+              </FirebaseClientProvider>
             </Providers>
           </Suspense>
           <Analytics />

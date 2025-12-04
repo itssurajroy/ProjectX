@@ -57,3 +57,4 @@ export * from './error-emitter';
 // Export auth providers for convenience
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
+

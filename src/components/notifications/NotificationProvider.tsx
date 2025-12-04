@@ -2,17 +2,10 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useFirestore } from '@/firebase';
+import { useUserPanel } from '@/firebase/client-provider';
 import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Notification } from '@/types/notification';
-
-// MOCK USER - Replace with your actual user object
-const mockUser = {
-  uid: 'anonymous-user-123',
-  name: 'Anonymous',
-};
-
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -24,9 +17,7 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | null>(null);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const firestore = useFirestore();
-  // MOCK: Using a mock user until auth is implemented
-  const user = mockUser; 
+  const { user, firestore } = useUserPanel();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -36,7 +27,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return;
     }
     
-    // Path should be /notifications/{userId}/items
     const notificationsColRef = collection(firestore, 'notifications', user.uid, 'items');
 
     const q = query(
@@ -56,7 +46,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             const data = change.doc.data();
             const notification = { id: change.doc.id, ...data } as Notification;
             if(!notification.read) {
-                // Check if the notification is recent (e.g., within last 10 seconds) to avoid showing old unread toasts
                 const isRecent = notification.createdAt && (new Date().getTime() - notification.createdAt.toDate().getTime() < 10000);
                 if (isRecent) {
                     newNotificationsFromSnapshot.push(notification);
@@ -74,7 +63,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setNotifications(notifs);
       setUnreadCount(unread);
 
-      // Show toast for new unread notifications
       newNotificationsFromSnapshot.forEach(n => {
         toast.custom((t) => (
           <div className={`max-w-sm w-full bg-gray-900 border border-gray-800 shadow-2xl rounded-2xl pointer-events-auto ring-1 ring-black ring-opacity-5 ${t.visible ? 'animate-in fade-in' : 'animate-out fade-out'}`}>
