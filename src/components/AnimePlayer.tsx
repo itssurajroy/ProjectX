@@ -23,7 +23,7 @@ function extractEpisodeNumber(episodeIdWithParam: string): string | null {
 }
 
 
-export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId: string; animeId: string; onNext: () => void }) {
+export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }: { episodeId: string; animeId: string; onNext: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sources, setSources] = useState<Source[]>([]);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
@@ -35,6 +35,9 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
+  // Sanitize the episode ID on component entry
+  const episodeId = rawEpisodeId?.split('?ep=')[0] || '';
+
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -44,7 +47,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  const episodeNumber = extractEpisodeNumber(episodeId);
+  const episodeNumber = extractEpisodeNumber(rawEpisodeId);
   const { user } = useUser();
   const firestore = useFirestore();
 
@@ -52,7 +55,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const saveHistory = useCallback(() => {
-    if (!user || !videoRef.current || !animeId || !episodeId) return;
+    if (!user || !videoRef.current || !animeId || !rawEpisodeId) return;
 
     const video = videoRef.current;
     const { currentTime, duration } = video;
@@ -64,14 +67,14 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     
     setDocumentNonBlocking(historyRef, {
       animeId,
-      episodeId,
+      episodeId: rawEpisodeId,
       episodeNumber: Number(episodeNumber),
       watchedAt: serverTimestamp(),
       progress: currentTime,
       duration: duration,
     }, { merge: true });
 
-  }, [user, firestore, animeId, episodeId, episodeNumber]);
+  }, [user, firestore, animeId, rawEpisodeId, episodeNumber]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -125,6 +128,7 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
 
 
   const loadStream = useCallback(async (server: EpisodeServer, category: 'sub' | 'dub' = 'sub') => {
+    if (!episodeId) return false;
     setStatus(`Contacting server: ${server.serverName}...`);
     try {
       const data = await AnimeService.getEpisodeSources(episodeId, server.serverName, category);
@@ -347,6 +351,8 @@ export default function AnimePlayer({ episodeId, animeId, onNext }: { episodeId:
     </div>
   );
 }
+    
+
     
 
     
