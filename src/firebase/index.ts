@@ -5,9 +5,6 @@ import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserSessionPersistence, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
-let firebaseApp: FirebaseApp;
-let auth: Auth;
-let firestore: Firestore;
 
 // IMPORTANT: This is the single source of truth for Firebase initialization.
 // It is wrapped in a function to ensure it's only called on the client.
@@ -20,6 +17,10 @@ export function initializeFirebase() {
     messagingSenderId: "20761769952",
     appId: "1:20761769952:web:1a66600ebcca874bc81d85"
   };
+
+  let firebaseApp: FirebaseApp;
+  let auth: Auth;
+  let firestore: Firestore;
 
   if (!getApps().length) {
     firebaseApp = initializeApp(firebaseConfig);

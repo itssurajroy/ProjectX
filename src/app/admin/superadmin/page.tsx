@@ -1,9 +1,11 @@
+
+'use client';
 import { AdminLayout } from "@/components/admin/AdminLayout";
-import ProtectedRoute from "@/components/admin/ProtectedRoute";
+import PermissionGuard from "@/components/admin/PermissionGuard";
 
 export default function SuperAdminPanel() {
   return (
-    <ProtectedRoute requiredRole="superadmin">
+    <PermissionGuard permission="all">
       <AdminLayout>
         <div className="space-y-10">
           <h1 className="text-7xl font-black bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
@@ -19,6 +21,6 @@ export default function SuperAdminPanel() {
           </div>
         </div>
       </AdminLayout>
-    </ProtectedRoute>
+    </PermissionGuard>
   );
 }
