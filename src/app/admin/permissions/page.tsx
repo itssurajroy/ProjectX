@@ -5,14 +5,16 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import PermissionGuard from "@/components/admin/PermissionGuard";
 import { RolePermissions, Permission } from '@/lib/permissions';
 import { useFirestore } from '@/firebase';
-import { collection, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, setDoc, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import toast from 'react-hot-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle, Shield } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 type RolesData = {
     [key: string]: {
@@ -22,12 +24,12 @@ type RolesData = {
 }
 
 const permissionGroups: { category: string, permissions: Permission[] }[] = [
-    { category: 'Users', permissions: ['view_users', 'edit_users', 'ban_users', 'delete_users'] },
+    { category: 'Users', permissions: ['view_users', 'edit_users', 'ban_users', 'delete_users', 'edit_user_xp'] },
     { category: 'Content', permissions: ['add_anime', 'edit_anime', 'delete_anime', 'manage_episodes'] },
-    { category: 'Moderation', permissions: ['moderate_comments', 'handle_reports', 'create_announcements'] },
+    { category: 'Moderation', permissions: ['moderate_comments', 'delete_comments', 'handle_reports', 'create_announcements', 'delete_announcements'] },
     { category: 'Security', permissions: ['manage_sessions', 'edit_permissions', 'view_audit_log'] },
-    { category: 'System', permissions: ['edit_site_settings', 'manage_staff', 'view_analytics'] },
-    { category: 'God Mode', permissions: ['all'] },
+    { category: 'System', permissions: ['edit_site_settings', 'manage_staff', 'view_analytics', 'clear_cache', 'manage_seo', 'manage_social_links'] },
+    { category: 'Super Admin', permissions: ['promote_admins', 'delete_database', 'all'] },
 ];
 
 const allPermissions = permissionGroups.flatMap(g => g.permissions);
@@ -38,6 +40,42 @@ export default function PermissionManagerPage() {
         <PermissionGuard permission="edit_permissions">
             <PermissionManager />
         </PermissionGuard>
+    )
+}
+
+function NewRoleDialog({ onRoleCreate }: { onRoleCreate: (name: string) => void }) {
+    const [name, setName] = useState('');
+    const [open, setOpen] = useState(false);
+
+    const handleCreate = () => {
+        if (name.trim()) {
+            onRoleCreate(name.trim());
+            setName('');
+            setOpen(false);
+        }
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                    <PlusCircle className="w-4 h-4" /> New Custom Role
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Create Custom Role</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                    <Input 
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Content Manager"
+                    />
+                    <Button onClick={handleCreate}>Create Role</Button>
+                </div>
+            </DialogContent>
+        </Dialog>
     )
 }
 
@@ -76,6 +114,24 @@ function PermissionManager() {
         return newRoles;
     });
   }
+  
+  const handleCreateRole = async (name: string) => {
+      if (!firestore) return;
+      const roleId = name.toLowerCase().replace(/\s+/g, '_');
+      if (roles[roleId]) {
+          toast.error("A role with this name already exists.");
+          return;
+      }
+      
+      const newRole = {
+          permissions: [],
+          priority: Object.keys(roles).length + 1
+      };
+      
+      await setDoc(doc(firestore, "roles", roleId), newRole);
+      toast.success(`Role "${name}" created.`);
+      setSelectedRole(roleId);
+  }
 
   const handleSave = async () => {
     if (!firestore) return;
@@ -102,13 +158,16 @@ function PermissionManager() {
     <div className="space-y-6">
         <div className="flex justify-between items-center">
             <div>
-                 <h1 className="text-2xl font-bold font-display">Permissions Matrix</h1>
-                 <p className="text-muted-foreground">Manage roles and their capabilities across the site.</p>
+                 <h1 className="text-2xl font-bold font-display flex items-center gap-2"><Shield className="w-6 h-6 text-primary" /> Permissions Matrix</h1>
+                 <p className="text-muted-foreground">Manage god-mode access. Tread carefully, Commander.</p>
             </div>
-            <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : null}
-                Save Changes
-            </Button>
+            <div className="flex items-center gap-2">
+                <NewRoleDialog onRoleCreate={handleCreateRole} />
+                <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2"/> : null}
+                    Save Changes
+                </Button>
+            </div>
         </div>
 
         {isLoading ? (
@@ -119,7 +178,7 @@ function PermissionManager() {
              <Card>
                 <CardContent className="p-0">
                     <div className="flex divide-x divide-border">
-                        <div className="w-48 p-4">
+                        <div className="w-56 p-4">
                             <h3 className="font-bold mb-4">Roles</h3>
                             <div className="flex flex-col gap-1">
                                 {roleNames.map(role => (
@@ -128,7 +187,7 @@ function PermissionManager() {
                                         onClick={() => setSelectedRole(role)}
                                         className={cn("text-left capitalize px-3 py-2 rounded-md text-sm font-medium transition-colors", selectedRole === role ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
                                     >
-                                        {role}
+                                        {role.replace(/_/g, ' ')}
                                     </button>
                                 ))}
                             </div>
@@ -138,19 +197,19 @@ function PermissionManager() {
                                 <div className="p-6 space-y-6">
                                     {permissionGroups.map(group => (
                                         <div key={group.category}>
-                                            <h4 className="font-bold mb-3 capitalize">{group.category}</h4>
+                                            <h4 className="font-bold mb-3 capitalize text-primary">{group.category}</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                 {group.permissions.map(permission => (
-                                                    <div key={permission} className="flex items-center space-x-2 p-2 rounded-md bg-muted/50">
+                                                    <div key={permission} className={cn("flex items-center space-x-3 p-3 rounded-md", roles[selectedRole]?.permissions.includes(permission) ? "bg-green-500/10" : "bg-muted/50")}>
                                                         <Checkbox
                                                             id={`${selectedRole}-${permission}`}
                                                             checked={roles[selectedRole]?.permissions.includes(permission) || roles[selectedRole]?.permissions.includes('all')}
-                                                            disabled={roles[selectedRole]?.permissions.includes('all') && permission !== 'all'}
+                                                            disabled={(roles[selectedRole]?.permissions.includes('all') && permission !== 'all') || roles[selectedRole]?.priority === 0}
                                                             onCheckedChange={() => handlePermissionChange(selectedRole, permission)}
                                                         />
                                                         <label
                                                             htmlFor={`${selectedRole}-${permission}`}
-                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize"
                                                         >
                                                             {permission.replace(/_/g, ' ')}
                                                         </label>
