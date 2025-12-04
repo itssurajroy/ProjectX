@@ -243,13 +243,13 @@
         }
       },
       {
-        "path": "/users/{userId}/history/{animeId}",
+        "path": "/users/{userId}/history/{historyId}",
         "definition": {
           "entityName": "UserHistory",
           "schema": {
             "$ref": "#/backend/entities/UserHistory"
           },
-          "description": "Stores user watch history."
+          "description": "Stores individual user watch history entries."
         }
       },
       {

@@ -13,8 +13,8 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
-import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { doc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
 
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
@@ -55,7 +55,7 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const saveHistory = useCallback(() => {
-    if (!user || !videoRef.current || !animeId || !rawEpisodeId) return;
+    if (!user || !videoRef.current || !animeId || !rawEpisodeId || !firestore) return;
 
     const video = videoRef.current;
     const { currentTime, duration } = video;
@@ -63,16 +63,16 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
     // Don't save if video hasn't started or is too short
     if (currentTime === 0 || duration < 60) return;
 
-    const historyRef = doc(firestore, 'users', user.uid, 'history', animeId);
+    const historyColRef = collection(firestore, 'users', user.uid, 'history');
     
-    setDocumentNonBlocking(historyRef, {
+    addDocumentNonBlocking(historyColRef, {
       animeId,
       episodeId: rawEpisodeId,
       episodeNumber: Number(episodeNumber),
       watchedAt: serverTimestamp(),
       progress: currentTime,
       duration: duration,
-    }, { merge: true });
+    });
 
   }, [user, firestore, animeId, rawEpisodeId, episodeNumber]);
 
