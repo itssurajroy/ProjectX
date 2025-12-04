@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper, Palette } from 'lucide-react';
+import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper } from 'lucide-react';
 import SiteLogo from '@/components/layout/SiteLogo';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -19,7 +19,6 @@ const navItems = [
   { name: 'Calendar', icon: Calendar, href: '/dashboard/calendar' },
   { name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' },
   { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
-  { name: 'Theme Studio', icon: Palette, href: '/dashboard/theme-studio' },
 ];
 
 const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: boolean }) => {
