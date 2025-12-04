@@ -8,6 +8,10 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    match /users/{userId}/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Admin-only collections
     match /adminRoles/{userId} {
       allow read: if request.auth != null;
@@ -19,12 +23,26 @@ service cloud.firestore {
     // Public anime data
     match /anime/{animeId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if false; // Only admins should write
+    }
+
+    // Comments are public to read, but only auth'd users can write
+    match /comments/{document=**} {
+        allow read: if true;
+        allow write: if request.auth != null;
+    }
+
+    // Watch together rooms can be read by anyone, but only auth'd users can interact
+    match /watch2gether_rooms/{roomId}/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
     }
 
     // Default deny all other collections for security
-    match /{document=**} {
+    match /{path=**}/documents/{document} {
       allow read, write: if false;
     }
   }
 }
+
+    
