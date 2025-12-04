@@ -10,22 +10,18 @@ import {
   query,
   orderBy,
   onSnapshot,
-  addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 import { sanitizeFirestoreId } from '@/lib/utils';
-import { initializeFirebase } from '@/firebase';
+import { useFirestore, addDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { AnimeEpisode } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import Spoiler from './Spoiler';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import type { SecurityRuleContext } from '@/firebase/errors';
 
-const { firestore } = initializeFirebase();
 
 interface Comment {
   id: string;
@@ -48,10 +44,12 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
   const [isSpoiler, setIsSpoiler] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const firestore = useFirestore();
 
   const currentEpNumber = searchParams.get('ep');
 
   const commentsRef = useMemo(() => {
+    if (!firestore) return null;
     const sanitizedEpisodeId = sanitizeFirestoreId(episodeId);
     return collection(
       firestore,
@@ -61,9 +59,10 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
       sanitizedEpisodeId,
       'messages'
     );
-  }, [animeId, episodeId]);
+  }, [animeId, episodeId, firestore]);
 
   useEffect(() => {
+    if (!commentsRef) return;
     const q = query(commentsRef, orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const commentsData: Comment[] = [];
@@ -84,23 +83,22 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
   }, [commentsRef]);
 
   const handlePostComment = async () => {
-    if (newComment.trim() === '') return;
+    if (newComment.trim() === '' || !commentsRef) return;
 
-    addDoc(commentsRef, {
+    const commentData = {
       author: 'Anonymous', // Placeholder
       text: newComment,
       timestamp: serverTimestamp(),
       avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
       isSpoiler: isSpoiler,
-    }).catch((serverError) => {
+    };
+    
+    addDocumentNonBlocking(commentsRef, commentData)
+      .catch((serverError) => {
         const permissionError = new FirestorePermissionError({
             path: commentsRef.path,
             operation: 'create',
-            requestResourceData: {
-                author: 'Anonymous',
-                text: newComment,
-                isSpoiler: isSpoiler,
-            },
+            requestResourceData: commentData,
         } satisfies SecurityRuleContext);
         errorEmitter.emit('permission-error', permissionError);
     });

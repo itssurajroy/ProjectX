@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/firebase";
+import { useAuth } from "@/firebase";
 import Loading from "@/app/loading";
 
 export default function ProtectedAdmin({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const auth = useAuth(); // Use hook
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
 
@@ -31,7 +32,7 @@ export default function ProtectedAdmin({ children }: { children: React.ReactNode
     });
 
     return () => unsub();
-  }, [router]);
+  }, [router, auth]);
 
   if (loading) {
     return <Loading />; // full-screen loader

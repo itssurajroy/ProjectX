@@ -11,17 +11,15 @@ import {
   query,
   orderBy,
   onSnapshot,
-  addDoc,
   serverTimestamp,
 } from 'firebase/firestore';
-import { initializeFirebase, addDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { initializeFirebase, addDocumentNonBlocking, errorEmitter, FirestorePermissionError, useFirestore } from '@/firebase';
 import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import { cn } from '@/lib/utils';
 import Spoiler from './Spoiler';
 import type { SecurityRuleContext } from '@/firebase/errors';
 
-const { firestore } = initializeFirebase();
 
 interface Comment {
   id: string;
@@ -36,17 +34,20 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
+  const firestore = useFirestore();
 
   const commentsRef = useMemo(() => {
+    if (!firestore) return null;
     return collection(
       firestore,
       'comments',
       animeId,
       'general'
     );
-  }, [animeId]);
+  }, [animeId, firestore]);
 
   useEffect(() => {
+    if (!commentsRef) return;
     const q = query(commentsRef, orderBy('timestamp', 'desc'));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const commentsData: Comment[] = [];
@@ -67,7 +68,7 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
   }, [commentsRef]);
 
   const handlePostComment = async () => {
-    if (newComment.trim() === '') return;
+    if (newComment.trim() === '' || !commentsRef) return;
 
     const commentData = {
       author: 'Anonymous', // Since auth is removed

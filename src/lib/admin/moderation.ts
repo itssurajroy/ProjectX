@@ -7,8 +7,6 @@ import { initializeFirebase } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
-const { firestore } = initializeFirebase();
-
 // This is a placeholder. In a real app, you'd get this from your auth state.
 const mockAuth = { currentUser: { uid: 'admin-user-placeholder' } };
 
@@ -20,7 +18,7 @@ export async function deleteComment(commentPath: string) {
   if (!commentPath) {
     throw new AdminError('Comment path is required.');
   }
-
+  const { firestore } = initializeFirebase();
   const commentRef = doc(firestore, commentPath);
   deleteDoc(commentRef)
     .then(() => {
@@ -45,7 +43,7 @@ export async function resolveReport(reportId: string, resolution: string) {
   if (!reportId || !resolution) {
     throw new AdminError('Report ID and resolution notes are required.');
   }
-
+  const { firestore } = initializeFirebase();
   const reportRef = doc(firestore, 'admin', 'reports', 'active', reportId);
   const reportSnap = await getDoc(reportRef);
 

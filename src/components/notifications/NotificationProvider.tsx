@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { initializeFirebase } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Notification } from '@/types/notification';
@@ -22,16 +22,16 @@ interface NotificationContextType {
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
-const { firestore } = initializeFirebase();
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  const firestore = useFirestore();
   // MOCK: Using a mock user until auth is implemented
   const user = mockUser; 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !firestore) {
       setNotifications([]);
       return;
     }
@@ -97,16 +97,16 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     });
 
     return () => unsub();
-  }, [user]);
+  }, [user, firestore]);
 
   const markAsRead = async (id: string) => {
-    if (!user) return;
+    if (!user || !firestore) return;
     const notifRef = doc(firestore, 'notifications', user.uid, 'items', id);
     await updateDoc(notifRef, { read: true });
   };
 
   const markAllAsRead = async () => {
-    if (!user) return;
+    if (!user || !firestore) return;
     const batch = writeBatch(firestore);
     notifications.filter(n => !n.read).forEach(n => {
         const notifRef = doc(firestore, 'notifications', user.uid, 'items', n.id);

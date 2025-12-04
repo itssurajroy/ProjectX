@@ -7,16 +7,13 @@ import { initializeFirebase } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
-
-const { firestore } = initializeFirebase();
-
 type UserRole = 'user' | 'premium' | 'moderator' | 'admin' | 'banned';
 
 async function updateUserRole(uid: string, role: UserRole) {
   if (!uid || !role) {
     throw new AdminError('User ID and role are required.');
   }
-
+  const { firestore } = initializeFirebase();
   const userRef = doc(firestore, 'users', uid);
   const payload = { role };
 
@@ -50,7 +47,7 @@ export async function bulkUpdateUserRoles(uids: string[], role: UserRole) {
     if (!uids || uids.length === 0 || !role) {
         throw new AdminError('User IDs and a role are required for bulk update.');
     }
-
+    const { firestore } = initializeFirebase();
     try {
         const batch = writeBatch(firestore);
         uids.forEach(uid => {

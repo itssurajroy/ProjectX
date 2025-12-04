@@ -2,8 +2,8 @@
 'use client';
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserSessionPersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, GithubAuthProvider, setPersistence, browserSessionPersistence, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 // Firebase configuration is securely sourced from environment variables.
 const firebaseConfig = {
@@ -15,25 +15,28 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-function createFirebaseApp() {
-    if (getApps().length > 0) {
-        return getApp();
-    }
-    return initializeApp(firebaseConfig);
-}
+let firebaseApp: FirebaseApp;
+let auth: Auth;
+let firestore: Firestore;
 
 // IMPORTANT: This is the single source of truth for Firebase initialization.
+// It is wrapped in a function to ensure it's only called on the client.
 export function initializeFirebase() {
-  const firebaseApp = createFirebaseApp();
-  const auth = getAuth(firebaseApp);
-  
-  // Set session persistence to ensure user stays logged in.
-  // This is a client-side only operation.
-  if (typeof window !== 'undefined') {
-    setPersistence(auth, browserSessionPersistence);
-  }
+  if (!getApps().length) {
+    firebaseApp = initializeApp(firebaseConfig);
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
 
-  const firestore = getFirestore(firebaseApp);
+    // Set session persistence to ensure user stays logged in.
+    // This is a client-side only operation.
+    if (typeof window !== 'undefined') {
+      setPersistence(auth, browserSessionPersistence);
+    }
+  } else {
+    firebaseApp = getApp();
+    auth = getAuth(firebaseApp);
+    firestore = getFirestore(firebaseApp);
+  }
   
   return {
     firebaseApp,
@@ -56,10 +59,3 @@ export * from './error-emitter';
 // Export auth providers for convenience
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
-
-// For components that need direct SDK access, they should get it from the context.
-// However, for admin panel server actions or other specific cases, we can export initialized instances.
-// Note: This might still cause issues if accessed before initialization is complete.
-// Prefer using hooks like useAuth() and useFirestore() where possible.
-const { auth, firestore } = initializeFirebase();
-export { auth, firestore };

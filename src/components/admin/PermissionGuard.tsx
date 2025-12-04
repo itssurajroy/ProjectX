@@ -1,6 +1,7 @@
+
 'use client';
 import { useEffect, useState } from "react";
-import { auth } from "@/firebase";
+import { useAuth } from "@/firebase";
 import { hasPermission } from "@/lib/adminRoles";
 import { Permission } from "@/lib/permissions";
 
@@ -15,6 +16,7 @@ export default function PermissionGuard({
 }) {
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const auth = useAuth(); // Use hook
 
   useEffect(() => {
     const check = async () => {
@@ -40,7 +42,7 @@ export default function PermissionGuard({
     });
 
     return () => unsubscribe();
-  }, [permission]);
+  }, [permission, auth]);
 
   if (loading) return <div className="text-4xl animate-pulse">Checking permissions...</div>;
   if (!allowed) return <>{fallback}</>;
