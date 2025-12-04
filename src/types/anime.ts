@@ -1,3 +1,4 @@
+
 export interface AnimeBase {
     id: string;
     name: string;
@@ -87,10 +88,7 @@ export interface PromotionalVideo {
     thumbnail?: string;
 }
 
-export interface AnimeInfo {
-    id: string;
-    name: string;
-    poster: string;
+export interface AnimeInfo extends AnimeBase {
     description: string;
     stats: {
         rating: string;
@@ -206,4 +204,14 @@ export interface QtipAnime {
   aired: string;
   status: string;
   genres: string[];
+}
+
+export interface UserHistory {
+    id: string;
+    animeId: string;
+    episodeId: string;
+    episodeNumber: number;
+    watchedAt: any;
+    progress: number;
+    duration: number;
 }
