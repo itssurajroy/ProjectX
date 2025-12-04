@@ -1,46 +1,31 @@
 
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged } from "firebase/auth";
-import { useAuth } from "@/firebase";
+import { useUser } from "@/firebase";
 import Loading from "@/app/loading";
 
 export default function ProtectedAdmin({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const auth = useAuth(); // Use hook
-  const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  const { user, isUserLoading } = useUser();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Not logged in → redirect to your login page
-        router.replace("/login"); // change "/login" to your actual login route
-        return;
-      }
+    // If the auth state is resolved and there's still no user, redirect to login.
+    if (!isUserLoading && !user) {
+      router.replace("/login");
+    }
+  }, [user, isUserLoading, router]);
 
-      // OPTIONAL: extra check if you only want specific users
-      // const allowedUIDs = ["your-uid-here", "another-admin-uid"];
-      // if (!allowedUIDs.includes(user.uid)) {
-      //   router.replace("/");
-      //   return;
-      // }
-
-      setAllowed(true);
-      setLoading(false);
-    });
-
-    return () => unsub();
-  }, [router, auth]);
-
-  if (loading) {
-    return <Loading />; // full-screen loader
+  // While checking the user's auth state, show a loading screen.
+  if (isUserLoading) {
+    return <Loading />;
   }
 
-  if (!allowed) {
-    return null; // will be redirected anyway
+  // If there is a user, render the admin content.
+  if (user) {
+    return <>{children}</>;
   }
 
-  return <>{children}</>;
+  // If no user and not loading (i.e., about to redirect), render nothing to prevent flashes of content.
+  return null;
 }
