@@ -5,6 +5,7 @@ import { SITE_NAME } from '@/lib/constants';
 import { Twitter, Send, Rss } from 'lucide-react';
 import AZList from './az-list-footer';
 import SiteLogo from './SiteLogo';
+import { useChangelogStore } from '@/store/changelog-store';
 
 const socialLinks = [
     { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: <Send className="w-5 h-5" />, color: 'bg-blue-600' },
@@ -15,6 +16,7 @@ const socialLinks = [
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { openChangelog } = useChangelogStore();
 
   return (
     <footer className="bg-card text-muted-foreground mt-12 border-t border-border">
@@ -40,6 +42,7 @@ export default function Footer() {
             <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
             <Link href="/dmca" className="hover:text-primary transition-colors">DMCA</Link>
             <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
+            <button onClick={openChangelog} className="hover:text-primary transition-colors">What's New</button>
         </div>
 
         <div className="text-center text-xs text-muted-foreground space-y-2">

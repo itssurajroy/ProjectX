@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Zap, SkipForward, Info, Bug, Search } from 'lucide-react';
+import { useChangelogStore } from '@/store/changelog-store';
 
 const features = [
   {
@@ -38,22 +39,22 @@ const features = [
 const CHANGELOG_VERSION = '1.02';
 
 export default function ChangelogPopup() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isOpen, closeChangelog, openChangelog } = useChangelogStore();
 
   useEffect(() => {
     const hasSeenChangelog = sessionStorage.getItem(`changelog_${CHANGELOG_VERSION}`);
     if (!hasSeenChangelog) {
-      setIsOpen(true);
+      openChangelog();
       sessionStorage.setItem(`changelog_${CHANGELOG_VERSION}`, 'true');
     }
-  }, []);
-
-  if (!isOpen) {
-    return null;
-  }
+  }, [openChangelog]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!open) {
+            closeChangelog();
+        }
+    }}>
       <DialogContent className="max-w-md bg-card border-border">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
@@ -76,7 +77,7 @@ export default function ChangelogPopup() {
           ))}
         </div>
         <div className="mt-6 flex justify-end">
-          <Button onClick={() => setIsOpen(false)}>Continue Watching</Button>
+          <Button onClick={closeChangelog}>Continue Watching</Button>
         </div>
       </DialogContent>
     </Dialog>
