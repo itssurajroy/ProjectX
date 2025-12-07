@@ -15,23 +15,23 @@ import { useChangelogStore } from '@/store/changelog-store';
 
 const features = [
   {
-    title: 'God-Tier Search Fixed',
-    description: 'The search bar and its instant suggestion dropdown have been fully repaired. Search now provides immediate, accurate results as you type.',
+    title: 'Search Jutsu: Mind-Reader Technique',
+    description: 'Our search bar has mastered a forbidden art. It now reads your mind, providing instant, god-tier suggestions before you can even finish typing.',
     icon: <Search className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'Filler Episode Skipper',
-    description: 'A popup now warns you about filler episodes, giving you the option to skip directly to the next canon episode.',
+    title: 'Filler Arc Time-Skip',
+    description: 'A new power awakens! You are now warned of filler episodes and can instantly time-skip to the next canon installment.',
     icon: <SkipForward className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'Performance & Stability Boost',
-    description: 'Upgraded our core framework to Next.js 15 and squashed numerous bugs for a faster, more reliable experience.',
+    title: 'System Power-Up & Stability Overhaul',
+    description: 'We\'ve powered up our core systems to the next level (Next.js 15) and defeated countless bugs for a legendary, lightning-fast experience.',
     icon: <Zap className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'A-Z List Tooltips Restored',
-    description: 'Anime information tooltips on the A-Z list page are now fully functional again.',
+    title: 'Scroll of Knowledge: A-Z List',
+    description: 'The ancient tooltips on the A-Z List have had their seals removed. Hover to reveal forbidden knowledge about any series once more.',
     icon: <Info className="w-5 h-5 text-primary" />,
   },
 ];
@@ -59,10 +59,10 @@ export default function ChangelogPopup() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
             <Zap className="w-7 h-7 text-primary" />
-            What's New in v1.02
+            Update v1.02: The Saga Continues!
           </DialogTitle>
           <DialogDescription>
-            We've rolled out some quality-of-life updates and major bug fixes to improve your viewing experience!
+            A new chapter begins! We've unlocked new powers and fixed ancient bugs to forge a better anime empire for you.
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-4">
@@ -77,7 +77,7 @@ export default function ChangelogPopup() {
           ))}
         </div>
         <div className="mt-6 flex justify-end">
-          <Button onClick={closeChangelog}>Continue Watching</Button>
+          <Button onClick={closeChangelog}>Continue Your Adventure</Button>
         </div>
       </DialogContent>
     </Dialog>
