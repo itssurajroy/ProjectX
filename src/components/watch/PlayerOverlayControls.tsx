@@ -66,21 +66,23 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
 
   return (
     <div className="bg-card/50 p-2 border border-border/50 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-      <div className="flex items-center gap-1 flex-wrap">
+      <div className="flex items-center gap-1 flex-wrap justify-center">
         {leftControls.map(item => (
           <ControlButton key={item.label} {...item} />
         ))}
       </div>
-      <div className="flex items-center gap-1 flex-wrap">
-          <Button onClick={onPrev} disabled={isPrevDisabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5 px-3">
+      <div className="w-full sm:w-auto flex items-center gap-1 flex-wrap justify-center">
+          <Button onClick={onPrev} disabled={isPrevDisabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5 px-3 flex-1 sm:flex-none">
             <SkipBack className="w-4 h-4 mr-1" /> Prev
           </Button>
-          <Button onClick={onNext} disabled={isNextDisabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5 px-3">
+          <Button onClick={onNext} disabled={isNextDisabled} variant="ghost" size="sm" className="text-muted-foreground h-auto p-1.5 px-3 flex-1 sm:flex-none">
             Next <SkipForward className="w-4 h-4 ml-1" />
           </Button>
-          {rightControls.map(item => (
-             <ControlButton key={item.label} {...item} />
-          ))}
+          <div className="hidden sm:flex items-center gap-1 flex-wrap">
+            {rightControls.map(item => (
+              <ControlButton key={item.label} {...item} />
+            ))}
+          </div>
       </div>
     </div>
   );

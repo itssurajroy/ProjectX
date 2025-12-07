@@ -1,3 +1,4 @@
+
 'use client';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -12,9 +13,9 @@ const navItems = [
   { name: 'Home', icon: Home, href: '/dashboard' },
   { name: 'Watchlist', icon: Bookmark, href: '/dashboard/watchlist' },
   { name: 'History', icon: History, href: '/dashboard/history' },
+  { name: 'Profile', icon: User, href: '/dashboard/profile' },
   { name: 'Statistics', icon: BarChart3, href: '/dashboard/stats' },
   { name: 'Achievements', icon: Trophy, href: '/dashboard/achievements' },
-  { name: 'Profile', icon: User, href: '/dashboard/profile' },
   { name: 'Friends', icon: Users, href: '/dashboard/friends' },
   { name: 'Calendar', icon: Calendar, href: '/dashboard/calendar' },
   { name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' },
@@ -39,8 +40,8 @@ const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: b
 }
 
 const MobileBottomNav = () => {
-    const mobileNavItems = navItems.slice(0, 4); // Show first 4 items + a 'more' button
-     const pathname = usePathname();
+    const mobileNavItems = navItems.filter(item => ['Home', 'Watchlist', 'History', 'Profile'].includes(item.name));
+    const pathname = usePathname();
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 lg:hidden">
