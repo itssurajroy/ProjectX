@@ -161,7 +161,7 @@ function MoviesPageContent() {
             className="relative z-10"
         >
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-glow tracking-tight uppercase">
-              Movie Collection
+              Cinematic Universe
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-2xl mx-auto">
               Explore thousands of animated films, from timeless classics to the latest blockbusters.
