@@ -9,20 +9,10 @@ export async function GET(request: NextRequest) {
   
   const q = searchParams.get('q');
   
+  // This route no longer handles suggestions.
+  // That logic is now in /api/search/suggestion/route.ts
   if (request.nextUrl.pathname.includes('/suggestion')) {
-      if (!q) {
-          return NextResponse.json({ success: false, message: "Query 'q' is required for suggestions." }, { status: 400 });
-      }
-      const suggestionUrl = `${BASE_URL}/search/suggestion?q=${encodeURIComponent(q)}`;
-      try {
-          const res = await fetch(suggestionUrl, { next: { revalidate: 300 } }); // Cache for 5 minutes
-          if (!res.ok) throw new Error(`Suggestion API failed with status: ${res.status}`);
-          const data = await res.json();
-          return NextResponse.json(data);
-      } catch (error: any) {
-          console.error('[Search Suggestion API Error]', error);
-          return NextResponse.json({ success: false, message: "Suggestions unavailable", error: error.message }, { status: 503 });
-      }
+      return NextResponse.json({ success: false, message: "This endpoint is deprecated. Use /api/search/suggestion instead." }, { status: 410 });
   }
 
   const advancedParams = new URLSearchParams();
@@ -66,5 +56,6 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
+
 
 

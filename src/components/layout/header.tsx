@@ -2,17 +2,15 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark, Users, Bell } from 'lucide-react';
+import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark, Users, Bell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { SearchSuggestionResponse } from '@/types/anime';
+import { SearchSuggestion } from '@/types/anime';
 import Image from 'next/image';
 import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import NotificationBell from '../notifications/NotificationBell';
-import { AnimeService } from '@/lib/AnimeService';
 import { useUser, useAuth } from '@/firebase';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -137,6 +135,8 @@ function UserAuth() {
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -147,11 +147,31 @@ export default function Header() {
     setMounted(true);
   }, []);
   
-  const { data: suggestionsResult } = useQuery<SearchSuggestionResponse>({
-      queryKey: ['searchSuggestions', searchQuery],
-      queryFn: () => AnimeService.getSearchSuggestions(searchQuery),
-      enabled: searchQuery.length > 2,
-  });
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      setIsLoading(true);
+      const res = await fetch(`/api/search/suggestion?q=${encodeURIComponent(searchQuery)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSuggestions(data.data?.suggestions || []);
+        setShowSuggestions(true);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+      setIsLoading(false);
+    };
+
+    const timer = setTimeout(fetchSuggestions, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -171,8 +191,6 @@ export default function Header() {
       setShowSuggestions(false);
     }
   };
-
-  const suggestions = suggestionsResult?.suggestions || [];
   
   const navItems = [
     { href: "/home", label: "Home" },
@@ -207,7 +225,7 @@ export default function Header() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => setShowSuggestions(true)}
+                      onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
                       placeholder="Search anime..."
                       className="bg-card w-full rounded-full h-11 px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all"
                   />
@@ -215,9 +233,11 @@ export default function Header() {
                       <Search className="w-4 h-4" />
                   </button>
               </form>
-               {showSuggestions && searchQuery.length > 2 && (
+               {showSuggestions && searchQuery.length > 0 && (
                  <div className="absolute top-full mt-2 w-full bg-card rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto border border-border">
-                    {suggestions && suggestions.length > 0 ? suggestions.slice(0, 8).map(anime => (
+                    {isLoading ? (
+                      <div className="p-4 text-center text-muted-foreground"><Loader2 className="w-5 h-5 animate-spin inline-block"/></div>
+                    ) : suggestions.length > 0 ? suggestions.map(anime => (
                       <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
                            <Image src={anime.poster} alt={anime.name} fill sizes="40px" className="rounded-md object-cover" />
