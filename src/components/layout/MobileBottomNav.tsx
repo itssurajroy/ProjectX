@@ -1,4 +1,3 @@
-
 'use client';
 
 import { cn } from "@/lib/utils";
@@ -28,7 +27,7 @@ export default function MobileBottomNav() {
         { href: "/tv", icon: Tv, label: "TV" },
     ];
     return (
-        <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden hide-in-landscape">
             <div className="grid grid-cols-3 items-center justify-around h-full">
                 {navItems.map(item => (
                     <NavLink key={item.href} {...item} />

@@ -123,6 +123,12 @@ img {
             opacity: 0.8;
         }
     }
+    
+    @media (orientation: landscape) {
+        .hide-in-landscape {
+            display: none !important;
+        }
+    }
 }
 
 @layer components {
