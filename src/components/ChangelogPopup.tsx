@@ -33,11 +33,6 @@ const features = [
     description: 'Anime information tooltips on the A-Z list page are now fully functional again.',
     icon: <Info className="w-5 h-5 text-primary" />,
   },
-  {
-    title: 'Persistent Bug Fixes',
-    description: 'Finally eliminated the stubborn "Missing Permissions" error and resolved all dependency conflicts.',
-    icon: <Bug className="w-5 h-5 text-primary" />,
-  },
 ];
 
 const CHANGELOG_VERSION = '1.02';
