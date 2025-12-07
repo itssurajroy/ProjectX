@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,9 +10,14 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Zap, SkipForward, Info, Bug } from 'lucide-react';
+import { Zap, SkipForward, Info, Bug, Search } from 'lucide-react';
 
 const features = [
+  {
+    title: 'God-Tier Search Fixed',
+    description: 'The search bar and its instant suggestion dropdown have been fully repaired. Search now provides immediate, accurate results as you type.',
+    icon: <Search className="w-5 h-5 text-primary" />,
+  },
   {
     title: 'Filler Episode Skipper',
     description: 'A popup now warns you about filler episodes, giving you the option to skip directly to the next canon episode.',
@@ -34,7 +40,7 @@ const features = [
   },
 ];
 
-const CHANGELOG_VERSION = '1.01';
+const CHANGELOG_VERSION = '1.02';
 
 export default function ChangelogPopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -57,7 +63,7 @@ export default function ChangelogPopup() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
             <Zap className="w-7 h-7 text-primary" />
-            What's New in v1.01
+            What's New in v1.02
           </DialogTitle>
           <DialogDescription>
             We've rolled out some quality-of-life updates and major bug fixes to improve your viewing experience!
