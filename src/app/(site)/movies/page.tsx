@@ -5,10 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Film, Sparkles, Filter, ChevronDown, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Film, Sparkles, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Suspense, useState, useMemo, useCallback } from 'react';
+import { Suspense, useState, useCallback } from 'react';
 import { AnimeService } from '@/lib/AnimeService';
 import { HomeData, SearchResult } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,12 +18,20 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 
-function MoviesFilter() {
+function MoviesFilter({ onFilterChange, initialFilters }: { onFilterChange: (filters: any) => void; initialFilters: any; }) {
   const { data: homeDataResult } = useQuery<HomeData>({
       queryKey: ['homeData'],
       queryFn: AnimeService.home,
   });
   const genres = homeDataResult?.genres || [];
+
+  const [genre, setGenre] = useState(initialFilters.genre || 'all');
+  const [year, setYear] = useState(initialFilters.year || 'all');
+  const [sort, setSort] = useState(initialFilters.sort || 'popularity');
+
+  const handleApply = () => {
+    onFilterChange({ genre, year, sort });
+  };
   
   return (
     <div className="bg-card/50 p-4 rounded-lg border border-border/50 backdrop-blur-sm mb-12">
@@ -33,21 +40,21 @@ function MoviesFilter() {
                 <Filter className="w-5 h-5 text-primary" />
                 Filter Movies
             </h3>
-            <Select>
+            <Select value={genre} onValueChange={setGenre}>
                 <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="All Genres" /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Genres</SelectItem>
                     {genres.map(g => <SelectItem key={g} value={g.toLowerCase()}>{g}</SelectItem>)}
                 </SelectContent>
             </Select>
-             <Select>
+             <Select value={year} onValueChange={setYear}>
                 <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="All Years" /></SelectTrigger>
                 <SelectContent>
                      <SelectItem value="all">All Years</SelectItem>
                     {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
                 </SelectContent>
             </Select>
-            <Select defaultValue="popularity">
+            <Select value={sort} onValueChange={setSort}>
                 <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="Sort By" /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="popularity">Popularity</SelectItem>
@@ -55,7 +62,7 @@ function MoviesFilter() {
                     <SelectItem value="rating">Rating</SelectItem>
                 </SelectContent>
             </Select>
-            <Button className="col-span-2 md:col-span-1">Apply</Button>
+            <Button onClick={handleApply} className="col-span-2 md:col-span-1">Apply</Button>
         </div>
     </div>
   )
@@ -123,7 +130,11 @@ function MoviesPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  
   const page = Number(searchParams.get('page') || '1');
+  const genre = searchParams.get('genre') || 'all';
+  const year = searchParams.get('year') || 'all';
+  const sort = searchParams.get('sort') || 'popularity';
 
   const {
     data,
@@ -132,16 +143,41 @@ function MoviesPageContent() {
     error,
     refetch,
   } = useQuery<SearchResult>({
-    queryKey: ['movies', page],
-    queryFn: () => AnimeService.movies(page),
+    queryKey: ['movies', page, genre, year, sort],
+    queryFn: () => {
+        const params = new URLSearchParams({ type: 'Movie', page: String(page) });
+        if (genre !== 'all') params.append('genres', genre);
+        if (year !== 'all') params.append('season', year); // Assuming API uses 'season' for year
+        if (sort) params.append('sort', sort);
+        return AnimeService.search(params);
+    },
     staleTime: 15 * 60 * 1000,
     retry: 2,
   });
 
-  const handlePageChange = useCallback((newPage: number) => {
+  const updateUrlParams = (paramsToUpdate: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(newPage));
+    Object.entries(paramsToUpdate).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    });
     router.push(`${pathname}?${params.toString()}`);
+  }
+
+  const handlePageChange = useCallback((newPage: number) => {
+    updateUrlParams({ page: String(newPage) });
+  }, [searchParams, router, pathname]);
+
+  const handleFilterChange = useCallback((filters: { genre: string; year: string; sort: string; }) => {
+    updateUrlParams({ 
+        page: '1', // Reset to first page on filter change
+        genre: filters.genre !== 'all' ? filters.genre : '',
+        year: filters.year !== 'all' ? filters.year : '',
+        sort: filters.sort
+    });
   }, [searchParams, router, pathname]);
   
   const movies = data?.animes || [];
@@ -176,7 +212,10 @@ function MoviesPageContent() {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 -mt-16 relative z-10">
-        <MoviesFilter />
+        <MoviesFilter 
+            onFilterChange={handleFilterChange} 
+            initialFilters={{ genre, year, sort }} 
+        />
 
         {isLoading && <MoviesSkeleton />}
 
