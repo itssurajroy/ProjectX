@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const q = searchParams.get('q');
   
   // This route no longer handles suggestions.
-  // That logic is now in /api/search/suggestion/route.ts
+  // That logic is now in /api/search/suggestion
   if (request.nextUrl.pathname.includes('/suggestion')) {
       return NextResponse.json({ success: false, message: "This endpoint is deprecated. Use /api/search/suggestion instead." }, { status: 410 });
   }
@@ -56,6 +56,3 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
-
-
-
