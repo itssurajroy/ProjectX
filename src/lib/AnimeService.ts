@@ -26,7 +26,7 @@ export class AnimeService {
   static movies = (page = 1) => api(`/category/movie?page=${page}`);
   static tv = (page = 1) => api(`/category/tv?page=${page}`);
   static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
-  static getSearchSuggestions = (query: string) => api(`/search/suggestion?q=${encodeURIComponent(query)}`);
+  static getSearchSuggestions = (query: string) => api(`/search/suggestion?limit=10&q=${encodeURIComponent(query)}`);
   static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);
   static episodes = (id: string) => api(`/anime/${id}/episodes`);

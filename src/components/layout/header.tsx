@@ -217,7 +217,7 @@ export default function Header() {
               </form>
                {showSuggestions && searchQuery.length > 2 && (
                  <div className="absolute top-full mt-2 w-full bg-card rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto border border-border">
-                    {suggestions && suggestions.length > 0 ? suggestions.map(anime => (
+                    {suggestions && suggestions.length > 0 ? suggestions.slice(0, 8).map(anime => (
                       <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
                            <Image src={anime.poster} alt={anime.name} fill sizes="40px" className="rounded-md object-cover" />
