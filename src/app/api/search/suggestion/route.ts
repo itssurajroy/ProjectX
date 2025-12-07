@@ -1,65 +1,47 @@
 
 // src/app/api/search/suggestion/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, limit } from "firebase/firestore";
+
+const API_BASE_URL = "https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime";
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const q = searchParams.get("q")?.trim();
+  const { searchParams } = request.nextUrl;
+  const q = searchParams.get('q');
 
-  if (!q || q.length < 1) {
-    return NextResponse.json({
-      success: true,
-      data: { suggestions: [] }
-    });
+  if (!q) {
+    return NextResponse.json(
+      { success: false, message: "Query parameter 'q' is required." },
+      { status: 400 }
+    );
   }
 
   try {
-    const animeRef = collection(db, "anime");
-    const searchLower = q.toLowerCase();
+    const url = `${API_BASE_URL}/search/suggestion?q=${encodeURIComponent(q)}`;
+    const apiRes = await fetch(url, {
+      headers: {
+        'User-Agent': 'ProjectX/1.0 (Server-Side Proxy)',
+      },
+      next: { revalidate: 300 } // Revalidate every 5 minutes
+    });
 
-    // Search across multiple fields
-    const queries = [
-      query(animeRef, where("titleLower", ">=", searchLower), where("titleLower", "<=", searchLower + "\uf8ff"), limit(10)),
-      query(animeRef, where("jnameLower", ">=", searchLower), where("jnameLower", "<=", searchLower + "\uf8ff"), limit(10)),
-      query(animeRef, where("synonymsLower", "array-contains", searchLower), limit(10)),
-    ];
-
-    const snapshots = await Promise.all(queries.map(q => getDocs(q)));
-    const unique = new Map<string, any>();
-
-    snapshots.forEach(snap => {
-      snap.docs.forEach(doc => {
-        if (!unique.has(doc.id)) {
-          const data = doc.data();
-          unique.set(doc.id, {
-            id: doc.id,
-            name: data.title || data.name,
-            jname: data.titleJapanese || data.jname || "",
-            poster: data.coverImage || data.poster || "/placeholder.jpg",
-            moreInfo: [
-              data.year || "????",
-              data.type?.toUpperCase() || "TV",
-              data.duration ? `${data.duration}m` : "??m"
-            ]
-          });
-        }
+    if (!apiRes.ok) {
+      const errorBody = await apiRes.text();
+      return new NextResponse(errorBody, {
+        status: apiRes.status,
+        statusText: apiRes.statusText,
       });
-    });
+    }
 
-    const suggestions = Array.from(unique.values()).slice(0, 10);
+    const data = await apiRes.json();
+    return NextResponse.json(data);
 
-    return NextResponse.json({
-      success: true,
-      data: { suggestions }
-    });
-
-  } catch (error) {
-    console.error("Search suggestion error:", error);
-    return NextResponse.json({
-      success: false,
-      error: "Search failed"
-    }, { status: 500 });
+  } catch (error: any) {
+    console.error(`[API Suggestion ERROR] Failed to fetch suggestions for "${q}":`, error);
+    return new NextResponse(
+      JSON.stringify({ success: false, message: 'API suggestion proxy failed', error: error.message }),
+      { status: 502 }
+    );
   }
 }
+
+export const dynamic = 'force-dynamic';

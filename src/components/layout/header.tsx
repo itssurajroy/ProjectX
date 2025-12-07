@@ -16,6 +16,7 @@ import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
+import { AnimeService } from '@/lib/AnimeService';
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
@@ -156,16 +157,17 @@ export default function Header() {
 
     const fetchSuggestions = async () => {
       setIsLoading(true);
-      const res = await fetch(`/api/search/suggestion?q=${encodeURIComponent(searchQuery)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSuggestions(data.data?.suggestions || []);
+      try {
+        const data = await AnimeService.getSearchSuggestions(searchQuery);
+        setSuggestions(data.suggestions || []);
         setShowSuggestions(true);
-      } else {
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error);
         setSuggestions([]);
         setShowSuggestions(false);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     const timer = setTimeout(fetchSuggestions, 300);
