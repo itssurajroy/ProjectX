@@ -1,23 +1,24 @@
 'use client';
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { useFirestore } from "@/firebase";
 import Image from "next/image";
 
 export default function AnimeManagement() {
   const [animeList, setAnimeList] = useState<any[]>([]);
+  const firestore = useFirestore();
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "anime"), (snapshot) => {
+    const unsub = onSnapshot(collection(firestore, "anime"), (snapshot) => {
       const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setAnimeList(data);
     });
     return unsub;
-  }, []);
+  }, [firestore]);
 
   const deleteAnime = async (id: string) => {
     if (confirm("Delete this anime forever? This action cannot be undone.")) {
-      await deleteDoc(doc(db, "anime", id));
+      await deleteDoc(doc(firestore, "anime", id));
     }
   };
 

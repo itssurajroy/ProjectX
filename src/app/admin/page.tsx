@@ -1,7 +1,7 @@
 'use client';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { db } from '@/lib/firebase';
+import { useFirestore } from '@/firebase';
 import { Clapperboard, Users, Film } from 'lucide-react';
 
 const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: number, icon: React.ElementType, color: string }) => (
@@ -18,9 +18,10 @@ export default function AdminDashboard() {
   const [totalAnime, setTotalAnime] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalEpisodes, setTotalEpisodes] = useState(0);
+  const firestore = useFirestore();
 
   useEffect(() => {
-    const unsubAnime = onSnapshot(collection(db, "anime"), (snapshot) => {
+    const unsubAnime = onSnapshot(collection(firestore, "anime"), (snapshot) => {
       let totalEps = 0;
       snapshot.docs.forEach(doc => {
         totalEps += doc.data().episodes || 0;
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
       setTotalEpisodes(totalEps);
     });
 
-    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+    const unsubUsers = onSnapshot(collection(firestore, "users"), (snapshot) => {
       setTotalUsers(snapshot.size);
     });
 
@@ -37,7 +38,7 @@ export default function AdminDashboard() {
       unsubAnime();
       unsubUsers();
     };
-  }, []);
+  }, [firestore]);
 
   return (
     <div className="p-10">
