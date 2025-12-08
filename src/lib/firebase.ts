@@ -1,6 +1,6 @@
 
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth, GoogleAuthProvider, GithubAuthProvider, browserSessionPersistence } from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, GithubAuthProvider, browserSessionPersistence, setPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -12,11 +12,13 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 export const githubProvider = new GithubAuthProvider();
 
 // Critical: persist session even after refresh
-auth.setPersistence(browserSessionPersistence);
+if (typeof window !== "undefined") {
+    setPersistence(auth, browserSessionPersistence);
+}

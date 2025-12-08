@@ -10,6 +10,7 @@ async function api<T>(endpoint: string): Promise<any> {
 
   if (!res.ok) {
     const errorBody = await res.text();
+    console.error(`[API Request Error] ${res.status} ${res.statusText} on ${endpoint}. Body: ${errorBody}`);
     throw new Error(`API Request Failed: ${res.status} ${res.statusText} - ${errorBody}`);
   }
   const json = await res.json();

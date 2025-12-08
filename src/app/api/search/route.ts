@@ -2,11 +2,18 @@
 // src/app/api/search/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE_URL = "https://aniwatch-api-five-dusky.vercel.app/api/v2/hianime";
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   
+  if (!BASE_URL) {
+    return NextResponse.json(
+      { success: false, message: "API base URL is not configured." },
+      { status: 500 }
+    );
+  }
+
   const q = searchParams.get('q');
   
   // This route no longer handles suggestions.
@@ -56,3 +63,4 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
+
