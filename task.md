@@ -1,17 +1,18 @@
-# Project X - Task List
+# Project X - Operations Command
 
-This file tracks the current objectives and operational tasks for the Project X application.
+This file tracks the strategic objectives and operational tasks for the Project X application using a Kanban-style board.
 
-## High Priority
-- [ ] Stabilize filtering systems across all pages.
-- [ ] Ensure flawless UI/UX on all mobile device orientations.
-- [ ] Investigate and resolve any reported API service errors.
+---
 
-## Medium Priority
-- [ ] Enhance dashboard with more personalized statistics.
-- [ ] Implement full "Friends" system functionality.
-- [ ] Develop and deploy the "Theme Studio".
+### Mission Board
 
-## Completed
-- [x] Integrate changelog into the footer.
-- [x] Optimize mobile layouts for portrait and landscape modes.
+| Backlog | In Progress | Completed |
+| --- | --- | --- |
+| **High Priority Sprint** | | |
+| `[ ]` Stabilize filtering systems | `[ ]` **UI/UX Campaign: Mobile Dominance** | `[x]` **V1.02:** Integrate changelog into footer |
+| `[ ]` Investigate & resolve API service errors | &nbsp;&nbsp;&nbsp;`[ ]` Ensure flawless UI on all device orientations | `[x]` **V1.02:** Optimize mobile layouts for landscape mode |
+| | | |
+| **Feature Development Cycle** | | |
+| `[ ]` Implement full "Friends" system | | |
+| `[ ]` Develop & deploy "Theme Studio" | | |
+| `[ ]` Enhance dashboard with personalized stats | | |
