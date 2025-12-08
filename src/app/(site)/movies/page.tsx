@@ -5,10 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Film, Sparkles, Filter, ChevronDown, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Film, Sparkles, Filter, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Suspense, useState, useMemo, useCallback } from 'react';
+import { Suspense, useState, useCallback } from 'react';
 import { AnimeService } from '@/lib/AnimeService';
 import { HomeData, SearchResult } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,11 +19,28 @@ import { cn } from '@/lib/utils';
 
 
 function MoviesFilter() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const [genre, setGenre] = useState(searchParams.get('genre') || 'all');
+  const [year, setYear] = useState(searchParams.get('year') || 'all');
+  const [sort, setSort] = useState(searchParams.get('sort') || 'popularity');
+
   const { data: homeDataResult } = useQuery<HomeData>({
       queryKey: ['homeData'],
       queryFn: AnimeService.home,
   });
   const genres = homeDataResult?.genres || [];
+
+  const handleApplyFilters = () => {
+    const params = new URLSearchParams();
+    if (genre !== 'all') params.set('genres', genre);
+    if (year !== 'all') params.set('year', year);
+    params.set('sort', sort);
+    params.set('page', '1');
+    router.push(`${pathname}?${params.toString()}`);
+  }
   
   return (
     <div className="bg-card/50 p-4 rounded-lg border border-border/50 backdrop-blur-sm mb-12">
@@ -33,21 +49,21 @@ function MoviesFilter() {
                 <Filter className="w-5 h-5 text-primary" />
                 Filter Movies
             </h3>
-            <Select>
+            <Select value={genre} onValueChange={setGenre}>
                 <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="All Genres" /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Genres</SelectItem>
                     {genres.map(g => <SelectItem key={g} value={g.toLowerCase()}>{g}</SelectItem>)}
                 </SelectContent>
             </Select>
-             <Select>
+             <Select value={year} onValueChange={setYear}>
                 <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="All Years" /></SelectTrigger>
                 <SelectContent>
                      <SelectItem value="all">All Years</SelectItem>
                     {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
                 </SelectContent>
             </Select>
-            <Select defaultValue="popularity">
+            <Select value={sort} onValueChange={setSort}>
                 <SelectTrigger className="bg-muted border-none"><SelectValue placeholder="Sort By" /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="popularity">Popularity</SelectItem>
@@ -55,7 +71,7 @@ function MoviesFilter() {
                     <SelectItem value="rating">Rating</SelectItem>
                 </SelectContent>
             </Select>
-            <Button className="col-span-2 md:col-span-1">Apply</Button>
+            <Button onClick={handleApplyFilters} className="col-span-2 md:col-span-1">Apply</Button>
         </div>
     </div>
   )
@@ -123,7 +139,11 @@ function MoviesPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  
   const page = Number(searchParams.get('page') || '1');
+  const genres = searchParams.get('genres') || undefined;
+  const year = searchParams.get('year') || undefined;
+  const sort = searchParams.get('sort') || 'popularity';
 
   const {
     data,
@@ -132,8 +152,17 @@ function MoviesPageContent() {
     error,
     refetch,
   } = useQuery<SearchResult>({
-    queryKey: ['movies', page],
-    queryFn: () => AnimeService.movies(page),
+    queryKey: ['movies', { page, genres, year, sort }],
+    queryFn: () => {
+        const params = new URLSearchParams({ 
+            type: 'Movie',
+            page: String(page),
+            sort: sort
+        });
+        if (genres) params.set('genres', genres);
+        if (year) params.set('year', year);
+        return AnimeService.search(params);
+    },
     staleTime: 15 * 60 * 1000,
     retry: 2,
   });

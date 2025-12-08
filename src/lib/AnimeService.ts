@@ -23,8 +23,6 @@ async function api<T>(endpoint: string): Promise<any> {
 export class AnimeService {
   static request = (endpoint: string) => api(endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
   static home = () => api("/home");
-  static movies = (page = 1) => api(`/category/movie?page=${page}`);
-  static tv = (page = 1) => api(`/category/tv?page=${page}`);
   static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
   static getSearchSuggestions = (query: string) => api(`/search/suggestion?limit=10&q=${encodeURIComponent(query)}`);
   static anime = (id: string) => api(`/anime/${id}`);
