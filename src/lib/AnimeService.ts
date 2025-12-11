@@ -35,4 +35,7 @@ export class AnimeService {
   static getSchedule = (date: string) => api(`/schedule?date=${date}`);
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   static getGenres = () => api("/genres");
+  static tv = (page: number) => api(`/tv-shows?page=${page}`);
 }
+
+    
