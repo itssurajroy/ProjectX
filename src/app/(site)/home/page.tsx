@@ -50,20 +50,15 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
 
   return (
     <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
-        <div className="absolute inset-0">
-            {spotlights.map((s, index) => (
-                <ProgressiveImage
-                    key={s.id}
-                    src={s.poster}
-                    alt={s.name || "Spotlight Banner"}
-                    fill
-                    className={cn(
-                        'object-cover transition-opacity duration-1000',
-                        index === currentIndex ? 'opacity-30' : 'opacity-0'
-                    )}
-                    priority
-                />
-            ))}
+        <div className="absolute inset-0 transition-all duration-1000">
+             <ProgressiveImage
+                key={spotlight.id}
+                src={spotlight.poster}
+                alt={spotlight.name || "Spotlight Banner"}
+                fill
+                className={'object-cover opacity-30'}
+                priority
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
              <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
         </div>
