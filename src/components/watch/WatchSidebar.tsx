@@ -3,7 +3,7 @@
 import { AnimeAbout } from "@/types/anime";
 import { Star } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { CldImage } from "next-cloudinary";
+import AnimeImage from "../AnimeImage";
 
 interface WatchSidebarProps {
     anime: AnimeAbout;
@@ -44,14 +44,11 @@ export default function WatchSidebar({ anime, malData }: WatchSidebarProps) {
     return (
         <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start sticky top-4">
              <div className="relative aspect-[2/3] w-full max-w-[200px] mx-auto rounded-md overflow-hidden shadow-lg mb-4">
-                <CldImage 
-                  src={info.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                <AnimeImage 
+                  src={info.poster}
                   alt={info.name || "Anime Poster"} 
                   fill 
-                  crop="fill" 
                   className="object-cover"
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                 />
             </div>
             

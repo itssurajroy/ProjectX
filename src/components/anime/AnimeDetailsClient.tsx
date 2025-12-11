@@ -26,7 +26,7 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
-import { CldImage } from 'next-cloudinary';
+import AnimeImage from '../AnimeImage';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -46,15 +46,11 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
         {/* Character */}
         <div className="w-1/2 flex items-center gap-3 p-3">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
-                <CldImage 
-                  src={cv.character.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                <AnimeImage 
+                  src={cv.character.poster}
                   alt={cv.character.name || "Character"} 
-                  fill 
-                  loading="lazy" 
-                  crop="fill" 
+                  fill
                   className="object-cover rounded-md"
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                 />
             </div>
             <div className="overflow-hidden">
@@ -71,15 +67,11 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
                 </div>
                 <div className="relative aspect-square w-12 flex-shrink-0">
-                    <CldImage 
-                      src={cv.voiceActor.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                    <AnimeImage 
+                      src={cv.voiceActor.poster}
                       alt={cv.voiceActor.name || "Voice Actor"} 
                       fill 
-                      loading="lazy" 
-                      crop="fill" 
                       className="rounded-full object-cover"
-                      placeholder="blur"
-                      blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                     />
                 </div>
             </div>
@@ -163,15 +155,12 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
         <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
           <div className="absolute inset-0 z-0">
-            <CldImage
-              src={animeInfo.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
+            <AnimeImage
+              src={animeInfo.poster}
               alt={animeInfo.name || "Anime Banner"}
               fill
-              crop="fill"
               className="object-cover opacity-10 blur-xl scale-110"
               priority
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
             />
              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
              <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
@@ -179,16 +168,13 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
           <div className="container mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
             <div className="lg:col-span-3 flex justify-center lg:justify-start">
-              <CldImage
-                src={animeInfo.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
+              <AnimeImage
+                src={animeInfo.poster}
                 alt={animeInfo.name || "Anime Poster"}
                 width={250}
                 height={380}
-                crop="fill"
                 className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
                 priority
-                placeholder="blur"
-                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
               />
             </div>
             

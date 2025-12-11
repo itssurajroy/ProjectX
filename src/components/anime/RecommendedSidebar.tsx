@@ -4,7 +4,7 @@
 import { AnimeBase } from "@/types/anime";
 import Link from "next/link";
 import { Clapperboard } from "lucide-react";
-import { CldImage } from "next-cloudinary";
+import AnimeImage from "../AnimeImage";
 
 export default function RankedAnimeSidebar({ title, animes, icon }: { title: string, animes: AnimeBase[], icon?: React.ReactNode }) {
     if (!animes || animes.length === 0) return null;
@@ -21,16 +21,11 @@ export default function RankedAnimeSidebar({ title, animes, icon }: { title: str
                     href={`/anime/${anime.id}`}
                     className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
                 >
-                    <CldImage
-                        src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
+                    <AnimeImage
+                        src={anime.poster}
                         alt={anime.name || "Anime Poster"}
                         fill
-                        crop="fill"
-                        sizes="200px"
                         className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-60"
-                        loading="lazy"
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
                     

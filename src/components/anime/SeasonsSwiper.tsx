@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/carousel"
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { CldImage } from "next-cloudinary";
+import AnimeImage from "../AnimeImage";
 
 interface SeasonsSwiperProps {
     seasons: AnimeSeason[];
@@ -35,15 +35,11 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
                                     "relative aspect-[2/3] rounded-lg overflow-hidden group border-2 transition-all", 
                                     season.id === currentAnimeId ? "border-primary shadow-lg shadow-primary/30" : "border-transparent hover:border-primary/50"
                                 )}>
-                                    <CldImage 
-                                        src={season.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                                    <AnimeImage 
+                                        src={season.poster}
                                         alt={season.title || "Season Poster"} 
                                         fill 
-                                        crop="fill" 
                                         className="object-cover transition-transform group-hover:scale-105" 
-                                        loading="lazy"
-                                        placeholder="blur"
-                                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
                                         <p className="text-white font-semibold text-xs line-clamp-2 group-hover:text-primary transition-colors">{season.title}</p>

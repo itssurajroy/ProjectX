@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
-import { CldImage, CldUploadButton } from "next-cloudinary";
+import AnimeImage from "@/components/AnimeImage";
+import { CldUploadButton } from "next-cloudinary";
 
 export default function AnimeManagement() {
   const [animeList, setAnimeList] = useState<any[]>([]);
@@ -42,7 +43,7 @@ export default function AnimeManagement() {
         {animeList.map(anime => (
           <div key={anime.id} className="bg-gray-900/80 rounded-3xl overflow-hidden border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:-translate-y-1">
             <div className="relative w-full h-96">
-                <CldImage src={anime.coverImage} alt={anime.title} fill crop="fill" className="object-cover" />
+                <AnimeImage src={anime.coverImage} alt={anime.title || "Anime Cover"} fill className="object-cover" />
             </div>
             <div className="p-6 space-y-4">
               <h3 className="text-2xl font-bold truncate">{anime.title}</h3>

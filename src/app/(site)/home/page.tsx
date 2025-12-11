@@ -11,7 +11,7 @@ import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
 import { AnimeService } from '@/lib/AnimeService';
-import { CldImage } from 'next-cloudinary';
+import AnimeImage from '@/components/AnimeImage';
 
 interface HomeDataWithQtips extends HomeData {
     qtips: Record<string, QtipAnime>;
@@ -52,20 +52,16 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
     <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
-                <CldImage
+                <AnimeImage
                     key={s.id}
-                    src={s.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
+                    src={s.poster}
                     alt={s.name || "Spotlight Banner"}
                     fill
-                    crop="fill"
-                    sizes="100vw"
                     className={cn(
                         'object-cover transition-opacity duration-1000',
                         index === currentIndex ? 'opacity-30' : 'opacity-0'
                     )}
                     priority
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                 />
             ))}
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
@@ -147,16 +143,11 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
                     {animes.slice(0, 7).map((anime, index) => (
                         <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
-                                <CldImage 
-                                  src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                                <AnimeImage 
+                                  src={anime.poster}
                                   alt={anime.name || "Anime Poster"} 
                                   fill 
-                                  crop="fill" 
-                                  sizes="48px" 
                                   className="object-cover rounded-md" 
-                                  loading="lazy"
-                                  placeholder="blur"
-                                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                                 />
                             </div>
                             <div className='overflow-hidden flex-1'>
@@ -269,16 +260,11 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                     href={`/anime/${anime.id}`}
                     className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
                 >
-                    <CldImage
-                        src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
+                    <AnimeImage
+                        src={anime.poster}
                         alt={anime.name || "Anime Poster"}
                         fill
-                        crop="fill"
-                        sizes="200px"
                         className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-20"
-                        loading="lazy"
-                        placeholder="blur"
-                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                     />
                     <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
                     

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useDebounce } from 'use-debounce';
 import { AnimeService } from '@/lib/AnimeService';
 import { SearchSuggestion } from '@/types/anime';
-import { CldImage } from 'next-cloudinary';
+import AnimeImage from './AnimeImage';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
@@ -71,7 +71,7 @@ export default function SearchBar() {
               onClick={() => { setOpen(false); setQuery(''); }}
               className="flex items-center gap-4 px-5 py-4 hover:bg-white/10 transition"
             >
-              <CldImage src={anime.poster} alt={anime.name} width={48} height={64} crop="fill" className="w-12 h-16 rounded-lg object-cover" />
+              <AnimeImage src={anime.poster} alt={anime.name} width={48} height={64} className="w-12 h-16 rounded-lg object-cover" />
               <div>
                 <p className="font-semibold">{anime.name}</p>
                 <p className="text-xs text-gray-400">

@@ -11,7 +11,7 @@ import Balancer from "react-wrap-balancer";
 import { AnimeBase, HomeData, SearchSuggestion } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
-import { CldImage } from "next-cloudinary";
+import AnimeImage from "@/components/AnimeImage";
 
 const socialLinks = [
     { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },
@@ -73,16 +73,13 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <CldImage 
+                        <AnimeImage 
                             src="https://picsum.photos/seed/anime-collage/1920/1080" 
                             data-ai-hint="anime collage cyberpunk" 
                             alt="Anime Collage" 
                             fill 
-                            crop="fill" 
                             priority 
                             className="object-cover opacity-10 blur-sm" 
-                            placeholder="blur"
-                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
@@ -118,16 +115,11 @@ export default function LandingPage() {
                                     {suggestions.map(anime => (
                                     <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                                         <div className="relative w-10 h-14 flex-shrink-0">
-                                            <CldImage 
-                                                src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                                            <AnimeImage 
+                                                src={anime.poster}
                                                 alt={anime.name || "Anime Poster"} 
                                                 fill 
-                                                crop="fill" 
-                                                sizes="40px" 
                                                 className="rounded-md object-cover" 
-                                                loading="lazy"
-                                                placeholder="blur"
-                                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                                             />
                                         </div>
                                         <div className='overflow-hidden'>

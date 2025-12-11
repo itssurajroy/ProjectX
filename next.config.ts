@@ -1,19 +1,21 @@
 
-import type {NextConfig} from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    unoptimized: true,  // ← DISABLES VERCEL OPTIMIZATION COMPLETELY
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',  // ← Allows ALL external image domains
+      },
+    ],
+  },
   reactStrictMode: true,
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
-  },
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'res.cloudinary.com' },
-      { protocol: 'https', hostname: '**' },
-    ],
   },
   async headers() {
     return [
