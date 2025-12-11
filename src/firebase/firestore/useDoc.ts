@@ -1,3 +1,4 @@
+
 // src/firebase/firestore/useDoc.ts
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot, DocumentData } from 'firebase/firestore';
@@ -18,7 +19,7 @@ export const useDoc = <T>(docPath: string) => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!docPath) {
+    if (!docPath || docPath.includes('undefined')) {
         setLoading(false);
         setData(null);
         return;

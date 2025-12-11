@@ -1,6 +1,6 @@
 
 
-import { AnimeBase } from "@/types/anime"
+import { AnimeBase } from "@/lib/types/anime"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
 import { Clapperboard, Mic, Play, Clock } from "lucide-react"

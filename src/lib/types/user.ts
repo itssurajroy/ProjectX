@@ -1,0 +1,12 @@
+
+export interface UserProfile {
+  displayName: string;
+  photoURL?: string;
+  email: string;
+  role: 'user' | 'admin' | 'moderator';
+  level?: number;
+  xp?: number;
+  premiumUntil?: any; // Could be Date or a server timestamp object
+  createdAt: any;
+  lastLogin: any;
+}

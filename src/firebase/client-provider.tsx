@@ -1,3 +1,4 @@
+
 // src/firebase/client-provider.tsx
 'use client';
 import { createContext, useEffect, useMemo, useState, ReactNode } from 'react';
@@ -10,7 +11,7 @@ import {
   Firestore,
 } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { UserProfile } from '@/types/user';
+import { UserProfile } from '@/lib/types/user';
 
 export interface FirebaseContextValue {
   auth: Auth;

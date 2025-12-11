@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeBase } from '@/types/anime';
+import { AnimeBase } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import { useMemo } from 'react';
@@ -9,9 +9,11 @@ import { Award, BookOpen, Calendar, Clapperboard, Film, Flame, Loader2, Star, Tr
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser, useCollection } from '@/firebase';
-import { WatchlistItem } from '@/types/watchlist';
-import { UserHistory } from '@/types/anime';
+import { useUser } from '@/firebase';
+import { UserHistory } from '@/lib/types/anime';
+import { WatchlistItem } from '@/lib/types/watchlist';
+import { useCollection } from '@/firebase';
+import AchievementCard from '@/components/dashboard/AchievementCard';
 
 const achievementsList = [
     { id: 'novice-watcher', title: 'Novice Watcher', description: 'Watch 10 episodes.', goal: 10, icon: <Clapperboard className="w-8 h-8" />, type: 'episodes' },
@@ -24,38 +26,6 @@ const achievementsList = [
     { id: 'genre-explorer', title: 'Genre Explorer', description: 'Watch anime from 5 different genres.', goal: 5, icon: <TrendingUp className="w-8 h-8" />, type: 'genres' },
 ];
 
-const AchievementCard = ({ achievement, progress }: { achievement: typeof achievementsList[0]; progress: number }) => {
-    const isUnlocked = progress >= achievement.goal;
-    const progressPercent = Math.min((progress / achievement.goal) * 100, 100);
-
-    return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div className={cn(
-                        "p-4 rounded-lg border-2 flex flex-col items-center justify-center text-center transition-all duration-300",
-                        isUnlocked 
-                            ? "bg-primary/10 border-primary/50 shadow-lg shadow-primary/20" 
-                            : "bg-card/50 border-border/50"
-                    )}>
-                        <div className={cn("mb-3", isUnlocked ? "text-primary" : "text-muted-foreground")}>
-                            {achievement.icon}
-                        </div>
-                        <h3 className="font-bold">{achievement.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1 mb-3">{achievement.description}</p>
-                        <div className="w-full mt-auto">
-                            <Progress value={progressPercent} className="h-2"/>
-                            <p className="text-xs text-muted-foreground mt-1">{Math.floor(progress)} / {achievement.goal}</p>
-                        </div>
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                    {isUnlocked ? <p>Unlocked!</p> : <p>{Math.max(0, achievement.goal - Math.floor(progress))} more to go!</p>}
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
-    );
-}
 
 export default function AchievementsPage() {
     const { user } = useUser();

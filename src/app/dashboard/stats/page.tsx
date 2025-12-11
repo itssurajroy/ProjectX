@@ -1,48 +1,17 @@
+
 'use client';
 
-import { AnimeBase } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
-import { useMemo } from 'react';
-import { BarChart3, Clock, Tv, Loader2, Star, TrendingUp } from 'lucide-react';
+import { Clock, Tv, Loader2, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import ProgressiveImage from '@/components/ProgressiveImage';
+import StatCard from '@/components/dashboard/StatCard';
 
 
 const ActivityHeatmap = dynamic(() => import('@/components/dashboard/ActivityHeatmap'), {
     ssr: false,
     loading: () => <div className="h-[200px] w-full flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin"/></div>
 });
-
-const StatCard = ({ title, value, icon: Icon }: { title: string, value: string | number, icon: React.ElementType }) => (
-    <Card className="bg-card/50 border-border/50">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-            <Icon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-            <div className="text-2xl font-bold">{value}</div>
-        </CardContent>
-    </Card>
-)
-
-const MostWatchedAnimeCard = ({ anime, count }: { anime: AnimeBase, count: number }) => (
-    <Link href={`/anime/${anime.id}`} className="flex items-center gap-3 group p-2 rounded-md hover:bg-muted/50 transition-colors">
-        <div className="relative w-12 h-[72px] flex-shrink-0">
-            <ProgressiveImage src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
-        </div>
-        <div className='overflow-hidden flex-1'>
-            <p className='font-semibold text-sm group-hover:text-primary line-clamp-1'>{anime.name}</p>
-            <p className="text-xs text-muted-foreground">{count} episodes watched</p>
-        </div>
-    </Link>
-);
-
-const COLORS = ["#a855f7", "#ec4899", "#f97316", "#10b981", "#3b82f6", "#fde047"];
 
 export default function StatsPage() {
     // This page is now non-functional as it relied on a user database.
