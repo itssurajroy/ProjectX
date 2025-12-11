@@ -91,7 +91,7 @@ function UserProfileMenu() {
             <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{user.isAnonymous ? 'Guest User' : (user.displayName || 'User')}</p>
                 {!user.isAnonymous && <p className="text-xs leading-none text-muted-foreground">{user.email}</p>}
-                {profile && <p className="text-xs leading-none text-primary pt-1">Level {profile.level || 1}</p>}
+                {profile && profile.role === 'admin' && <Badge variant="destructive" className="mt-1 w-fit">Admin</Badge>}
             </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -99,6 +99,13 @@ function UserProfileMenu() {
                 <UserIcon className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
             </DropdownMenuItem>
+            {profile && profile.role === 'admin' && (
+                 <DropdownMenuItem onClick={() => router.push('/admin')}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Admin Panel</span>
+                </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
@@ -110,17 +117,7 @@ function UserProfileMenu() {
 
 function UserAuth() {
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-  const googleProvider = new GoogleAuthProvider();
-
-  const handleGoogleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err) {
-      console.error("Google Sign-In Error", err);
-    }
-  };
-
+  
   if (isUserLoading) {
     return <div className="w-20 h-9 bg-muted/50 rounded-md animate-pulse" />;
   }
@@ -130,7 +127,9 @@ function UserAuth() {
   }
 
   return (
-    <Button onClick={handleGoogleLogin}>Login</Button>
+    <Button asChild>
+        <Link href="/login">Login</Link>
+    </Button>
   )
 }
 

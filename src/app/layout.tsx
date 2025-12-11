@@ -1,3 +1,4 @@
+
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
@@ -9,7 +10,7 @@ import { NotificationProvider } from "@/components/notifications/NotificationPro
 import { Suspense } from "react";
 import Loading from "./loading";
 import { Analytics } from "@vercel/analytics/react";
-import { FirebaseClientProvider } from "@/firebase/client-provider";
+import { FirebaseProvider } from "@/firebase/client-provider";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -62,12 +63,12 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen">
           <Suspense fallback={<Loading />}>
             <Providers>
-              <FirebaseClientProvider>
+              <FirebaseProvider>
                 <NotificationProvider>
                   <main className="flex-1 flex flex-col">{children}</main>
                   <ShadToaster />
                 </NotificationProvider>
-              </FirebaseClientProvider>
+              </FirebaseProvider>
             </Providers>
           </Suspense>
           <Analytics />
