@@ -1,4 +1,3 @@
-
 // src/firebase/client-provider.tsx
 'use client';
 
@@ -47,17 +46,4 @@ export function FirebaseClientProvider({ children }: { children: ReactNode }) {
       <FirebaseErrorListener />
     </FirebaseProvider>
   );
-}
-
-// Renamed from useUserPanel to avoid confusion with useUser
-export const useUserPanel = () => {
-    // This hook will now get its data from the FirebaseProvider's context.
-    // The implementation of that provider needs to be updated to supply this.
-    // For now, this is a placeholder.
-    return {
-        user: null,
-        profile: null,
-        isUserLoading: true,
-        firestore: null,
-    }
 }

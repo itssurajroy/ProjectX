@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useUserPanel } from '@/firebase/client-provider';
+import { useUser, useFirestore } from '@/firebase';
 import { collection, query, where, orderBy, limit, onSnapshot, doc, updateDoc, writeBatch } from 'firebase/firestore';
 import toast, { Toaster } from 'react-hot-toast';
 import type { Notification } from '@/types/notification';
@@ -17,7 +17,8 @@ interface NotificationContextType {
 const NotificationContext = createContext<NotificationContextType | null>(null);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const { user, firestore } = useUserPanel();
+  const { user } = useUser();
+  const firestore = useFirestore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 

@@ -29,10 +29,5 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null;
     }
-
-    // Default deny all other collections for security
-    match /{path=**}/documents/{document} {
-      allow read, write: if false;
-    }
   }
 }
