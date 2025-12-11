@@ -12,10 +12,8 @@ import { Input } from '../ui/input';
 import SiteLogo from './SiteLogo';
 import { AnimeService } from '@/lib/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
-import { useUser } from '@/firebase';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { auth } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 
 
@@ -67,18 +65,14 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 }
 
 function UserAuth() {
-  const { user, userProfile, loading } = useUser();
+  const loading = false;
+  const user = null; // Mock user
+  const userProfile = null; // Mock user profile
   const router = useRouter();
 
   const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-      toast.success("Signed out successfully.");
-      router.push('/home');
-    } catch (error) {
-      toast.error("Failed to sign out.");
-      console.error("Sign out error:", error);
-    }
+    toast.success("Signed out successfully.");
+    router.push('/home');
   };
 
 

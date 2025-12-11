@@ -13,15 +13,6 @@ import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import Link from 'next/link';
-import {
-  GoogleAuthProvider,
-  signInWithPopup,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
-
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -39,40 +30,15 @@ export default function LoginPage() {
   const handleAuthAction = async (action: 'login' | 'signup') => {
     setIsLoading(true);
     setError(null);
-    try {
-        if (action === 'signup') {
-            await createUserWithEmailAndPassword(auth, email, password);
-        } else {
-            await signInWithEmailAndPassword(auth, email, password);
-        }
-        toast.success(`Successfully ${action === 'signup' ? 'signed up' : 'logged in'}!`);
-        router.push('/dashboard');
-    } catch (err: any) {
-        console.error(err.code, err.message);
-        const friendlyError = getFirebaseErrorMessage(err.code);
-        setError(friendlyError);
-        toast.error(friendlyError);
-    } finally {
-        setIsLoading(false);
-    }
+    toast.error("Authentication is temporarily disabled.");
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        toast.success("Successfully logged in with Google!");
-        router.push('/dashboard');
-    } catch (err: any) {
-        console.error(err.code, err.message);
-        const friendlyError = getFirebaseErrorMessage(err.code);
-        setError(friendlyError);
-        toast.error(friendlyError);
-    } finally {
-        setIsLoading(false);
-    }
+    toast.error("Authentication is temporarily disabled.");
+    setIsLoading(false);
   };
 
   return (

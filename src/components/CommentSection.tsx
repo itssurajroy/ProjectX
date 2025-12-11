@@ -9,19 +9,14 @@ import { Comment } from '@/types/comment';
 import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import Spoiler from './comments/Spoiler';
-import { useUser, useCollection } from '@/firebase';
-import { db } from '@/lib/firebase';
-import { collection, query, where, addDoc, serverTimestamp, deleteDoc, doc, runTransaction } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function CommentSection({ animeId, episodeId }: { animeId: string; episodeId?: string }) {
-  const { user, userProfile } = useUser();
-
-  const commentQuery = episodeId
-    ? query(collection(db, 'comments'), where('animeId', '==', animeId), where('episodeId', '==', episodeId))
-    : query(collection(db, 'comments'), where('animeId', '==', animeId), where('episodeId', '==', null));
-
-  const { data: comments, loading: isLoading } = useCollection<Comment>(commentQuery.path, commentQuery);
+  const user = null; // Mock user
+  const userProfile = null; // Mock user profile
+  const comments: Comment[] = [];
+  const isLoading = false;
 
   const [input, setInput] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
@@ -31,27 +26,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
         if (!user) toast.error("You must be logged in to comment.");
         return;
     }
-
-    try {
-        await addDoc(collection(db, 'comments'), {
-            animeId,
-            episodeId: episodeId || null,
-            userId: user.uid,
-            username: userProfile.displayName,
-            userAvatar: userProfile.photoURL,
-            text: input,
-            spoiler: isSpoiler,
-            likes: [],
-            parentId: null,
-            timestamp: serverTimestamp(),
-        });
-        setInput('');
-        setIsSpoiler(false);
-        toast.success("Comment posted!");
-    } catch (error) {
-        toast.error("Failed to post comment.");
-        console.error("Error posting comment:", error);
-    }
+    toast.error("Commenting is temporarily disabled.");
   };
   
   const likeComment = async (id: string) => {
@@ -59,30 +34,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
         toast.error("You must be logged in to like comments.");
         return;
     }
-    const commentRef = doc(db, 'comments', id);
-    try {
-        await runTransaction(db, async (transaction) => {
-            const commentDoc = await transaction.get(commentRef);
-            if (!commentDoc.exists()) {
-                throw "Comment does not exist!";
-            }
-            const data = commentDoc.data();
-            const likes: string[] = data.likes || [];
-            
-            if (likes.includes(user.uid)) {
-                // Unlike
-                const newLikes = likes.filter(uid => uid !== user.uid);
-                transaction.update(commentRef, { likes: newLikes });
-            } else {
-                // Like
-                const newLikes = [...likes, user.uid];
-                transaction.update(commentRef, { likes: newLikes });
-            }
-        });
-    } catch (e) {
-        toast.error("Failed to update like.");
-        console.error(e);
-    }
+    toast.error("Liking is temporarily disabled.");
   };
 
   return (

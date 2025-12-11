@@ -11,14 +11,14 @@ import { Input } from '@/components/ui/input';
 import { curateAnime, CuratedAnime } from '@/ai/flows/curate-anime-flow';
 import { AnimeCard } from '@/components/AnimeCard';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
-import { useUser, useCollection } from '@/firebase';
-import { WatchlistItem } from '@/types/watchlist';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 
 export default function AiCuratorPage() {
-  const { user } = useUser();
-  const { data: watchlist, loading: loadingWatchlist } = useCollection<WatchlistItem>(`users/${user?.uid}/watchlist`);
+  const user = null; // Mock user
+  const watchlist: any[] = [];
+  const loadingWatchlist = false;
 
   const [theme, setTheme] = useState('hidden gems similar to my favorites');
   const [curationResult, setCurationResult] = useState<CuratedAnime[] | null>(null);

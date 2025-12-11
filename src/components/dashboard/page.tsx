@@ -8,7 +8,6 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useUser, useCollection } from '@/firebase';
 import { useMemo } from 'react';
 
 const Section = ({ title, icon: Icon, children, href }: { title: string, icon: React.ElementType, children: React.ReactNode, href?: string }) => (
@@ -48,8 +47,9 @@ const ContinueWatchingCard = ({ historyItem, animeDetails }: { historyItem: User
 };
 
 const ContinueWatchingSection = () => {
-    const { user } = useUser();
-    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
+    const user = null; // Mock user
+    const history: UserHistory[] = [];
+    const isLoadingHistory = false;
 
     const animeIds = useMemo(() => {
         if (!history || history.length === 0) return [];
@@ -104,7 +104,8 @@ const ContinueWatchingSection = () => {
 
 
 export default function DashboardHomePage() {
-     const { user, userProfile } = useUser();
+     const user = null; // Mock user
+     const userProfile = { displayName: 'Guest' }; // Mock user profile
      const { data: homeData, isLoading: isLoadingHome } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: AnimeService.home,

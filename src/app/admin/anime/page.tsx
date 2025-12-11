@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from "react";
 import ProgressiveImage from "@/components/ProgressiveImage";
@@ -47,6 +48,7 @@ export default function AnimeManagement() {
                 <ProgressiveImage 
                   src={anime.poster}
                   alt={anime.name || "Anime Cover"} 
+                  fill
                   className="object-cover" 
                 />
             </div>

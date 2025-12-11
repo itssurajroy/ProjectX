@@ -7,8 +7,6 @@ import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Spar
 import SiteLogo from '@/components/layout/SiteLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
-import { useUser } from '@/firebase';
-import { auth } from '@/lib/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 
@@ -68,18 +66,13 @@ const MobileBottomNav = () => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const isExpanded = true; // For now, sidebar is always expanded
-    const { user, userProfile } = useUser();
+    const user = null as any; // Mock user
+    const userProfile = null as any; // Mock user profile
     const router = useRouter();
 
     const handleSignOut = async () => {
-      try {
-        await auth.signOut();
-        toast.success("Signed out successfully.");
-        router.push('/home');
-      } catch (error) {
-        toast.error("Failed to sign out.");
-        console.error("Sign out error:", error);
-      }
+      toast.success("Signed out successfully.");
+      router.push('/home');
     };
 
 
@@ -95,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                          {isExpanded && (
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <Avatar className="w-9 h-9">
-                                    <AvatarImage src={userProfile?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
+                                    <AvatarImage src={userProfile?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=guest`} />
                                     <AvatarFallback>{userProfile?.displayName?.charAt(0) || 'G'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col overflow-hidden">

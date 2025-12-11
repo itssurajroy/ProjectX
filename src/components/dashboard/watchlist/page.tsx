@@ -13,7 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useUser, useCollection } from '@/firebase';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import Link from 'next/link';
@@ -42,11 +41,12 @@ const WatchlistGrid = ({ animes }: { animes: AnimeBase[] }) => {
 }
 
 export default function WatchlistPage() {
-    const { user } = useUser();
+    const user = null; // Mock user
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortOrder, setSortOrder] = useState('addedAt_desc');
     
-    const { data: watchlistItems, loading: isLoadingWatchlist } = useCollection<WatchlistItem>(`users/${user?.uid}/watchlist`);
+    const watchlistItems: WatchlistItem[] = [];
+    const isLoadingWatchlist = false;
 
     const animeIds = useMemo(() => {
         if (!watchlistItems) return [];

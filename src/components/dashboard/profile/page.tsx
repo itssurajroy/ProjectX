@@ -8,13 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useUser } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { updateProfile } from 'firebase/auth';
 
 export default function ProfilePage() {
-    const { user, userProfile, loading } = useUser();
+    const user = null as any; // Mock user
+    const userProfile = null as any; // Mock user profile
+    const loading = false;
+
     const [displayName, setDisplayName] = useState('');
     const [photoURL, setPhotoURL] = useState('');
     const [isSaving, setIsSaving] = useState(false);
@@ -23,6 +22,9 @@ export default function ProfilePage() {
         if (userProfile) {
             setDisplayName(userProfile.displayName || '');
             setPhotoURL(userProfile.photoURL || '');
+        } else {
+             setDisplayName('Guest');
+             setPhotoURL(`https://api.dicebear.com/8.x/identicon/svg?seed=guest`);
         }
     }, [userProfile]);
     
@@ -32,24 +34,11 @@ export default function ProfilePage() {
             return;
         }
         setIsSaving(true);
-        const toastId = toast.loading("Saving profile...");
-        try {
-            const userRef = doc(db, 'users', user.uid);
-            await updateDoc(userRef, {
-                displayName,
-                photoURL
-            });
-            await updateProfile(user, {
-                displayName,
-                photoURL
-            })
-            toast.success("Profile updated successfully!", { id: toastId });
-        } catch (error) {
-            console.error("Error updating profile:", error);
-            toast.error("Failed to update profile.", { id: toastId });
-        } finally {
+        // Save logic removed
+        setTimeout(() => {
+            toast.success("Profile updated successfully!");
             setIsSaving(false);
-        }
+        }, 1000);
     };
 
     if (loading) {
@@ -60,7 +49,7 @@ export default function ProfilePage() {
         )
     }
 
-    if (!user || !userProfile) {
+    if (!user) {
         return (
              <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3 mb-6">
@@ -89,13 +78,13 @@ export default function ProfilePage() {
                 <CardContent className="space-y-6">
                     <div className="flex items-center gap-6">
                         <Avatar className="w-24 h-24 border-4 border-primary/50">
-                            <AvatarImage src={photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} />
-                            <AvatarFallback>{displayName?.charAt(0) || userProfile.email.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
+                            <AvatarFallback>{displayName?.charAt(0) || userProfile?.email.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className='flex-1'>
                              <h2 className="text-2xl font-bold">{displayName}</h2>
-                             <p className="text-muted-foreground">{userProfile.email}</p>
-                             <p className="text-sm text-primary font-semibold capitalize mt-1">{userProfile.role}</p>
+                             <p className="text-muted-foreground">{userProfile?.email}</p>
+                             <p className="text-sm text-primary font-semibold capitalize mt-1">{userProfile?.role}</p>
                         </div>
                     </div>
                     

@@ -10,7 +10,6 @@ import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
 import ProgressiveImage from '@/components/ProgressiveImage';
-import { useUser, useCollection } from '@/firebase';
 
 const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | undefined }) => {
     if (!anime) return null;
@@ -54,8 +53,9 @@ const HistoryGroup = ({ title, items, animeDetails }: { title: string, items: Us
 
 
 export default function HistoryPage() {
-    const { user } = useUser();
-    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
+    const user = null; // Mock user
+    const history: UserHistory[] = [];
+    const isLoadingHistory = false;
     
     const animeIds = useMemo(() => {
         if (!history) return [];

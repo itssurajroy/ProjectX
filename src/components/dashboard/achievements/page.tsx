@@ -9,9 +9,6 @@ import { Award, BookOpen, Calendar, Clapperboard, Film, Flame, Loader2, Star, Tr
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser, useCollection } from '@/firebase';
-import { WatchlistItem } from '@/types/watchlist';
-import { UserHistory } from '@/types/anime';
 
 const achievementsList = [
     { id: 'novice-watcher', title: 'Novice Watcher', description: 'Watch 10 episodes.', goal: 10, icon: <Clapperboard className="w-8 h-8" />, type: 'episodes' },
@@ -58,54 +55,15 @@ const AchievementCard = ({ achievement, progress }: { achievement: typeof achiev
 }
 
 export default function AchievementsPage() {
-    const { user } = useUser();
-    const { data: history, loading: loadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
-    const { data: watchlist, loading: loadingWatchlist } = useCollection<WatchlistItem>(`users/${user?.uid}/watchlist`);
+    const isLoading = false;
+    const user = null; // Mock user
+    const achievementProgress = {
+        episodes: 0,
+        series: 0,
+        completed: 0,
+        genres: 0
+    };
 
-    const animeIds = useMemo(() => {
-        if (!history) return [];
-        return [...new Set(history.map(item => item.animeId))];
-    }, [history]);
-
-    const { data: animeDetails, isLoading: loadingAnimeDetails } = useQuery({
-        queryKey: ['animeDetailsForAchievements', animeIds],
-        queryFn: async () => {
-            const animeMap = new Map<string, any>();
-            for (const id of animeIds) {
-                try {
-                    const res = await AnimeService.qtip(id);
-                    if (res?.anime) animeMap.set(id, res.anime);
-                } catch { /* ignore individual failures */ }
-            }
-            return animeMap;
-        },
-        enabled: animeIds.length > 0,
-    });
-
-    const achievementProgress = useMemo(() => {
-        if (!history || !watchlist || !animeDetails) return {};
-        
-        const episodesWatched = history.length;
-        const seriesWatched = new Set(history.map(h => h.animeId)).size;
-        const completedSeries = watchlist.filter(w => w.status === 'Completed').length;
-        
-        const watchedGenres = new Set<string>();
-        history.forEach(h => {
-            const anime = animeDetails.get(h.animeId);
-            anime?.genres?.forEach((genre: string) => watchedGenres.add(genre));
-        });
-
-        return {
-            episodes: episodesWatched,
-            series: seriesWatched,
-            completed: completedSeries,
-            genres: watchedGenres.size
-        }
-
-    }, [history, watchlist, animeDetails]);
-
-    const isLoading = loadingHistory || loadingWatchlist || loadingAnimeDetails;
-    
     if (!user && !isLoading) {
         return (
              <div>
