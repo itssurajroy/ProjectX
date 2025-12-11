@@ -1,4 +1,3 @@
-
 export type NotificationType = 
   | 'new_episode'
   | 'poll_result'
@@ -17,5 +16,5 @@ export interface Notification {
   link?: string;
   icon?: string;
   read: boolean;
-  createdAt: any;
+  createdAt: any; // Could be Date or a server timestamp object
 }

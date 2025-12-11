@@ -1,15 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark, Users, Bell, Loader2 } from 'lucide-react';
+import { Search, Menu, Shuffle, X, Users, Bell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { SearchSuggestion } from '@/types/anime';
 import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
 import { AnimeService } from '@/lib/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
@@ -59,16 +57,6 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
             </div>
         </div>
     )
-}
-
-function UserProfileMenu() {
-  const router = useRouter();
-
-  const handleLogout = () => {
-    // Placeholder for logout
-  };
-
-  return null; // Temporarily disable user profile menu
 }
 
 function UserAuth() {

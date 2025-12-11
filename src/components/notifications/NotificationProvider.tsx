@@ -17,7 +17,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Since Firebase is removed, this provider is now a shell.
+  // Since the database connection is removed, this provider is now a shell.
   // It will not receive any real-time notifications.
 
   const markAsRead = async (id: string) => {

@@ -39,7 +39,7 @@ export default function WatchlistPage() {
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortOrder, setSortOrder] = useState('addedAt_desc');
 
-    // This page is now non-functional as it relied on Firebase for user data.
+    // This page is now non-functional as it relied on a user database.
     // Displaying a placeholder state.
     const isLoading = false;
     const filteredAndSortedItems: WatchlistItem[] = [];
@@ -89,7 +89,7 @@ export default function WatchlistPage() {
             </Tabs>
             
             <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
-                <p className="text-muted-foreground">Please log in to see your watchlist.</p>
+                <p className="text-muted-foreground">Log in to see your watchlist.</p>
                  <p className="text-xs text-muted-foreground mt-1">This feature is temporarily disabled.</p>
             </div>
         </div>

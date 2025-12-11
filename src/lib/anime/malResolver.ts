@@ -1,7 +1,7 @@
 import { AnimeService } from '../AnimeService';
 import { MALService } from '../MALService';
 
-// This function is now disconnected from Firebase. It only uses the Anime and MAL services.
+// This function is now disconnected from any user database. It only uses the Anime and MAL services.
 
 export async function getMALId(animeId: string): Promise<number | null> {
   // Auto search by title

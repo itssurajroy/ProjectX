@@ -14,7 +14,7 @@ export default function ProfilePage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     
-    // Since Firebase is removed, this page is a display-only placeholder.
+    // Since the database connection is removed, this page is a display-only placeholder.
 
     const handleSaveChanges = async () => {
         setIsSaving(true);
@@ -44,14 +44,14 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-6">
                      <div className="text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
-                        <p className="text-muted-foreground">Please log in to view your profile.</p>
+                        <p className="text-muted-foreground">Log in to view your profile.</p>
                         <p className="text-xs text-muted-foreground mt-1">This feature is temporarily disabled.</p>
                     </div>
 
                     <div className="flex items-center gap-6 opacity-30 pointer-events-none">
                         <Avatar className="w-24 h-24 border-4 border-primary/50">
                             <AvatarImage src={photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=guest`} />
-                            <AvatarFallback>{displayName?.charAt(0) || 'U'}</AvatarFallback>
+                            <AvatarFallback>{displayName?.charAt(0) || 'G'}</AvatarFallback>
                         </Avatar>
                         <div className='flex-1'>
                              <h2 className="text-2xl font-bold">{displayName}</h2>
@@ -80,7 +80,7 @@ export default function ProfilePage() {
                                 onChange={(e) => setPhotoURL(e.target.value)}
                                 placeholder="https://example.com/avatar.png"
                             />
-                             <p className="text-xs text-muted-foreground">Note: Changing this won't update your Google/other social login avatar.</p>
+                             <p className="text-xs text-muted-foreground">Note: Changing this won't update your social login avatar.</p>
                         </div>
                     </div>
                     

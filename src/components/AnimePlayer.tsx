@@ -48,7 +48,7 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const saveHistory = useCallback(async () => {
-    // This function is now a placeholder since Firebase is removed.
+    // This function is now a placeholder since database is removed.
     // In a real app with a different backend, the logic would go here.
   }, [animeId, rawEpisodeId, episodeNumber]);
 

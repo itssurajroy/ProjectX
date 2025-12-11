@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <Avatar className="w-9 h-9">
                                     <AvatarImage src={'/placeholder-user.jpg'} />
-                                    <AvatarFallback>{'U'}</AvatarFallback>
+                                    <AvatarFallback>{'G'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col overflow-hidden">
                                     <p className="text-sm font-semibold truncate">Guest</p>

@@ -19,13 +19,12 @@ export default function AdminDashboard() {
   const [totalEpisodes, setTotalEpisodes] = useState(0);
 
   useEffect(() => {
-    // Since Firebase is removed, we'll use placeholder data or fetch from another source.
-    // Here we're fetching from our anime API for a rough count.
+    // We'll use our anime API for a rough count.
     AnimeService.search(new URLSearchParams({limit: '1'})).then(data => {
         setTotalAnime(data.totalAnimes || 0);
     });
 
-    // Placeholder values as user and episode counts were from Firebase.
+    // Placeholder values as user and episode counts were from a database.
     setTotalUsers(1000); // Placeholder
     setTotalEpisodes(50000); // Placeholder
   }, []);

@@ -59,7 +59,7 @@ const ContinueWatchingSection = () => {
     if (!history || history.length === 0) {
         return (
             <div className="text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
-                <p className="text-muted-foreground text-sm">Please log in to see your watch history.</p>
+                <p className="text-muted-foreground text-sm">Log in to see your watch history.</p>
                 <Link href="/home" className="text-primary font-semibold text-sm hover:underline mt-2 inline-block">Start Watching Now</Link>
             </div>
         )
@@ -87,7 +87,7 @@ export default function DashboardHomePage() {
         <div className="space-y-12">
             <header>
                 <h1 className="text-4xl font-black font-display text-glow">
-                    Welcome back, Commander.
+                    Welcome back, Guest.
                 </h1>
                 <p className="text-muted-foreground mt-1">Here's what's happening in your anime world.</p>
             </header>

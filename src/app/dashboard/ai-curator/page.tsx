@@ -17,11 +17,11 @@ export default function AiCuratorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // This page is now non-functional as it relied on Firebase for user data.
+  // This page is now non-functional as it relied on a user database.
   // Displaying a placeholder state.
 
   const handleCurate = async () => {
-    setError("AI Curator is temporarily disabled. Please log in to use this feature.");
+    setError("AI Curator is temporarily disabled. A user account is required for this feature.");
   };
 
   const isDataLoading = false;
@@ -69,7 +69,7 @@ export default function AiCuratorPage() {
                     )}
                 </Button>
             </div>
-            <p className="text-sm text-center text-muted-foreground">Please log in to use the AI Curator.</p>
+            <p className="text-sm text-center text-muted-foreground">Log in is required to use the AI Curator.</p>
         </div>
 
         {error && <div className="mt-8"><ErrorDisplay title="Curation Failed" description={error} isCompact /></div>}

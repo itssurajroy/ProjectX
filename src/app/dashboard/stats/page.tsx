@@ -10,7 +10,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import AnimeImage from '@/components/AnimeImage';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 
 const ActivityHeatmap = dynamic(() => import('@/components/dashboard/ActivityHeatmap'), {
@@ -33,7 +33,7 @@ const StatCard = ({ title, value, icon: Icon }: { title: string, value: string |
 const MostWatchedAnimeCard = ({ anime, count }: { anime: AnimeBase, count: number }) => (
     <Link href={`/anime/${anime.id}`} className="flex items-center gap-3 group p-2 rounded-md hover:bg-muted/50 transition-colors">
         <div className="relative w-12 h-[72px] flex-shrink-0">
-            <AnimeImage src={anime.poster} alt={anime.name} className="object-cover rounded-md" />
+            <ProgressiveImage src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
         </div>
         <div className='overflow-hidden flex-1'>
             <p className='font-semibold text-sm group-hover:text-primary line-clamp-1'>{anime.name}</p>
@@ -45,7 +45,7 @@ const MostWatchedAnimeCard = ({ anime, count }: { anime: AnimeBase, count: numbe
 const COLORS = ["#a855f7", "#ec4899", "#f97316", "#10b981", "#3b82f6", "#fde047"];
 
 export default function StatsPage() {
-    // This page is now non-functional as it relied on Firebase for user data.
+    // This page is now non-functional as it relied on a user database.
     // Displaying a placeholder state.
     const isLoading = false;
     const stats = {
@@ -72,7 +72,7 @@ export default function StatsPage() {
             </h1>
 
             <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
-                <p className="text-muted-foreground">Please log in to view your statistics.</p>
+                <p className="text-muted-foreground">Log in to view your statistics.</p>
                  <p className="text-xs text-muted-foreground mt-1">This feature is temporarily disabled.</p>
             </div>
             

@@ -1,6 +1,4 @@
-
 // src/types/comment.ts
-import { FieldValue } from 'firebase/firestore';
 
 export interface Comment {
   id: string;
@@ -12,7 +10,7 @@ export interface Comment {
   parentId?: string | null;
   spoiler: boolean;
   likes: string[]; // Store an array of user IDs who liked the comment
-  timestamp: FieldValue;
+  timestamp: any; // Could be Date or a server timestamp object
   userAvatar?: string;
   rank?: string; // From gamification
 }

@@ -1,7 +1,5 @@
 // src/types/watch2gether.ts
 
-import { FieldValue } from 'firebase/firestore';
-
 export interface WatchTogetherRoom {
   id: string;
   name: string;
@@ -11,11 +9,11 @@ export interface WatchTogetherRoom {
   episodeId: string;
   episodeNumber: number;
   hostId: string;
-  createdAt: FieldValue;
+  createdAt: any; // Could be Date or a server timestamp object
   playerState: {
     isPlaying: boolean;
     currentTime: number;
-    updatedAt: FieldValue;
+    updatedAt: any;
   };
 }
 
@@ -32,5 +30,5 @@ export interface ChatMessage {
   userName: string;
   avatar: string;
   text: string;
-  timestamp: FieldValue;
+  timestamp: any; // Could be Date or a server timestamp object
 }

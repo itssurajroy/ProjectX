@@ -15,7 +15,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // This component is now disconnected from Firebase.
+  // This component is now disconnected from any backend database.
   // The logic below is placeholder and would need to be adapted
   // to a new backend service if one is implemented.
 
@@ -51,7 +51,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Please log in to comment..."
+              placeholder="Commenting is temporarily disabled..."
               className="w-full p-4 bg-card/80 rounded-xl border-border/50 resize-none focus:outline-none focus:border-primary"
               rows={3}
               disabled

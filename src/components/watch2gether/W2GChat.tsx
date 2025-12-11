@@ -1,4 +1,3 @@
-// src/components/watch2gether/W2GChat.tsx
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
@@ -13,7 +12,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
     const [message, setMessage] = useState('');
     const bottomRef = useRef<HTMLDivElement>(null);
     
-    // This component is now disconnected from Firebase.
+    // This component is now disconnected from any backend database.
     // The logic below is placeholder and would need to be adapted
     // to a new backend service (e.g., WebSockets) if one is implemented.
     const messages: ChatMessage[] = [];

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from "react";
-import AnimeImage from "@/components/AnimeImage";
+import ProgressiveImage from "@/components/ProgressiveImage";
 import { CldUploadButton } from "next-cloudinary";
 import { AnimeService } from "@/lib/AnimeService";
 import { AnimeBase } from "@/types/anime";
@@ -8,7 +8,7 @@ import { AnimeBase } from "@/types/anime";
 export default function AnimeManagement() {
   const [animeList, setAnimeList] = useState<any[]>([]);
 
-  // This component is now disconnected from Firebase.
+  // This component is now disconnected from any backend database.
   // The logic below is placeholder and would need to be adapted
   // to a new backend service if one is implemented.
 
@@ -44,7 +44,7 @@ export default function AnimeManagement() {
         {animeList.map((anime: AnimeBase) => (
           <div key={anime.id} className="bg-gray-900/80 rounded-3xl overflow-hidden border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:-translate-y-1">
             <div className="relative w-full h-96">
-                <AnimeImage 
+                <ProgressiveImage 
                   src={anime.poster}
                   alt={anime.name || "Anime Cover"} 
                   className="object-cover" 

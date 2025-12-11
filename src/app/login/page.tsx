@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 import { Loader2, KeyRound } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
@@ -59,22 +58,22 @@ export default function LoginPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="login-email">Email</Label>
-                <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="login-password">Password</Label>
-                <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button onClick={() => handleAuthAction('login')} disabled={isLoading} className="w-full">
+              <Button onClick={() => handleAuthAction('login')} disabled={true} className="w-full">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Login
               </Button>
               <div className="relative w-full">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
                   <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
               </div>
-              <Button variant="outline" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full">
+              <Button variant="outline" onClick={handleGoogleSignIn} disabled={true} className="w-full">
                 <GoogleIcon /> Google
               </Button>
             </CardFooter>
@@ -90,22 +89,22 @@ export default function LoginPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="signup-email">Email</Label>
-                <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Password</Label>
-                <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled />
               </div>
             </CardContent>
              <CardFooter className="flex flex-col gap-4">
-              <Button onClick={() => handleAuthAction('signup')} disabled={isLoading} className="w-full">
+              <Button onClick={() => handleAuthAction('signup')} disabled={true} className="w-full">
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Sign Up
               </Button>
                <div className="relative w-full">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
                   <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or sign up with</span></div>
               </div>
-              <Button variant="outline" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full">
+              <Button variant="outline" onClick={handleGoogleSignIn} disabled={true} className="w-full">
                 <GoogleIcon /> Google
               </Button>
             </CardFooter>

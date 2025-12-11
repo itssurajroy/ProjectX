@@ -1,18 +1,17 @@
-// src/components/watch2gether/W2GVideoPlayer.tsx
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import AnimePlayer from '../AnimePlayer';
 
 interface W2GVideoPlayerProps {
-    roomRef: any; // DocumentReference<DocumentData>; - Type removed as Firebase is gone
+    roomRef: any; 
     isHost: boolean;
 }
 
 export default function W2GVideoPlayer({ roomRef, isHost }: W2GVideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    // This component is now disconnected from Firebase.
+    // This component is now disconnected from any backend database.
     // The logic below is placeholder and would need to be adapted
     // to a new backend service (e.g. WebSockets) if one is implemented.
     const room = null as any;

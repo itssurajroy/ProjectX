@@ -1,6 +1,3 @@
-
-import { FieldValue } from 'firebase/firestore';
-
 export interface UserProfile {
   displayName: string;
   photoURL?: string;
@@ -8,7 +5,7 @@ export interface UserProfile {
   role: 'user' | 'admin' | 'moderator';
   level?: number;
   xp?: number;
-  premiumUntil?: FieldValue | Date;
-  createdAt: FieldValue;
-  lastLogin: FieldValue;
+  premiumUntil?: any; // Could be Date or a server timestamp object
+  createdAt: any;
+  lastLogin: any;
 }

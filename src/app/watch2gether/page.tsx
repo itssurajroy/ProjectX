@@ -1,4 +1,3 @@
-// src/app/watch2gether/page.tsx
 'use client';
 
 import { useState } from "react";
@@ -14,7 +13,7 @@ export default function Watch2GetherLobby() {
     const router = useRouter();
     const [filter, setFilter] = useState('all');
 
-    // Since Firebase is removed, Watch Together is non-functional.
+    // Since database is removed, Watch Together is non-functional.
     // Display a message to the user.
     const isLoading = false;
     const error = null;
@@ -27,11 +26,9 @@ export default function Watch2GetherLobby() {
                     <h1 className="text-3xl font-bold flex items-center gap-3"><Users className="w-8 h-8 text-primary"/> Watch Together</h1>
                     <p className="text-muted-foreground mt-1">Join a public room or create your own party.</p>
                 </div>
-                <Button disabled asChild>
-                    <Link href="/watch2gether/create">
-                        <PlusCircle className="w-4 h-4 mr-2" />
-                        Create New Room
-                    </Link>
+                <Button disabled>
+                    <PlusCircle className="w-4 h-4 mr-2" />
+                    Create New Room
                 </Button>
             </div>
             

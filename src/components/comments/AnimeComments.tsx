@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
@@ -6,15 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThumbsUp, ThumbsDown, Reply } from 'lucide-react';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  addDoc,
-} from 'firebase/firestore';
-import { initializeFirebase, useFirestore, useUser } from '@/firebase';
 import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import { cn } from '@/lib/utils';
@@ -34,80 +24,38 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
-  const firestore = useFirestore();
-  const { user } = useUser();
-
-  const commentsRef = useMemo(() => {
-    if (!firestore) return null;
-    return collection(
-      firestore,
-      'comments',
-      animeId,
-      'general'
-    );
-  }, [animeId, firestore]);
+  const user = null; // Mock user, since auth is removed
 
   useEffect(() => {
-    if (!commentsRef) return;
-    const q = query(commentsRef, orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const commentsData: Comment[] = [];
-      querySnapshot.forEach((doc) => {
-        commentsData.push({ id: doc.id, ...doc.data() } as Comment);
-      });
-      setComments(commentsData);
-    });
-
-    return () => unsubscribe();
-  }, [commentsRef]);
+    // Data fetching logic removed
+    setComments([]);
+  }, [animeId]);
 
   const handlePostComment = async () => {
-    if (newComment.trim() === '' || !commentsRef || !user) {
-        if (!user) {
-            alert("You must be logged in to comment.");
-        }
-        return;
-    }
-
-    const commentData = {
-      author: user.displayName || 'Anonymous',
-      text: newComment,
-      timestamp: serverTimestamp(),
-      avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
-      isSpoiler: isSpoiler,
-    };
-    
-    try {
-        await addDoc(commentsRef, commentData);
-        setNewComment('');
-        setIsSpoiler(false);
-    } catch(e) {
-        console.error("Error posting comment", e);
-        alert("Failed to post comment. You may not have permission.");
-    }
+    alert("Commenting is temporarily disabled.");
   };
 
   return (
     <div className="space-y-4 mt-6">
       <div className="flex gap-3">
         <Avatar>
-          <AvatarImage src={user?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
-          <AvatarFallback>{user?.displayName?.charAt(0) || 'A'}</AvatarFallback>
+          <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
+          <AvatarFallback>{'G'}</AvatarFallback>
         </Avatar>
         <div className="flex-grow">
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder={user ? "Add a comment about this anime..." : "Please log in to comment."}
+            placeholder={"Commenting is temporarily disabled."}
             className="mb-2"
-            disabled={!user}
+            disabled={true}
           />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox id="spoiler-anime" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} disabled={!user} />
+              <Checkbox id="spoiler-anime" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} disabled={true} />
               <Label htmlFor="spoiler-anime" className="text-xs text-muted-foreground">Mark as spoiler</Label>
             </div>
-            <Button onClick={handlePostComment} size="sm" disabled={!user || !newComment.trim()}>
+            <Button onClick={handlePostComment} size="sm" disabled={true}>
               Post Comment
             </Button>
           </div>

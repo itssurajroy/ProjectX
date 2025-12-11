@@ -1,20 +1,10 @@
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThumbsUp, ThumbsDown, Reply } from 'lucide-react';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  serverTimestamp,
-  addDoc,
-} from 'firebase/firestore';
 import { sanitizeFirestoreId } from '@/lib/utils';
-import { useFirestore, useUser } from '@/firebase';
 import { AnimeEpisode } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -44,60 +34,17 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
   const [isSpoiler, setIsSpoiler] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const firestore = useFirestore();
-  const { user } = useUser();
+  const user = null; // Mock user since auth is removed
 
   const currentEpNumber = searchParams.get('ep');
 
-  const commentsRef = useMemo(() => {
-    if (!firestore) return null;
-    const sanitizedEpisodeId = sanitizeFirestoreId(episodeId);
-    return collection(
-      firestore,
-      'comments',
-      animeId,
-      'episodes',
-      sanitizedEpisodeId,
-      'messages'
-    );
-  }, [animeId, episodeId, firestore]);
-
   useEffect(() => {
-    if (!commentsRef) return;
-    const q = query(commentsRef, orderBy('timestamp', 'desc'));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const commentsData: Comment[] = [];
-      querySnapshot.forEach((doc) => {
-        commentsData.push({ id: doc.id, ...doc.data() } as Comment);
-      });
-      setComments(commentsData);
-    });
-
-    return () => unsubscribe();
-  }, [commentsRef]);
+    // Data fetching logic removed
+    setComments([]);
+  }, [animeId, episodeId]);
 
   const handlePostComment = async () => {
-    if (newComment.trim() === '' || !commentsRef || !user) {
-        if(!user) alert("You must be logged in to comment.");
-        return;
-    }
-
-    const commentData = {
-      author: user.displayName || 'Anonymous',
-      text: newComment,
-      timestamp: serverTimestamp(),
-      avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
-      isSpoiler: isSpoiler,
-    };
-    
-    try {
-        await addDoc(commentsRef, commentData);
-        setNewComment('');
-        setIsSpoiler(false);
-    } catch(e) {
-        console.error("Error posting comment", e);
-        alert("Failed to post comment. You may not have permission.");
-    }
+    alert("Commenting is temporarily disabled.");
   };
 
   const handleEpisodeChange = (epNumber: string) => {
@@ -122,23 +69,23 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
 
       <div className="flex gap-3">
         <Avatar>
-          <AvatarImage src={user?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
-          <AvatarFallback>{user?.displayName?.charAt(0) || 'A'}</AvatarFallback>
+          <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
+          <AvatarFallback>{'G'}</AvatarFallback>
         </Avatar>
         <div className="flex-grow">
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder={user ? `Add a comment for Episode ${currentEpNumber}...` : "Please log in to comment."}
+            placeholder={`Commenting for Episode ${currentEpNumber} is disabled.`}
             className="mb-2"
-            disabled={!user}
+            disabled={true}
           />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox id="spoiler-episode" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} disabled={!user} />
+              <Checkbox id="spoiler-episode" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} disabled={true} />
               <Label htmlFor="spoiler-episode" className="text-xs text-muted-foreground">Mark as spoiler</Label>
             </div>
-            <Button onClick={handlePostComment} size="sm" disabled={!user || !newComment.trim()}>
+            <Button onClick={handlePostComment} size="sm" disabled={true}>
               Post Comment
             </Button>
           </div>

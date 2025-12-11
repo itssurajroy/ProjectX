@@ -1,4 +1,3 @@
-// src/components/watch2gether/Watch2GetherClient.tsx
 'use client';
 
 import { useEffect } from 'react';
@@ -19,11 +18,11 @@ import W2GAnimeDetails from './W2GAnimeDetails';
 export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     const router = useRouter();
 
-    // This component is now disconnected from Firebase.
+    // This component is now disconnected from any backend database.
     // The logic below is placeholder and would need to be adapted
     // to a new backend service (e.g., WebSockets) if one is implemented.
     const isRoomLoading = false;
-    const roomError = null;
+    const roomError = { message: "Watch Together is temporarily offline." };
     const roomData = null as any;
     const isHost = false;
     const animeResult = null as any;
