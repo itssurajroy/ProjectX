@@ -206,7 +206,7 @@ function SidebarTrigger({
 }: ButtonProps & {
   children?: React.ReactNode
 }) {
-  const { onToggle, isExpanded } = useSidebar()
+  const { onToggle } = useSidebar()
   return (
     <Button
       variant="ghost"
@@ -304,7 +304,6 @@ type SidebarMenuItemProps = {
 function SidebarMenuItem({
   children,
   className,
-  isActive,
   ...props
 }: SidebarMenuItemProps) {
   return (
@@ -319,13 +318,13 @@ function SidebarMenuItem({
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   ButtonProps & {
-    isActive?: boolean;
-    icon?: React.ReactNode;
-    label: string;
+    isActive?: boolean
+    icon?: React.ReactNode
+    label: string
   }
 >(({ className, isActive, icon, label, children, ...props }, ref) => {
-  const { isExpanded } = useSidebar();
-  const child = children ? React.Children.only(children) : null;
+  const { isExpanded } = useSidebar()
+  const child = children ? React.Children.only(children) : null
 
   return (
     <Tooltip>
@@ -376,8 +375,8 @@ const SidebarMenuButton = React.forwardRef<
         </TooltipContent>
       )}
     </Tooltip>
-  );
-});
+  )
+})
 SidebarMenuButton.displayName = "SidebarMenuButton"
 
 export {
