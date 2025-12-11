@@ -6,7 +6,7 @@ import { Search, Menu, Shuffle, X, LogOut, User as UserIcon, Shield, Bookmark, U
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { SearchSuggestion } from '@/types/anime';
-import Image from 'next/image';
+import { CldImage } from 'next-cloudinary';
 import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -242,7 +242,7 @@ export default function Header() {
                     ) : suggestions.length > 0 ? suggestions.map(anime => (
                       <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
-                           <Image src={anime.poster} alt={anime.name} fill sizes="40px" className="rounded-md object-cover" />
+                           <CldImage src={anime.poster} alt={anime.name} fill crop="fill" sizes="40px" className="rounded-md object-cover" />
                         </div>
                         <div className='overflow-hidden'>
                             <p className="font-semibold truncate text-sm">{anime.name}</p>

@@ -9,9 +9,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { CldImage } from "next-cloudinary";
 
 interface SeasonsSwiperProps {
     seasons: AnimeSeason[];
@@ -35,7 +35,7 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
                                     "relative aspect-[2/3] rounded-lg overflow-hidden group border-2 transition-all", 
                                     season.id === currentAnimeId ? "border-primary shadow-lg shadow-primary/30" : "border-transparent hover:border-primary/50"
                                 )}>
-                                    <Image src={season.poster} alt={season.title} fill className="object-cover transition-transform group-hover:scale-105" />
+                                    <CldImage src={season.poster} alt={season.title} fill crop="fill" className="object-cover transition-transform group-hover:scale-105" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
                                         <p className="text-white font-semibold text-xs line-clamp-2 group-hover:text-primary transition-colors">{season.title}</p>
                                     </div>

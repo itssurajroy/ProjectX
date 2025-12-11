@@ -3,7 +3,6 @@
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2 } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -12,6 +11,7 @@ import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
 import { AnimeService } from '@/lib/AnimeService';
+import { CldImage } from 'next-cloudinary';
 
 interface HomeDataWithQtips extends HomeData {
     qtips: Record<string, QtipAnime>;
@@ -52,11 +52,12 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
     <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
-                <Image
+                <CldImage
                     key={s.id}
                     src={s.poster}
                     alt={s.name}
                     fill
+                    crop="fill"
                     sizes="100vw"
                     className={cn(
                         'object-cover transition-opacity duration-1000',
@@ -144,7 +145,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
                     {animes.slice(0, 7).map((anime, index) => (
                         <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
-                                <Image src={anime.poster} alt={anime.name} fill sizes="48px" className="object-cover rounded-md" />
+                                <CldImage src={anime.poster} alt={anime.name} fill crop="fill" sizes="48px" className="object-cover rounded-md" />
                             </div>
                             <div className='overflow-hidden flex-1'>
                                 <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{anime.name}</p>
@@ -256,10 +257,11 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                     href={`/anime/${anime.id}`}
                     className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
                 >
-                    <Image
+                    <CldImage
                         src={anime.poster}
                         alt={anime.name}
                         fill
+                        crop="fill"
                         sizes="200px"
                         className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-20"
                     />

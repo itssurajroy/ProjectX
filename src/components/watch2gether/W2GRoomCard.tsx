@@ -1,13 +1,13 @@
+
 // src/components/watch2gether/W2GRoomCard.tsx
 'use client';
 
 import { WatchTogetherRoom } from "@/types/watch2gether";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { Clapperboard, Users } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
+import { CldImage } from "next-cloudinary";
 
 interface W2GRoomCardProps {
     room: WatchTogetherRoom;
@@ -38,10 +38,11 @@ export function W2GRoomCard({ room }: W2GRoomCardProps) {
         <Link href={`/watch2gether/${room.id}`} className="group">
             <div className="bg-card border border-border/50 rounded-lg overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
                 <div className="relative aspect-[2/3] w-full">
-                    <Image
+                    <CldImage
                         src={room.animePoster || "https://picsum.photos/seed/placeholder/400/600"}
                         alt={room.animeName || "Anime Poster"}
                         fill
+                        crop="fill"
                         className="object-cover"
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
                     />

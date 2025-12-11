@@ -3,9 +3,9 @@
 'use client';
 
 import { AnimeBase } from "@/types/anime";
-import Image from "next/image";
 import Link from "next/link";
 import { Clapperboard } from "lucide-react";
+import { CldImage } from "next-cloudinary";
 
 export default function RankedAnimeSidebar({ title, animes, icon }: { title: string, animes: AnimeBase[], icon?: React.ReactNode }) {
     if (!animes || animes.length === 0) return null;
@@ -22,10 +22,11 @@ export default function RankedAnimeSidebar({ title, animes, icon }: { title: str
                     href={`/anime/${anime.id}`}
                     className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
                 >
-                    <Image
+                    <CldImage
                         src={anime.poster}
                         alt={anime.name}
                         fill
+                        crop="fill"
                         sizes="200px"
                         className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-60"
                     />

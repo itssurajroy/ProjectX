@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -6,11 +7,11 @@ import { UserHistory, AnimeBase } from '@/types/anime';
 import { History, Loader2, Play } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
-import Image from 'next/image';
 import Link from 'next/link';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
+import { CldImage } from 'next-cloudinary';
 
 const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | undefined }) => {
     if (!anime) return null;
@@ -21,7 +22,7 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
     return (
         <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-border/50">
             <Link href={watchUrl} className="relative w-16 h-24 flex-shrink-0 group">
-                <Image src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
+                <CldImage src={anime.poster} alt={anime.name} fill crop="fill" className="object-cover rounded-md" />
                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Play className="w-6 h-6 text-white" />
                 </div>

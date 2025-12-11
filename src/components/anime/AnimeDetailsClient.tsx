@@ -3,7 +3,6 @@
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
@@ -27,6 +26,7 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
+import { CldImage } from 'next-cloudinary';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -46,7 +46,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
         {/* Character */}
         <div className="w-1/2 flex items-center gap-3 p-3">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
-                <Image src={cv.character.poster} alt={cv.character.name} fill loading="lazy" className="object-cover rounded-md" />
+                <CldImage src={cv.character.poster} alt={cv.character.name} fill loading="lazy" crop="fill" className="object-cover rounded-md" />
             </div>
             <div className="overflow-hidden">
                 <h4 className="font-bold text-sm text-primary truncate">{cv.character.name}</h4>
@@ -62,7 +62,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
                 </div>
                 <div className="relative aspect-square w-12 flex-shrink-0">
-                    <Image src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill loading="lazy" className="rounded-full object-cover" />
+                    <CldImage src={cv.voiceActor.poster} alt={cv.voiceActor.name} fill loading="lazy" crop="fill" className="rounded-full object-cover" />
                 </div>
             </div>
         )}
@@ -145,10 +145,11 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
         <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
           <div className="absolute inset-0 z-0">
-            <Image
+            <CldImage
               src={animeInfo.poster}
               alt={animeInfo.name}
               fill
+              crop="fill"
               className="object-cover opacity-10 blur-xl scale-110"
               priority
             />
@@ -158,11 +159,12 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
           <div className="container mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
             <div className="lg:col-span-3 flex justify-center lg:justify-start">
-              <Image
+              <CldImage
                 src={animeInfo.poster}
                 alt={animeInfo.name}
                 width={250}
                 height={380}
+                crop="fill"
                 className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
                 priority
               />

@@ -9,8 +9,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { PromotionalVideo } from '@/types/anime';
-import Image from 'next/image';
 import { PlayCircle } from "lucide-react";
+import { CldImage } from "next-cloudinary";
 
 interface PVCarouselProps {
   videos: PromotionalVideo[];
@@ -42,10 +42,11 @@ export default function PVCarousel({ videos, fallbackPoster }: PVCarouselProps) 
                 className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-lg"
                 onClick={() => openVideo(video.source)}
               >
-                <Image
+                <CldImage
                   src={video.thumbnail || fallbackPoster}
                   alt={video.title || `Promotional Video ${index + 1}`}
                   fill
+                  crop="fill"
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">

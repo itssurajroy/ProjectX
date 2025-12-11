@@ -11,7 +11,7 @@ import Balancer from "react-wrap-balancer";
 import { AnimeBase, HomeData, SearchSuggestion } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
-import Image from "next/image";
+import { CldImage } from "next-cloudinary";
 
 const socialLinks = [
     { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },
@@ -73,7 +73,7 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <Image src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage cyberpunk" alt="Anime Collage" fill priority className="object-cover opacity-10 blur-sm" />
+                        <CldImage src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage cyberpunk" alt="Anime Collage" fill crop="fill" priority className="object-cover opacity-10 blur-sm" />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
                     <div className="relative z-10 container mx-auto px-4">
@@ -108,7 +108,7 @@ export default function LandingPage() {
                                     {suggestions.map(anime => (
                                     <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                                         <div className="relative w-10 h-14 flex-shrink-0">
-                                        <Image src={anime.poster} alt={anime.name} fill sizes="40px" className="rounded-md object-cover" />
+                                        <CldImage src={anime.poster} alt={anime.name} fill crop="fill" sizes="40px" className="rounded-md object-cover" />
                                         </div>
                                         <div className='overflow-hidden'>
                                             <p className="font-semibold truncate text-sm">{anime.name}</p>
