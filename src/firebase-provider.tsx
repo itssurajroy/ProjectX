@@ -1,3 +1,4 @@
+
 // src/firebase-provider.tsx
 'use client';
 
@@ -56,18 +57,23 @@ export function FirebaseProvider({
         // When user logs in, create/update their profile document
         const userDocRef = doc(firestore, 'users', user.uid);
         try {
+            // Use setDoc with merge to create or update the user profile
             await setDoc(userDocRef, {
                 displayName: user.displayName,
                 email: user.email,
                 photoURL: user.photoURL,
                 lastLogin: serverTimestamp(),
-                // Set default role and createdAt only on initial creation
-                role: 'user', 
+            }, { merge: true });
+
+            // On initial creation, we can set fields that shouldn't be overwritten.
+            const userSnap = await setDoc(userDocRef, {
+                role: 'user',
                 createdAt: serverTimestamp()
             }, { merge: true });
+
         } catch (error) {
             console.error("Error creating/updating user profile:", error);
-            // Optionally, handle this error in the UI
+            // This is a good place to emit a global error if needed
         }
       }
 
