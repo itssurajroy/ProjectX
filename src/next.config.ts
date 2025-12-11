@@ -10,10 +10,10 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
     ],
-    formats: [],
   },
   async headers() {
     return [
