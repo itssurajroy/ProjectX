@@ -42,10 +42,9 @@ import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
 import CommentsContainer from '@/components/comments/CommentsContainer';
 import AnimeSchedule from '@/components/watch/AnimeSchedule';
-import { addDocumentNonBlocking, errorEmitter, FirestorePermissionError, useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
-import type { SecurityRuleContext } from '@/firebase/errors';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
 
@@ -190,6 +189,8 @@ function WatchPageComponent() {
       const roomData = {
         name: `${user.displayName || 'Anonymous'}'s Watch Party`,
         animeId: about.info.id,
+        animeName: about.info.name,
+        animePoster: about.info.poster,
         episodeId: currentEpisode.episodeId,
         episodeNumber: currentEpisode.number,
         hostId: user.uid,
@@ -201,23 +202,12 @@ function WatchPageComponent() {
         },
       };
 
-      addDoc(roomCollection, roomData)
-        .then((newRoomDoc) => {
-          toast.success('Room created! Redirecting...', { id: toastId });
-          router.push(`/watch2gether/${newRoomDoc.id}`);
-        })
-        .catch((serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: roomCollection.path,
-            operation: 'create',
-            requestResourceData: roomData,
-          } satisfies SecurityRuleContext);
-          errorEmitter.emit('permission-error', permissionError);
-          toast.error('Failed to create room: Permission denied.', { id: toastId });
-        });
+      const newRoomDoc = await addDoc(roomCollection, roomData);
+      toast.success('Room created! Redirecting...', { id: toastId });
+      router.push(`/watch2gether/${newRoomDoc.id}`);
     } catch (error) {
       console.error('Error creating Watch Together room:', error);
-      toast.error('An unexpected error occurred.', { id: toastId });
+      toast.error('Failed to create room. You may not have permission.', { id: toastId });
     }
   };
 

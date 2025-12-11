@@ -43,15 +43,11 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
 
 
   const postComment = async () => {
-    if (!input.trim() || !user || !firestore || !commentsQuery) return;
+    if (!input.trim() || !user || !firestore || !commentsQuery) {
+        if(!user) alert("You must be logged in to comment.");
+        return;
+    };
     
-    let commentsRef: CollectionReference<DocumentData>;
-    if (episodeId) {
-        commentsRef = collection(firestore, `comments`, animeId, "episodes", episodeId, "messages");
-    } else {
-        commentsRef = collection(firestore, `comments`, animeId, "general");
-    }
-
     const commentData = {
       animeId: animeId,
       text: input,
@@ -66,15 +62,18 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
       rank: 'Genin', // Placeholder for gamification
     };
 
-    await addDoc(commentsRef, commentData);
+    await addDoc(collection(firestore, commentsQuery.path), commentData);
     setInput('');
     setIsSpoiler(false);
   };
   
   const likeComment = async (id: string) => {
-    if (!user || !firestore || !commentsQuery) return;
+    if (!user || !firestore || !commentsQuery) {
+        if(!user) alert("You must be logged in to like comments.");
+        return;
+    }
 
-    const commentRef = doc(commentsQuery.converter ? commentsQuery.withConverter(null).firestore : firestore, commentsQuery.path, id);
+    const commentRef = doc(firestore, commentsQuery.path, id);
     const comment = comments.find(c => c.id === id);
 
     if (comment?.likes.includes(user.uid)) {
@@ -177,5 +176,3 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
     </div>
   );
 }
-
-    

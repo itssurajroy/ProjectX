@@ -2,8 +2,8 @@
 // src/components/watch2gether/W2GChat.tsx
 'use client';
 
-import { collection, query, orderBy, serverTimestamp } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase, useCollection, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, serverTimestamp, addDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -39,9 +39,13 @@ export default function W2GChat({ roomId }: { roomId: string }) {
             text: message,
             timestamp: serverTimestamp(),
         };
-
-        addDocumentNonBlocking(messagesRef, messageData);
-        setMessage('');
+        try {
+            await addDoc(messagesRef, messageData);
+            setMessage('');
+        } catch(e) {
+            console.error("Failed to send message", e);
+            alert("You do not have permission to send messages.");
+        }
     };
 
     return (
@@ -88,7 +92,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                     disabled={!user}
                     className="bg-background/50"
                 />
-                <Button type="submit" size="icon" disabled={!user}>
+                <Button type="submit" size="icon" disabled={!user || !message.trim()}>
                     <Send className="w-4 h-4" />
                 </Button>
             </form>

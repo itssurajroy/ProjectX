@@ -12,13 +12,13 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
+  addDoc,
 } from 'firebase/firestore';
-import { initializeFirebase, addDocumentNonBlocking, errorEmitter, FirestorePermissionError, useFirestore } from '@/firebase';
+import { initializeFirebase, useFirestore, useUser } from '@/firebase';
 import { Label } from '../ui/label';
 import { Checkbox } from '../ui/checkbox';
 import { cn } from '@/lib/utils';
 import Spoiler from './Spoiler';
-import type { SecurityRuleContext } from '@/firebase/errors';
 
 
 interface Comment {
@@ -35,6 +35,7 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
   const [newComment, setNewComment] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const commentsRef = useMemo(() => {
     if (!firestore) return null;
@@ -55,55 +56,58 @@ export default function AnimeComments({ animeId }: { animeId: string }) {
         commentsData.push({ id: doc.id, ...doc.data() } as Comment);
       });
       setComments(commentsData);
-    },
-    (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: commentsRef.path,
-        operation: 'list',
-      } satisfies SecurityRuleContext);
-      errorEmitter.emit('permission-error', permissionError);
     });
 
     return () => unsubscribe();
   }, [commentsRef]);
 
   const handlePostComment = async () => {
-    if (newComment.trim() === '' || !commentsRef) return;
+    if (newComment.trim() === '' || !commentsRef || !user) {
+        if (!user) {
+            alert("You must be logged in to comment.");
+        }
+        return;
+    }
 
     const commentData = {
-      author: 'Anonymous', // Since auth is removed
+      author: user.displayName || 'Anonymous',
       text: newComment,
       timestamp: serverTimestamp(),
-      avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
+      avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
       isSpoiler: isSpoiler,
     };
     
-    addDocumentNonBlocking(commentsRef, commentData);
-
-    setNewComment('');
-    setIsSpoiler(false);
+    try {
+        await addDoc(commentsRef, commentData);
+        setNewComment('');
+        setIsSpoiler(false);
+    } catch(e) {
+        console.error("Error posting comment", e);
+        alert("Failed to post comment. You may not have permission.");
+    }
   };
 
   return (
     <div className="space-y-4 mt-6">
       <div className="flex gap-3">
         <Avatar>
-          <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
-          <AvatarFallback>A</AvatarFallback>
+          <AvatarImage src={user?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
+          <AvatarFallback>{user?.displayName?.charAt(0) || 'A'}</AvatarFallback>
         </Avatar>
         <div className="flex-grow">
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Add a comment about this anime..."
+            placeholder={user ? "Add a comment about this anime..." : "Please log in to comment."}
             className="mb-2"
+            disabled={!user}
           />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox id="spoiler-anime" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} />
+              <Checkbox id="spoiler-anime" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} disabled={!user} />
               <Label htmlFor="spoiler-anime" className="text-xs text-muted-foreground">Mark as spoiler</Label>
             </div>
-            <Button onClick={handlePostComment} size="sm">
+            <Button onClick={handlePostComment} size="sm" disabled={!user || !newComment.trim()}>
               Post Comment
             </Button>
           </div>

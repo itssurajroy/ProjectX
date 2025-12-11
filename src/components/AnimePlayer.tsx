@@ -13,8 +13,8 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
-import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
@@ -54,7 +54,7 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   const { autoNext, autoPlay } = usePlayerSettings();
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const saveHistory = useCallback(() => {
+  const saveHistory = useCallback(async () => {
     if (!user || !videoRef.current || !animeId || !rawEpisodeId || !firestore) return;
 
     const video = videoRef.current;
@@ -63,16 +63,21 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
     // Don't save if video hasn't started or is too short
     if (currentTime === 0 || duration < 60) return;
 
-    const historyColRef = collection(firestore, 'users', user.uid, 'history');
+    const historyDocId = sanitizeFirestoreId(rawEpisodeId);
+    const historyDocRef = doc(firestore, 'users', user.uid, 'history', historyDocId);
     
-    addDocumentNonBlocking(historyColRef, {
-      animeId,
-      episodeId: rawEpisodeId,
-      episodeNumber: Number(episodeNumber),
-      watchedAt: serverTimestamp(),
-      progress: currentTime,
-      duration: duration,
-    });
+    try {
+        await setDoc(historyDocRef, {
+          animeId,
+          episodeId: rawEpisodeId,
+          episodeNumber: Number(episodeNumber),
+          watchedAt: serverTimestamp(),
+          progress: currentTime,
+          duration: duration,
+        }, { merge: true });
+    } catch (e) {
+        console.error("Failed to save history:", e);
+    }
 
   }, [user, firestore, animeId, rawEpisodeId, episodeNumber]);
 

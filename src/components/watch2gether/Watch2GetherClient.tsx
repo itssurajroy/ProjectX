@@ -3,8 +3,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { doc, collection } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase, useDoc, setDocumentNonBlocking } from '@/firebase';
+import { doc, collection, setDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { Loader2, Users, Crown, Settings, Share2, LogOut } from 'lucide-react';
 import ErrorDisplay from '../common/ErrorDisplay';
 import W2GVideoPlayer from './W2GVideoPlayer';
@@ -102,7 +102,7 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
             isHost: roomData.hostId === user.uid
         };
         
-        setDocumentNonBlocking(userDocRef, userData, { merge: true });
+        setDoc(userDocRef, userData, { merge: true }).catch(e => console.error("Failed to set user in room", e));
 
     }, [user, roomData, roomId, firestore]);
 

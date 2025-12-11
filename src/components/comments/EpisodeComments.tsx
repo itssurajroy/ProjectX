@@ -11,16 +11,16 @@ import {
   orderBy,
   onSnapshot,
   serverTimestamp,
+  addDoc,
 } from 'firebase/firestore';
 import { sanitizeFirestoreId } from '@/lib/utils';
-import { useFirestore, addDocumentNonBlocking, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { AnimeEpisode } from '@/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import Spoiler from './Spoiler';
-import type { SecurityRuleContext } from '@/firebase/errors';
 
 
 interface Comment {
@@ -45,6 +45,7 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
   const router = useRouter();
   const searchParams = useSearchParams();
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const currentEpNumber = searchParams.get('ep');
 
@@ -70,41 +71,33 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
         commentsData.push({ id: doc.id, ...doc.data() } as Comment);
       });
       setComments(commentsData);
-    },
-    (serverError) => {
-      const permissionError = new FirestorePermissionError({
-        path: commentsRef.path,
-        operation: 'list',
-      } satisfies SecurityRuleContext);
-      errorEmitter.emit('permission-error', permissionError);
     });
 
     return () => unsubscribe();
   }, [commentsRef]);
 
   const handlePostComment = async () => {
-    if (newComment.trim() === '' || !commentsRef) return;
+    if (newComment.trim() === '' || !commentsRef || !user) {
+        if(!user) alert("You must be logged in to comment.");
+        return;
+    }
 
     const commentData = {
-      author: 'Anonymous', // Placeholder
+      author: user.displayName || 'Anonymous',
       text: newComment,
       timestamp: serverTimestamp(),
-      avatar: `https://api.dicebear.com/8.x/identicon/svg?seed=${Math.random()}`,
+      avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
       isSpoiler: isSpoiler,
     };
     
-    addDocumentNonBlocking(commentsRef, commentData)
-      .catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: commentsRef.path,
-            operation: 'create',
-            requestResourceData: commentData,
-        } satisfies SecurityRuleContext);
-        errorEmitter.emit('permission-error', permissionError);
-    });
-
-    setNewComment('');
-    setIsSpoiler(false);
+    try {
+        await addDoc(commentsRef, commentData);
+        setNewComment('');
+        setIsSpoiler(false);
+    } catch(e) {
+        console.error("Error posting comment", e);
+        alert("Failed to post comment. You may not have permission.");
+    }
   };
 
   const handleEpisodeChange = (epNumber: string) => {
@@ -129,22 +122,23 @@ export default function EpisodeComments({ animeId, episodeId, availableEpisodes 
 
       <div className="flex gap-3">
         <Avatar>
-          <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
-          <AvatarFallback>A</AvatarFallback>
+          <AvatarImage src={user?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=anonymous`} />
+          <AvatarFallback>{user?.displayName?.charAt(0) || 'A'}</AvatarFallback>
         </Avatar>
         <div className="flex-grow">
           <Textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder={`Add a comment for Episode ${currentEpNumber}...`}
+            placeholder={user ? `Add a comment for Episode ${currentEpNumber}...` : "Please log in to comment."}
             className="mb-2"
+            disabled={!user}
           />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Checkbox id="spoiler-episode" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} />
+              <Checkbox id="spoiler-episode" checked={isSpoiler} onCheckedChange={(checked) => setIsSpoiler(checked as boolean)} disabled={!user} />
               <Label htmlFor="spoiler-episode" className="text-xs text-muted-foreground">Mark as spoiler</Label>
             </div>
-            <Button onClick={handlePostComment} size="sm">
+            <Button onClick={handlePostComment} size="sm" disabled={!user || !newComment.trim()}>
               Post Comment
             </Button>
           </div>
