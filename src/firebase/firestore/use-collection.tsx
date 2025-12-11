@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,7 +32,7 @@ export interface UseCollectionResult<T> {
  * 
  *
  * IMPORTANT! YOU MUST MEMOIZE the inputted memoizedTargetRefOrQuery or BAD THINGS WILL HAPPEN
- * use useMemo to memoize it per React guidence.  Also make sure that it's dependencies are stable
+ * use useMemoFirebase to memoize it per React guidence.  Also make sure that it's dependencies are stable
  * references
  *  
  * @template T Optional type for document data. Defaults to any.
@@ -74,33 +75,41 @@ export function useCollection<T = any>(
       },
       async (serverError: FirestoreError) => {
         let path: string;
-        if ('_query' in memoizedTargetRefOrQuery) {
-          // This is a workaround to get the path from a query.
-          // @ts-ignore - _query is not part of the public API but necessary here.
-          path = (memoizedTargetRefOrQuery as Query)._query.path.segments.join('/');
+        // This is a workaround to get the path from a query.
+        // @ts-ignore - _query is not part of the public API but necessary here.
+        if ('_query' in memoizedTargetRefOrQuery && memoizedTargetRefOrQuery._query?.path?.segments) {
+          // @ts-ignore
+          path = memoizedTargetRefOrQuery._query.path.segments.join('/');
         } else {
           path = (memoizedTargetRefOrQuery as CollectionReference).path;
         }
         
+        const isOfflineError = serverError.code === 'unavailable' || serverError.message.includes('offline');
+
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path: path,
-        } satisfies SecurityRuleContext);
+        });
 
-        setError(contextualError);
+        // Use a more user-friendly error message for offline scenarios
+        const finalError = isOfflineError 
+            ? new Error("You're offline or Firebase is unreachable. Check your connection.")
+            : contextualError;
+
+        setError(finalError);
         setData(null);
         setIsLoading(false);
 
-        // trigger global error propagation
-        errorEmitter.emit('permission-error', contextualError);
+        // Only emit the detailed permission error for actual permission issues
+        if (!isOfflineError) {
+             errorEmitter.emit('permission-error', contextualError);
+        }
       }
     );
 
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
   
-  // This check is intentionally left here, but it's not the cause of the user's issue.
-  // It's a development-time check for developers using this hook.
   if(memoizedTargetRefOrQuery && !(memoizedTargetRefOrQuery as any).__memo) {
     console.warn('The query/reference passed to useCollection was not memoized with useMemoFirebase. This can lead to infinite loops.', memoizedTargetRefOrQuery);
   }
