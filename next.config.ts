@@ -2,11 +2,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    unoptimized: true,  // ← DISABLES VERCEL OPTIMIZATION COMPLETELY
+    unoptimized: true,
     remotePatterns: [
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
       {
         protocol: 'https',
-        hostname: '**',  // ← Allows ALL external image domains
+        hostname: '**',
       },
     ],
   },
