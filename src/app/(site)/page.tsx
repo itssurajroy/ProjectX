@@ -73,7 +73,17 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <CldImage src="https://picsum.photos/seed/anime-collage/1920/1080" data-ai-hint="anime collage cyberpunk" alt="Anime Collage" fill crop="fill" priority className="object-cover opacity-10 blur-sm" />
+                        <CldImage 
+                            src="https://picsum.photos/seed/anime-collage/1920/1080" 
+                            data-ai-hint="anime collage cyberpunk" 
+                            alt="Anime Collage" 
+                            fill 
+                            crop="fill" 
+                            priority 
+                            className="object-cover opacity-10 blur-sm" 
+                            placeholder="blur"
+                            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                        />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
                     <div className="relative z-10 container mx-auto px-4">
@@ -108,7 +118,17 @@ export default function LandingPage() {
                                     {suggestions.map(anime => (
                                     <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                                         <div className="relative w-10 h-14 flex-shrink-0">
-                                        <CldImage src={anime.poster} alt={anime.name} fill crop="fill" sizes="40px" className="rounded-md object-cover" />
+                                            <CldImage 
+                                                src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                                                alt={anime.name || "Anime Poster"} 
+                                                fill 
+                                                crop="fill" 
+                                                sizes="40px" 
+                                                className="rounded-md object-cover" 
+                                                loading="lazy"
+                                                placeholder="blur"
+                                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                                            />
                                         </div>
                                         <div className='overflow-hidden'>
                                             <p className="font-semibold truncate text-sm">{anime.name}</p>

@@ -39,12 +39,15 @@ export function W2GRoomCard({ room }: W2GRoomCardProps) {
             <div className="bg-card border border-border/50 rounded-lg overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
                 <div className="relative aspect-[2/3] w-full">
                     <CldImage
-                        src={room.animePoster || "https://picsum.photos/seed/placeholder/400/600"}
+                        src={room.animePoster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
                         alt={room.animeName || "Anime Poster"}
                         fill
                         crop="fill"
                         className="object-cover"
                         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+                        loading="lazy"
+                        placeholder="blur"
+                        blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                     />
                 </div>
                 <div className="p-3">

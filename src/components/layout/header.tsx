@@ -242,7 +242,17 @@ export default function Header() {
                     ) : suggestions.length > 0 ? suggestions.map(anime => (
                       <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
-                           <CldImage src={anime.poster} alt={anime.name} fill crop="fill" sizes="40px" className="rounded-md object-cover" />
+                           <CldImage 
+                              src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                              alt={anime.name || "Anime Poster"}
+                              fill 
+                              crop="fill" 
+                              sizes="40px" 
+                              className="rounded-md object-cover" 
+                              loading="lazy"
+                              placeholder="blur"
+                              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                            />
                         </div>
                         <div className='overflow-hidden'>
                             <p className="font-semibold truncate text-sm">{anime.name}</p>

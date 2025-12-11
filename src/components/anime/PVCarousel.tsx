@@ -43,11 +43,14 @@ export default function PVCarousel({ videos, fallbackPoster }: PVCarouselProps) 
                 onClick={() => openVideo(video.source)}
               >
                 <CldImage
-                  src={video.thumbnail || fallbackPoster}
+                  src={video.thumbnail || fallbackPoster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
                   alt={video.title || `Promotional Video ${index + 1}`}
                   fill
                   crop="fill"
                   className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  loading="lazy"
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
                 />
                 <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-colors flex items-center justify-center">
                     <PlayCircle className="h-12 w-12 text-white/80 group-hover:text-white transition-colors" />

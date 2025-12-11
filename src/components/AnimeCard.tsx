@@ -27,13 +27,16 @@ export function AnimeCard({ anime, rank }: AnimeCardProps) {
           )}
 
           <CldImage
-            src={anime.poster}
-            alt={anime.name}
+            src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"}
+            alt={anime.name || "Anime Poster"}
             width={400}
             height={600}
             crop="fill"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             className="object-cover transition-transform duration-500 group-hover:scale-110"
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-300 opacity-80 group-hover:opacity-90" />

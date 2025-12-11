@@ -44,7 +44,15 @@ export default function WatchSidebar({ anime, malData }: WatchSidebarProps) {
     return (
         <div className="bg-card/50 backdrop-blur-sm p-4 rounded-lg border border-border self-start sticky top-4">
              <div className="relative aspect-[2/3] w-full max-w-[200px] mx-auto rounded-md overflow-hidden shadow-lg mb-4">
-                <CldImage src={info.poster} alt={info.name} fill crop="fill" className="object-cover" />
+                <CldImage 
+                  src={info.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                  alt={info.name || "Anime Poster"} 
+                  fill 
+                  crop="fill" 
+                  className="object-cover"
+                  placeholder="blur"
+                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                />
             </div>
             
             <h2 className="text-xl font-bold text-center">{info.name}</h2>

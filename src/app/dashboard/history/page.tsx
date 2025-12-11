@@ -22,7 +22,16 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
     return (
         <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-border/50">
             <Link href={watchUrl} className="relative w-16 h-24 flex-shrink-0 group">
-                <CldImage src={anime.poster} alt={anime.name} fill crop="fill" className="object-cover rounded-md" />
+                <CldImage 
+                    src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
+                    alt={anime.name || "Anime Poster"} 
+                    fill 
+                    crop="fill" 
+                    className="object-cover rounded-md" 
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                />
                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <Play className="w-6 h-6 text-white" />
                 </div>
