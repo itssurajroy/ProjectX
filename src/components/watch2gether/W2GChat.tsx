@@ -1,9 +1,6 @@
-
 // src/components/watch2gether/W2GChat.tsx
 'use client';
 
-import { collection, query, orderBy, serverTimestamp, addDoc } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
@@ -13,16 +10,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
 
 export default function W2GChat({ roomId }: { roomId: string }) {
-    const firestore = useFirestore();
-    const { user } = useUser();
     const [message, setMessage] = useState('');
     const bottomRef = useRef<HTMLDivElement>(null);
     
-    const messagesRef = useMemoFirebase(() => collection(firestore, 'watch2gether_rooms', roomId, 'messages'), [firestore, roomId]);
-    const messagesQuery = useMemoFirebase(() => query(messagesRef, orderBy('timestamp', 'asc')), [messagesRef]);
+    // This component is now disconnected from Firebase.
+    // The logic below is placeholder and would need to be adapted
+    // to a new backend service (e.g., WebSockets) if one is implemented.
+    const messages: ChatMessage[] = [];
+    const isLoading = false;
 
-    const {data: messages, isLoading, error} = useCollection<ChatMessage>(messagesQuery);
-    
     useEffect(() => {
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     }, [messages]);
@@ -30,22 +26,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        if (!message.trim() || !user || !messagesRef) return;
-
-        const messageData = {
-            userId: user.uid,
-            userName: user.displayName || 'Anonymous Guest',
-            avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
-            text: message,
-            timestamp: serverTimestamp(),
-        };
-        try {
-            await addDoc(messagesRef, messageData);
-            setMessage('');
-        } catch(e) {
-            console.error("Failed to send message", e);
-            alert("You do not have permission to send messages.");
-        }
+        alert("Chat is temporarily disabled.");
     };
 
     return (
@@ -79,7 +60,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                 )}
                  {!isLoading && messages?.length === 0 && (
                     <div className="flex justify-center items-center h-full text-sm text-muted-foreground">
-                        Be the first to say something!
+                        Chat is currently offline.
                     </div>
                  )}
             </ScrollArea>
@@ -87,12 +68,12 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                 <Input 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder={user ? "Type a message..." : "Sign in to chat"}
+                    placeholder={"Chat is disabled"}
                     autoComplete="off"
-                    disabled={!user}
+                    disabled
                     className="bg-background/50"
                 />
-                <Button type="submit" size="icon" disabled={!user || !message.trim()}>
+                <Button type="submit" size="icon" disabled>
                     <Send className="w-4 h-4" />
                 </Button>
             </form>

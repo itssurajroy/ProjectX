@@ -1,15 +1,11 @@
-
 // src/components/watch2gether/Watch2GetherClient.tsx
 'use client';
 
 import { useEffect } from 'react';
-import { doc, collection, setDoc } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase, useDoc } from '@/firebase';
 import { Loader2, Users, Crown, Settings, Share2, LogOut } from 'lucide-react';
 import ErrorDisplay from '../common/ErrorDisplay';
 import W2GVideoPlayer from './W2GVideoPlayer';
 import W2GChat from './W2GChat';
-import { WatchTogetherRoom } from '@/types/watch2gether';
 import { Button } from '../ui/button';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
@@ -21,43 +17,24 @@ import SiteLogo from '../layout/SiteLogo';
 import W2GAnimeDetails from './W2GAnimeDetails';
 
 export default function Watch2GetherClient({ roomId }: { roomId: string }) {
-    const firestore = useFirestore();
     const router = useRouter();
-    const { user, isUserLoading } = useUser();
 
-    const roomRef = useMemoFirebase(() => doc(firestore, 'watch2gether_rooms', roomId), [firestore, roomId]);
-
-    const { data: roomData, isLoading: isRoomLoading, error: roomError } = useDoc<WatchTogetherRoom>(roomRef);
-    
-    const { data: animeResult, isLoading: isAnimeLoading } = useQuery<AnimeAboutResponse>({
-        queryKey: ['anime', roomData?.animeId],
-        queryFn: () => AnimeService.anime(roomData!.animeId),
-        enabled: !!roomData?.animeId,
-    });
-
-
-    useEffect(() => {
-        if (!user || !roomData) return;
-
-        const userDocRef = doc(collection(firestore, 'watch2gether_rooms', roomId, 'users'), user.uid);
-        
-        const userData = {
-            id: user.uid,
-            name: user.displayName || `Guest#${user.uid.slice(0, 4)}`,
-            avatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
-            isHost: roomData.hostId === user.uid
-        };
-        
-        setDoc(userDocRef, userData, { merge: true }).catch(e => console.error("Failed to set user in room", e));
-
-    }, [user, roomData, roomId, firestore]);
+    // This component is now disconnected from Firebase.
+    // The logic below is placeholder and would need to be adapted
+    // to a new backend service (e.g., WebSockets) if one is implemented.
+    const isRoomLoading = false;
+    const roomError = null;
+    const roomData = null as any;
+    const isHost = false;
+    const animeResult = null as any;
+    const isAnimeLoading = false;
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
         toast.success("Room link copied to clipboard!");
     }
     
-    if (isRoomLoading || isUserLoading || isAnimeLoading) {
+    if (isRoomLoading || isAnimeLoading) {
         return (
             <div className="flex h-screen items-center justify-center bg-background">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -66,10 +43,10 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
         );
     }
 
-    if (roomError) return <ErrorDisplay title="Error loading room" description={roomError.message} />;
-    if (!roomData) return <ErrorDisplay title="Room not found" description="This watch party does not exist or has expired." />;
+    if (roomError || !roomData) {
+        return <ErrorDisplay title="Room not found" description="This watch party does not exist, has expired, or is currently unavailable." />;
+    }
     
-    const isHost = user?.uid === roomData.hostId;
     const animeInfo = animeResult?.anime?.info;
     const moreInfo = animeResult?.anime?.moreInfo;
 
@@ -89,7 +66,7 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
         <div className="pt-16 grid grid-cols-12 h-screen">
            <main className="col-span-9 h-full overflow-y-auto">
                <W2GVideoPlayer
-                    roomRef={roomRef!}
+                    roomRef={null}
                     isHost={isHost}
                 />
                 {animeInfo && moreInfo && <W2GAnimeDetails animeInfo={animeInfo} moreInfo={moreInfo} />}

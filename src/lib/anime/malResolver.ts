@@ -1,28 +1,10 @@
-
-import { doc, getDoc } from 'firebase/firestore';
 import { AnimeService } from '../AnimeService';
 import { MALService } from '../MALService';
-import { initializeFirebase } from '@/firebase';
 
-// Use the server-side initialized firestore instance
-const { firestore } = initializeFirebase();
-
+// This function is now disconnected from Firebase. It only uses the Anime and MAL services.
 
 export async function getMALId(animeId: string): Promise<number | null> {
-  // 1. Check override
-  try {
-    const overrideRef = doc(firestore, 'admin/overrides/animes', animeId);
-    const overrideSnap = await getDoc(overrideRef);
-    
-    if (overrideSnap.exists() && overrideSnap.data()?.malId) {
-      return overrideSnap.data()?.malId;
-    }
-  } catch (e) {
-      // This might fail if user is not admin, which is fine.
-      console.warn(`Could not check for MAL override for ${animeId}. This is expected if not logged in as admin.`);
-  }
-
-  // 2. Auto search by title
+  // Auto search by title
   const anime = await AnimeService.anime(animeId);
   if (!anime || !anime?.anime?.info?.name) return null;
 

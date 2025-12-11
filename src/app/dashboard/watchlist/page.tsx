@@ -1,8 +1,5 @@
-
 'use client';
 import { useMemo, useState } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
 import { AnimeBase } from '@/types/anime';
 import { Bookmark, Filter, ListFilter, Loader2 } from 'lucide-react';
 import { AnimeCard } from '@/components/AnimeCard';
@@ -20,7 +17,6 @@ interface WatchlistItem extends AnimeBase {
     status: 'Watching' | 'Completed' | 'On-Hold' | 'Dropped' | 'Plan to Watch';
     addedAt: any;
 }
-
 
 const WatchlistGrid = ({ animes }: { animes: WatchlistItem[] }) => {
     if (animes.length === 0) {
@@ -40,36 +36,13 @@ const WatchlistGrid = ({ animes }: { animes: WatchlistItem[] }) => {
 }
 
 export default function WatchlistPage() {
-    const { user } = useUser();
-    const firestore = useFirestore();
     const [statusFilter, setStatusFilter] = useState('All');
     const [sortOrder, setSortOrder] = useState('addedAt_desc');
 
-    const watchlistQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        let q = query(collection(firestore, 'users', user.uid, 'watchlist'));
-        
-        const [field, direction] = sortOrder.split('_');
-        
-        if (field && direction) {
-            q = query(q, orderBy(field, direction as 'asc' | 'desc'));
-        }
-
-        return q;
-    }, [user, firestore, sortOrder]);
-
-    const { data: watchlistItems, isLoading } = useCollection<WatchlistItem>(watchlistQuery);
-
-    const filteredAndSortedItems = useMemo(() => {
-        if (!watchlistItems) return [];
-        let items = [...watchlistItems];
-
-        if (statusFilter !== 'All') {
-            items = items.filter(item => item.status === statusFilter);
-        }
-        
-        return items;
-    }, [watchlistItems, statusFilter]);
+    // This page is now non-functional as it relied on Firebase for user data.
+    // Displaying a placeholder state.
+    const isLoading = false;
+    const filteredAndSortedItems: WatchlistItem[] = [];
 
     const statuses = ['All', 'Watching', 'Completed', 'On-Hold', 'Dropped', 'Plan to Watch'];
     const sortOptions = [
@@ -89,7 +62,7 @@ export default function WatchlistPage() {
                 <div className="flex items-center gap-2">
                      <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="gap-2">
+                            <Button variant="outline" className="gap-2" disabled>
                                 <ListFilter className="w-4 h-4"/>
                                 Sort
                             </Button>
@@ -110,22 +83,15 @@ export default function WatchlistPage() {
             <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mb-6">
                 <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full sm:w-auto">
                     {statuses.map(s => (
-                        <TabsTrigger key={s} value={s}>{s}</TabsTrigger>
+                        <TabsTrigger key={s} value={s} disabled>{s}</TabsTrigger>
                     ))}
                 </TabsList>
             </Tabs>
-
-            {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                </div>
-            ) : filteredAndSortedItems ? (
-                <WatchlistGrid animes={filteredAndSortedItems} />
-            ) : (
-                <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
-                    <p className="text-muted-foreground">Your watchlist is empty.</p>
-                </div>
-            )}
+            
+            <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
+                <p className="text-muted-foreground">Please log in to see your watchlist.</p>
+                 <p className="text-xs text-muted-foreground mt-1">This feature is temporarily disabled.</p>
+            </div>
         </div>
     )
 }

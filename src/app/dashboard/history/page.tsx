@@ -1,8 +1,5 @@
-
 'use client';
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
 import { UserHistory, AnimeBase } from '@/types/anime';
 import { History, Loader2, Play } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -41,7 +38,7 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
                 </div>
             </div>
             <div className="text-right text-xs text-muted-foreground">
-                <p>{formatDistanceToNow(item.watchedAt.toDate(), { addSuffix: true })}</p>
+                <p>{/* Temporarily disabled: {formatDistanceToNow(item.watchedAt.toDate(), { addSuffix: true })} */}</p>
             </div>
         </div>
     );
@@ -49,64 +46,12 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
 
 
 export default function HistoryPage() {
-    const { user } = useUser();
-    const firestore = useFirestore();
+    // This page is now non-functional as it relied on Firebase for user data.
+    // Displaying a placeholder state.
+    const isLoading = false;
+    const history: UserHistory[] = [];
+    const groupedHistory = {};
 
-    const historyQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(
-            collection(firestore, `users/${user.uid}/history`),
-            orderBy('watchedAt', 'desc')
-        );
-    }, [user, firestore]);
-
-    const { data: history, isLoading } = useCollection<UserHistory>(historyQuery);
-
-    const animeIds = useMemo(() => {
-        if (!history) return [];
-        return [...new Set(history.map(item => item.animeId))];
-    }, [history]);
-
-    const { data: animeDetails, isLoading: isLoadingAnimeDetails } = useQuery({
-        queryKey: ['animeDetails', animeIds],
-        queryFn: async () => {
-            const animeData: Record<string, AnimeBase> = {};
-            const promises = animeIds.map(async (id) => {
-                try {
-                    const data = await AnimeService.anime(id);
-                    if (data?.anime?.info) {
-                       animeData[id] = data.anime.info;
-                    }
-                } catch (e) {
-                    console.warn(`Could not fetch details for anime ${id}`);
-                }
-            });
-            await Promise.all(promises);
-            return animeData;
-        },
-        enabled: animeIds.length > 0,
-    });
-
-    const groupedHistory = useMemo(() => {
-        if (!history) return {};
-        return history.reduce((acc, item) => {
-            const date = item.watchedAt.toDate();
-            let dayLabel: string;
-            if (isToday(date)) {
-                dayLabel = 'Today';
-            } else if (isYesterday(date)) {
-                dayLabel = 'Yesterday';
-            } else {
-                dayLabel = format(date, 'MMMM d, yyyy');
-            }
-            if (!acc[dayLabel]) {
-                acc[dayLabel] = [];
-            }
-            acc[dayLabel].push(item);
-            return acc;
-        }, {} as Record<string, UserHistory[]>);
-    }, [history]);
-    
     return (
         <div>
             <h1 className="text-3xl font-bold flex items-center gap-3 mb-6">
@@ -114,29 +59,9 @@ export default function HistoryPage() {
                 Watch History
             </h1>
 
-            {(isLoading || isLoadingAnimeDetails) && (
-                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                </div>
-            )}
-
-            {!isLoading && history?.length === 0 && (
-                <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
-                    <p className="text-muted-foreground">Your watch history is empty.</p>
-                </div>
-            )}
-            
-            <div className="space-y-8">
-                {Object.entries(groupedHistory).map(([day, items]) => (
-                    <section key={day}>
-                        <h2 className="text-xl font-bold font-display mb-4 border-b border-border/50 pb-2">{day}</h2>
-                        <div className="space-y-3">
-                            {items.map(item => (
-                                <HistoryItem key={item.id} item={item} anime={animeDetails?.[item.animeId]} />
-                            ))}
-                        </div>
-                    </section>
-                ))}
+            <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
+                <p className="text-muted-foreground">Please log in to see your watch history.</p>
+                 <p className="text-xs text-muted-foreground mt-1">This feature is temporarily disabled.</p>
             </div>
 
         </div>

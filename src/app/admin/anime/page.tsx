@@ -1,27 +1,28 @@
-
 'use client';
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
-import { useFirestore } from "@/firebase";
 import AnimeImage from "@/components/AnimeImage";
 import { CldUploadButton } from "next-cloudinary";
+import { AnimeService } from "@/lib/AnimeService";
+import { AnimeBase } from "@/types/anime";
 
 export default function AnimeManagement() {
   const [animeList, setAnimeList] = useState<any[]>([]);
-  const firestore = useFirestore();
+
+  // This component is now disconnected from Firebase.
+  // The logic below is placeholder and would need to be adapted
+  // to a new backend service if one is implemented.
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(firestore, "anime"), (snapshot) => {
-      const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setAnimeList(data);
+    // Example of fetching some data to populate the list
+    AnimeService.getCategory('most-popular', 1).then(data => {
+        if (data.animes) {
+            setAnimeList(data.animes);
+        }
     });
-    return unsub;
-  }, [firestore]);
+  }, []);
 
   const deleteAnime = async (id: string) => {
-    if (confirm("Delete this anime forever? This action cannot be undone.")) {
-      await deleteDoc(doc(firestore, "anime", id));
-    }
+    alert("Delete functionality is disabled.");
   };
 
   return (
@@ -40,26 +41,23 @@ export default function AnimeManagement() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {animeList.map(anime => (
+        {animeList.map((anime: AnimeBase) => (
           <div key={anime.id} className="bg-gray-900/80 rounded-3xl overflow-hidden border border-purple-500/30 hover:border-purple-500 transition-all duration-300 hover:-translate-y-1">
             <div className="relative w-full h-96">
                 <AnimeImage 
-                  src={anime.coverImage}
-                  alt={anime.title || "Anime Cover"} 
-                  fill
+                  src={anime.poster}
+                  alt={anime.name || "Anime Cover"} 
                   className="object-cover" 
                 />
             </div>
             <div className="p-6 space-y-4">
-              <h3 className="text-2xl font-bold truncate">{anime.title}</h3>
+              <h3 className="text-2xl font-bold truncate">{anime.name}</h3>
               <div className="flex gap-2 flex-wrap h-14 overflow-y-auto">
-                {anime.genres?.map((g: string) => (
-                  <span key={g} className="px-3 py-1 bg-purple-900/50 rounded-full text-sm">
-                    {g}
+                 <span className="px-3 py-1 bg-purple-900/50 rounded-full text-sm">
+                    {anime.type}
                   </span>
-                ))}
               </div>
-              <p className="text-gray-400">Episodes: {anime.episodes || 'N/A'} • Score: {anime.score || 'N/A'}</p>
+              <p className="text-gray-400">Episodes: {anime.episodes?.sub || 'N/A'} • Score: {anime.rating || 'N/A'}</p>
               <div className="flex gap-4 mt-6">
                 <button className="flex-1 py-4 bg-blue-600 rounded-xl font-bold hover:bg-blue-700 transition-colors">
                   Edit

@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -9,9 +8,6 @@ import { SearchSuggestion } from '@/types/anime';
 import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import NotificationBell from '../notifications/NotificationBell';
-import { useUser, useAuth } from '@/firebase';
-import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
@@ -66,66 +62,16 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 }
 
 function UserProfileMenu() {
-  const { user, profile } = useUser();
-  const auth = useAuth();
   const router = useRouter();
 
   const handleLogout = () => {
-    auth.signOut();
+    // Placeholder for logout
   };
 
-  if (!user) return null;
-
-  return (
-     <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                <Avatar className="h-9 w-9 ring-2 ring-primary/50">
-                    <AvatarImage src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt={user.displayName || 'user'} />
-                    <AvatarFallback>{user.email?.[0].toUpperCase()}</AvatarFallback>
-                </Avatar>
-            </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.isAnonymous ? 'Guest User' : (user.displayName || 'User')}</p>
-                {!user.isAnonymous && <p className="text-xs leading-none text-muted-foreground">{user.email}</p>}
-                {profile && profile.role === 'admin' && <Badge variant="destructive" className="mt-1 w-fit">Admin</Badge>}
-            </div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                <UserIcon className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-            </DropdownMenuItem>
-            {profile && profile.role === 'admin' && (
-                 <DropdownMenuItem onClick={() => router.push('/admin')}>
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span>Admin Panel</span>
-                </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-            </DropdownMenuItem>
-        </DropdownMenuContent>
-     </DropdownMenu>
-  )
+  return null; // Temporarily disable user profile menu
 }
 
 function UserAuth() {
-  const { user, isUserLoading } = useUser();
-  
-  if (isUserLoading) {
-    return <div className="w-20 h-9 bg-muted/50 rounded-md animate-pulse" />;
-  }
-
-  if (user) {
-    return <UserProfileMenu />;
-  }
-
   return (
     <Button asChild>
         <Link href="/login">Login</Link>
@@ -271,7 +217,7 @@ export default function Header() {
                   <Users className="w-5 h-5 text-primary" />
                 </Link>
               </Button>
-              <NotificationBell />
+              <Button variant="ghost" size="icon" title="Notifications" disabled><Bell className="w-5 h-5" /></Button>
               <Button asChild variant="ghost" size="icon">
                 <Link href="/random" title="Random Anime">
                   <Shuffle className="w-5 h-5 text-primary" />

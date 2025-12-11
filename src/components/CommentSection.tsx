@@ -1,9 +1,6 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { addDoc, serverTimestamp, query, orderBy, where, doc, updateDoc, arrayUnion, arrayRemove, collection, CollectionReference, DocumentData } from 'firebase/firestore';
 import { Heart, MessageCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,78 +10,29 @@ import { Badge } from './ui/badge';
 import Spoiler from './comments/Spoiler';
 
 export default function CommentSection({ animeId, episodeId }: { animeId: string; episodeId?: string }) {
-  const { user } = useUser();
-  const firestore = useFirestore();
   const [comments, setComments] = useState<Comment[]>([]);
   const [input, setInput] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const commentsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    
-    let commentsCollectionPath: string;
-    if (episodeId) {
-        commentsCollectionPath = `comments/${animeId}/episodes/${episodeId}/messages`;
-    } else {
-        commentsCollectionPath = `comments/${animeId}/general`;
-    }
-    const commentsRef = collection(firestore, commentsCollectionPath);
-
-    return query(commentsRef, orderBy('timestamp', 'asc'));
-  }, [firestore, animeId, episodeId]);
-
-  const { data: fetchedComments, isLoading } = useCollection<Comment>(commentsQuery);
+  // This component is now disconnected from Firebase.
+  // The logic below is placeholder and would need to be adapted
+  // to a new backend service if one is implemented.
 
   useEffect(() => {
-    if (fetchedComments) {
-      setComments(fetchedComments);
-    }
-  }, [fetchedComments]);
-
+    // Simulate fetching comments
+    setTimeout(() => {
+      setComments([]); // No comments since there is no backend
+      setIsLoading(false);
+    }, 1000);
+  }, [animeId, episodeId]);
 
   const postComment = async () => {
-    if (!input.trim() || !user || !firestore || !commentsQuery) {
-        if(!user) alert("You must be logged in to comment.");
-        return;
-    };
-    
-    const commentData = {
-      animeId: animeId,
-      text: input,
-      userId: user.uid,
-      username: user.displayName || 'Anonymous',
-      userAvatar: user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
-      episodeId: episodeId || null,
-      likes: [],
-      timestamp: serverTimestamp(),
-      spoiler: isSpoiler,
-      parentId: null,
-      rank: 'Genin', // Placeholder for gamification
-    };
-
-    await addDoc(collection(firestore, commentsQuery.path), commentData);
-    setInput('');
-    setIsSpoiler(false);
+    alert("Commenting is temporarily disabled.");
   };
   
   const likeComment = async (id: string) => {
-    if (!user || !firestore || !commentsQuery) {
-        if(!user) alert("You must be logged in to like comments.");
-        return;
-    }
-
-    const commentRef = doc(firestore, commentsQuery.path, id);
-    const comment = comments.find(c => c.id === id);
-
-    if (comment?.likes.includes(user.uid)) {
-        await updateDoc(commentRef, {
-            likes: arrayRemove(user.uid)
-        });
-    } else {
-        await updateDoc(commentRef, {
-            likes: arrayUnion(user.uid)
-        });
-    }
+    alert("Liking comments is temporarily disabled.");
   };
 
   return (
@@ -94,39 +42,36 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
         Comments ({comments.length})
       </h2>
 
-      {user ? (
-        <div className="flex gap-3">
+      <div className="flex gap-3">
           <Avatar className="w-10 h-10">
-            <AvatarImage src={user.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} />
-            <AvatarFallback>{user.displayName?.[0] || 'U'}</AvatarFallback>
+            <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=guest`} />
+            <AvatarFallback>{'G'}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Write your thoughts... Use >!spoiler!< for hidden text"
+              placeholder="Please log in to comment..."
               className="w-full p-4 bg-card/80 rounded-xl border-border/50 resize-none focus:outline-none focus:border-primary"
               rows={3}
+              disabled
             />
             <div className="flex justify-between items-center mt-2">
               <div className="flex items-center gap-2">
-                  <input type="checkbox" id="isSpoiler" checked={isSpoiler} onChange={(e) => setIsSpoiler(e.target.checked)} className="form-checkbox h-4 w-4 rounded bg-muted/50 border-border text-primary focus:ring-primary" />
+                  <input type="checkbox" id="isSpoiler" checked={isSpoiler} onChange={(e) => setIsSpoiler(e.target.checked)} className="form-checkbox h-4 w-4 rounded bg-muted/50 border-border text-primary focus:ring-primary" disabled />
                   <label htmlFor="isSpoiler" className="text-sm text-muted-foreground">Mark as Spoiler</label>
               </div>
               <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => setInput('')}>
+                  <Button variant="ghost" onClick={() => setInput('')} disabled>
                       Cancel
                   </Button>
-                  <Button onClick={postComment} disabled={!input.trim()}>
+                  <Button onClick={postComment} disabled>
                       Post Comment
                   </Button>
               </div>
             </div>
           </div>
         </div>
-      ) : (
-          <p className="text-center text-muted-foreground">You must be logged in to comment.</p>
-      )}
 
       {/* Comments List */}
       <div className="space-y-4">
@@ -160,7 +105,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
 
                 <div className="flex items-center gap-4 mt-2">
                   <Button variant="ghost" size="sm" onClick={() => likeComment(comment.id)}>
-                    <Heart className={cn("w-4 h-4", user && comment.likes?.includes(user.uid) ? "fill-red-500 text-red-500" : "")} />
+                    <Heart className="w-4 h-4" />
                     <span className="ml-1 text-xs">{comment.likes?.length || 0}</span>
                   </Button>
                   <Button variant="ghost" size="sm">
@@ -172,6 +117,11 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
             </div>
           </div>
         ))}
+        {!isLoading && comments.length === 0 && (
+            <div className="text-center py-10 text-muted-foreground">
+                <p>Be the first to comment!</p>
+            </div>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,9 @@
-
 'use client';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper } from 'lucide-react';
 import SiteLogo from '@/components/layout/SiteLogo';
-import { useUser } from '@/firebase';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
 
@@ -64,7 +62,6 @@ const MobileBottomNav = () => {
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const { user } = useUser();
     const isExpanded = true; // For now, sidebar is always expanded
 
     return (
@@ -76,15 +73,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     isExpanded ? "w-64" : "w-16"
                 )}>
                     <div className="p-4 flex items-center justify-between">
-                         {user && isExpanded && (
+                         {isExpanded && (
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <Avatar className="w-9 h-9">
-                                    <AvatarImage src={user.photoURL!} />
-                                    <AvatarFallback>{user.displayName?.charAt(0) ?? 'U'}</AvatarFallback>
+                                    <AvatarImage src={'/placeholder-user.jpg'} />
+                                    <AvatarFallback>{'U'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col overflow-hidden">
-                                    <p className="text-sm font-semibold truncate">{user.displayName}</p>
-                                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                                    <p className="text-sm font-semibold truncate">Guest</p>
+                                    <p className="text-xs text-muted-foreground truncate">guest@projectx.com</p>
                                 </div>
                             </div>
                          )}

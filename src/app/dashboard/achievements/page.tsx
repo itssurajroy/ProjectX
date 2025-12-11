@@ -1,9 +1,6 @@
-
 'use client';
 
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
-import { UserHistory, WatchlistItem, AnimeBase } from '@/types/anime';
+import { AnimeBase } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import { useMemo } from 'react';
@@ -58,81 +55,10 @@ const AchievementCard = ({ achievement, progress }: { achievement: typeof achiev
 }
 
 export default function AchievementsPage() {
-    const { user } = useUser();
-    const firestore = useFirestore();
-
-    const historyQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(collection(firestore, `users/${user.uid}/history`));
-    }, [user, firestore]);
-
-    const watchlistQuery = useMemoFirebase(() => {
-        if (!user) return null;
-        return query(collection(firestore, `users/${user.uid}/watchlist`));
-    }, [user, firestore]);
-
-    const { data: history, isLoading: isLoadingHistory } = useCollection<UserHistory>(historyQuery);
-    const { data: watchlist, isLoading: isLoadingWatchlist } = useCollection<WatchlistItem>(watchlistQuery);
-
-    const animeIds = useMemo(() => {
-        if (!history) return [];
-        return [...new Set(history.map(item => item.animeId))];
-    }, [history]);
-
-    const { data: animeDetails, isLoading: isLoadingAnimeDetails } = useQuery({
-        queryKey: ['animeDetails', animeIds],
-        queryFn: async () => {
-            const animeData: Record<string, any> = {};
-            const promises = animeIds.map(async (id) => {
-                try {
-                    const data = await AnimeService.anime(id);
-                    if (data?.anime) animeData[id] = data.anime;
-                } catch (e) {
-                    console.warn(`Could not fetch details for anime ${id}`);
-                }
-            });
-            await Promise.all(promises);
-            return animeData;
-        },
-        enabled: animeIds.length > 0,
-    });
-
-    const achievementProgress = useMemo(() => {
-        const progress: Record<string, number> = {};
-        if (!history || !watchlist || !animeDetails) return progress;
-
-        // Total episodes
-        const uniqueEpisodes = new Set(history.map(h => h.episodeId)).size;
-        progress['episodes'] = uniqueEpisodes;
-
-        // Started series
-        const uniqueSeries = new Set(history.map(h => h.animeId)).size;
-        progress['series'] = uniqueSeries;
-
-        // Completed series
-        const completedSeries = watchlist.filter(item => item.status === 'Completed').length;
-        progress['completed'] = completedSeries;
-
-        // Watched genres
-        const watchedGenres = new Set<string>();
-        history.forEach(item => {
-            const details = animeDetails[item.animeId];
-            details?.moreInfo?.genres?.forEach((genre: string) => watchedGenres.add(genre));
-        });
-        progress['genres'] = watchedGenres.size;
-        
-        // Weekend warrior
-        const weekendEpisodes = history.filter(h => {
-            const day = h.watchedAt.toDate().getDay();
-            return day === 5 || day === 6 || day === 0; // Fri, Sat, Sun
-        }).length;
-        progress['streak'] = weekendEpisodes;
-
-
-        return progress;
-    }, [history, watchlist, animeDetails]);
-
-    const isLoading = isLoadingHistory || isLoadingWatchlist || (animeIds.length > 0 && isLoadingAnimeDetails);
+    // This page is now non-functional as it relied on Firebase for user data.
+    // Displaying a placeholder state.
+    const isLoading = false;
+    const achievementProgress: Record<string, number> = {};
 
     return (
         <div>
@@ -141,17 +67,16 @@ export default function AchievementsPage() {
                 Achievements
             </h1>
 
-            {isLoading ? (
-                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                </div>
-            ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {achievementsList.map(ach => (
-                        <AchievementCard key={ach.id} achievement={ach} progress={achievementProgress[ach.type] || 0} />
-                    ))}
-                </div>
-            )}
+            <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
+                <p className="text-muted-foreground">Please log in to view your achievements.</p>
+                <p className="text-xs text-muted-foreground mt-1">This feature is temporarily disabled.</p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-8 opacity-20 pointer-events-none">
+                {achievementsList.map(ach => (
+                    <AchievementCard key={ach.id} achievement={ach} progress={achievementProgress[ach.type] || 0} />
+                ))}
+            </div>
         </div>
     )
 }

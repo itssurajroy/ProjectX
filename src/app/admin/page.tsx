@@ -1,8 +1,7 @@
 'use client';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { useFirestore } from '@/firebase';
 import { Clapperboard, Users, Film } from 'lucide-react';
+import { AnimeService } from '@/lib/AnimeService';
 
 const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: number, icon: React.ElementType, color: string }) => (
   <div className={`p-8 rounded-3xl border ${color} bg-gray-900/50`}>
@@ -18,27 +17,18 @@ export default function AdminDashboard() {
   const [totalAnime, setTotalAnime] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalEpisodes, setTotalEpisodes] = useState(0);
-  const firestore = useFirestore();
 
   useEffect(() => {
-    const unsubAnime = onSnapshot(collection(firestore, "anime"), (snapshot) => {
-      let totalEps = 0;
-      snapshot.docs.forEach(doc => {
-        totalEps += doc.data().episodes || 0;
-      });
-      setTotalAnime(snapshot.size);
-      setTotalEpisodes(totalEps);
+    // Since Firebase is removed, we'll use placeholder data or fetch from another source.
+    // Here we're fetching from our anime API for a rough count.
+    AnimeService.search(new URLSearchParams({limit: '1'})).then(data => {
+        setTotalAnime(data.totalAnimes || 0);
     });
 
-    const unsubUsers = onSnapshot(collection(firestore, "users"), (snapshot) => {
-      setTotalUsers(snapshot.size);
-    });
-
-    return () => {
-      unsubAnime();
-      unsubUsers();
-    };
-  }, [firestore]);
+    // Placeholder values as user and episode counts were from Firebase.
+    setTotalUsers(1000); // Placeholder
+    setTotalEpisodes(50000); // Placeholder
+  }, []);
 
   return (
     <div className="p-10">

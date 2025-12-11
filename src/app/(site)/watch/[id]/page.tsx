@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
@@ -42,8 +41,6 @@ import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
 import CommentsContainer from '@/components/comments/CommentsContainer';
 import AnimeSchedule from '@/components/watch/AnimeSchedule';
-import { useUser, useFirestore } from '@/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
@@ -62,8 +59,6 @@ function WatchPageComponent() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const firestore = useFirestore();
-  const { user } = useUser();
 
   const animeId = params.id as string;
   const episodeParam = searchParams.get('ep');
@@ -172,43 +167,7 @@ function WatchPageComponent() {
   }, [animeId, router]);
 
   const handleCreateW2G = async () => {
-    if (!user) {
-      toast.error('You must be logged in to create a Watch Together room.');
-      router.push('/login');
-      return;
-    }
-    if (!currentEpisode || !about) {
-      toast.error('Could not get anime details to create a room.');
-      return;
-    }
-
-    const toastId = toast.loading('Creating Watch Together room...');
-
-    try {
-      const roomCollection = collection(firestore, 'watch2gether_rooms');
-      const roomData = {
-        name: `${user.displayName || 'Anonymous'}'s Watch Party`,
-        animeId: about.info.id,
-        animeName: about.info.name,
-        animePoster: about.info.poster,
-        episodeId: currentEpisode.episodeId,
-        episodeNumber: currentEpisode.number,
-        hostId: user.uid,
-        createdAt: serverTimestamp(),
-        playerState: {
-          isPlaying: false,
-          currentTime: 0,
-          updatedAt: serverTimestamp(),
-        },
-      };
-
-      const newRoomDoc = await addDoc(roomCollection, roomData);
-      toast.success('Room created! Redirecting...', { id: toastId });
-      router.push(`/watch2gether/${newRoomDoc.id}`);
-    } catch (error) {
-      console.error('Error creating Watch Together room:', error);
-      toast.error('Failed to create room. You may not have permission.', { id: toastId });
-    }
+    toast.error('Watch Together is temporarily disabled.');
   };
 
   if (isLoadingAbout || isLoadingEpisodes) {

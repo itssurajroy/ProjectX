@@ -1,14 +1,6 @@
-
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/firebase';
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +19,6 @@ const GoogleIcon = () => (
 )
 
 export default function LoginPage() {
-  const auth = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,50 +26,17 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handleAuthAction = async (action: 'login' | 'signup') => {
-    if (!auth) {
-        toast.error("Authentication service is not available.");
-        return;
-    }
     setIsLoading(true);
     setError(null);
-    try {
-      if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-      toast.success(action === 'login' ? 'Successfully signed in!' : 'Account created successfully!');
-      router.push('/dashboard');
-    } catch (err: any) {
-      const friendlyError = getFirebaseErrorMessage(err.code);
-      setError(friendlyError);
-      toast.error(friendlyError);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    toast.error("Login functionality is temporarily disabled.");
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) {
-        toast.error("Authentication service is not available.");
-        return;
-    }
     setIsLoading(true);
     setError(null);
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      toast.success('Successfully signed in with Google!');
-      router.push('/dashboard');
-    } catch (err: any) {
-      const friendlyError = getFirebaseErrorMessage(err.code);
-      setError(friendlyError);
-      toast.error(friendlyError);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    toast.error("Login functionality is temporarily disabled.");
+    setIsLoading(false);
   };
 
   return (

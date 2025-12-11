@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -13,9 +12,6 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
-import { useUser, useFirestore } from '@/firebase';
-import { collection, serverTimestamp, doc, setDoc } from 'firebase/firestore';
-
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
     if (!episodeIdWithParam) return null;
@@ -35,7 +31,6 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  // Sanitize the episode ID on component entry
   const episodeId = rawEpisodeId?.split('?ep=')[0] || '';
 
   useEffect(() => {
@@ -48,54 +43,27 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   }, []);
   
   const episodeNumber = extractEpisodeNumber(rawEpisodeId);
-  const { user } = useUser();
-  const firestore = useFirestore();
 
   const { autoNext, autoPlay } = usePlayerSettings();
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const saveHistory = useCallback(async () => {
-    if (!user || !videoRef.current || !animeId || !rawEpisodeId || !firestore) return;
-
-    const video = videoRef.current;
-    const { currentTime, duration } = video;
-    
-    // Don't save if video hasn't started or is too short
-    if (currentTime === 0 || duration < 60) return;
-
-    const historyDocId = sanitizeFirestoreId(rawEpisodeId);
-    const historyDocRef = doc(firestore, 'users', user.uid, 'history', historyDocId);
-    
-    try {
-        await setDoc(historyDocRef, {
-          animeId,
-          episodeId: rawEpisodeId,
-          episodeNumber: Number(episodeNumber),
-          watchedAt: serverTimestamp(),
-          progress: currentTime,
-          duration: duration,
-        }, { merge: true });
-    } catch (e) {
-        console.error("Failed to save history:", e);
-    }
-
-  }, [user, firestore, animeId, rawEpisodeId, episodeNumber]);
+    // This function is now a placeholder since Firebase is removed.
+    // In a real app with a different backend, the logic would go here.
+  }, [animeId, rawEpisodeId, episodeNumber]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      // Clear any existing timeout
       if (updateProgressTimeout.current) {
         clearTimeout(updateProgressTimeout.current);
       }
-      // Set a new timeout to save progress after 15 seconds of no updates
       updateProgressTimeout.current = setTimeout(saveHistory, 15000);
     };
 
     video.addEventListener('timeupdate', handleTimeUpdate);
-    // Also save on pause
     video.addEventListener('pause', saveHistory);
 
     return () => {
@@ -104,20 +72,19 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
       if (updateProgressTimeout.current) {
         clearTimeout(updateProgressTimeout.current);
       }
-       // Save one last time on unmount
       saveHistory();
     };
   }, [saveHistory]);
 
 
   const handleEpisodeEnd = useCallback(() => {
-    saveHistory(); // Save final progress
+    saveHistory(); 
     if (autoNext) {
         setShowConfetti(true);
         setTimeout(() => {
             setShowConfetti(false);
             onNext();
-        }, 3000); // Show confetti for 3 seconds then go next
+        }, 3000); 
     }
   }, [autoNext, onNext, saveHistory]);
 
@@ -356,10 +323,3 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
     </div>
   );
 }
-    
-
-    
-
-    
-
-    
