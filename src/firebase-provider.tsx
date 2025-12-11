@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from 'react';
 import type { FirebaseApp } from 'firebase/app';
 import { type Auth, onAuthStateChanged, type User } from 'firebase/auth';
-import { type Firestore, doc, onSnapshot } from 'firebase/firestore';
+import { type Firestore, doc, onSnapshot, serverTimestamp, setDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/types/user';
 import { useMemoFirebase } from '@/firebase';
 
@@ -49,13 +49,34 @@ export function FirebaseProvider({
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUserAuthState(prevState => ({ ...prevState, user, isUserLoading: false }));
+
+      if (user) {
+        // When user logs in, create/update their profile document
+        const userDocRef = doc(firestore, 'users', user.uid);
+        try {
+            await setDoc(userDocRef, {
+                displayName: user.displayName,
+                email: user.email,
+                photoURL: user.photoURL,
+                lastLogin: serverTimestamp(),
+                // Set default role and createdAt only on initial creation
+                role: 'user', 
+                createdAt: serverTimestamp()
+            }, { merge: true });
+        } catch (error) {
+            console.error("Error creating/updating user profile:", error);
+            // Optionally, handle this error in the UI
+        }
+      }
+
     }, (error) => {
       setUserAuthState(prevState => ({ ...prevState, userError: error, isUserLoading: false }));
     });
     return () => unsubscribe();
-  }, [auth]);
+  }, [auth, firestore]);
+
 
   const userDocRef = useMemoFirebase(
     () => (userAuthState.user ? doc(firestore, 'users', userAuthState.user.uid) : null),
