@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, KeyRound, Mail, Lock } from 'lucide-react';
+import { Loader2, KeyRound, Mail, Lock, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
 import ProgressiveImage from '@/components/ProgressiveImage';
+import Link from 'next/link';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -52,7 +53,12 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-background to-background" />
       </div>
       
-      <Tabs defaultValue="login" className="w-full max-w-md z-10">
+      <Tabs defaultValue="login" className="w-full max-w-md z-10 relative">
+        <Link href="/home" passHref>
+            <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+            </Button>
+        </Link>
         <div className="flex justify-center mb-8">
             <SiteLogo />
         </div>
