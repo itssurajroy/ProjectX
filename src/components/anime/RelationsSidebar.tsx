@@ -2,8 +2,8 @@
 'use client';
 
 import { AnimeBase } from "@/types/anime";
-import { CldImage } from "next-cloudinary";
 import Link from "next/link";
+import ProgressiveImage from "../ProgressiveImage";
 
 interface RelationsSidebarProps {
     relatedAnimes: AnimeBase[];
@@ -21,7 +21,7 @@ export default function RelationsSidebar({ relatedAnimes }: RelationsSidebarProp
                 {relatedAnimes.map(anime => (
                     <Link href={`/anime/${anime.id}`} key={anime.id} className="flex items-center gap-3 group">
                         <div className="relative w-12 h-[72px] flex-shrink-0 rounded-md overflow-hidden">
-                            <CldImage src={anime.poster} alt={anime.name} fill crop="fill" className="object-cover" />
+                            <ProgressiveImage src={anime.poster} alt={anime.name || 'poster'} fill className="object-cover" />
                         </div>
                         <div className="overflow-hidden">
                             <p className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{anime.name}</p>

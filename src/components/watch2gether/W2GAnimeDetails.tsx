@@ -6,7 +6,7 @@ import Synopsis from "../anime/Synopsis";
 import { Badge } from "../ui/badge";
 import { Clapperboard } from "lucide-react";
 import Link from "next/link";
-import { CldImage } from "next-cloudinary";
+import ProgressiveImage from "../ProgressiveImage";
 
 const W2GAnimeDetails = ({ animeInfo, moreInfo }: { animeInfo: AnimeInfo, moreInfo: any }) => {
     const stats = animeInfo.stats;

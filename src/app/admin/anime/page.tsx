@@ -2,7 +2,6 @@
 'use client';
 import { useEffect, useState } from "react";
 import ProgressiveImage from "@/components/ProgressiveImage";
-import { CldUploadButton } from "next-cloudinary";
 import { AnimeService } from "@/lib/AnimeService";
 import { AnimeBase } from "@/types/anime";
 
@@ -32,13 +31,11 @@ export default function AnimeManagement() {
         <h1 className="text-6xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           ANIME MANAGEMENT ({animeList.length})
         </h1>
-        <CldUploadButton
-          uploadPreset="anime-posters"
-          onSuccess={(result: any) => console.log(result.info.secure_url)}
+        <button
           className="px-10 py-6 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-2xl font-bold hover:scale-105 transition-transform"
         >
           + ADD ANIME
-        </CldUploadButton>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
