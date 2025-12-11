@@ -4,7 +4,7 @@
 import { AnimeBase } from "@/types/anime";
 import Link from "next/link";
 import { Clapperboard } from "lucide-react";
-import AnimeImage from "../AnimeImage";
+import ProgressiveImage from "../ProgressiveImage";
 
 export default function RankedAnimeSidebar({ title, animes, icon }: { title: string, animes: AnimeBase[], icon?: React.ReactNode }) {
     if (!animes || animes.length === 0) return null;
@@ -21,7 +21,7 @@ export default function RankedAnimeSidebar({ title, animes, icon }: { title: str
                     href={`/anime/${anime.id}`}
                     className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted/50 transition-colors"
                 >
-                    <AnimeImage
+                    <ProgressiveImage
                         src={anime.poster}
                         alt={anime.name || "Anime Poster"}
                         fill

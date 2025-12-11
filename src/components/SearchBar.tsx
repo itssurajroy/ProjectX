@@ -1,4 +1,5 @@
 
+
 // components/SearchBar.tsx
 'use client';
 import { useState, useEffect, useRef } from 'react';
@@ -7,7 +8,7 @@ import Link from 'next/link';
 import { useDebounce } from 'use-debounce';
 import { AnimeService } from '@/lib/AnimeService';
 import { SearchSuggestion } from '@/types/anime';
-import AnimeImage from './AnimeImage';
+import ProgressiveImage from './ProgressiveImage';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
@@ -71,7 +72,9 @@ export default function SearchBar() {
               onClick={() => { setOpen(false); setQuery(''); }}
               className="flex items-center gap-4 px-5 py-4 hover:bg-white/10 transition"
             >
-              <AnimeImage src={anime.poster} alt={anime.name} width={48} height={64} className="w-12 h-16 rounded-lg object-cover" />
+              <div className="relative w-12 h-16 rounded-lg overflow-hidden">
+                <ProgressiveImage src={anime.poster} alt={anime.name} fill className="object-cover" />
+              </div>
               <div>
                 <p className="font-semibold">{anime.name}</p>
                 <p className="text-xs text-gray-400">

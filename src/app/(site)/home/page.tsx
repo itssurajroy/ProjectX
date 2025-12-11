@@ -11,7 +11,7 @@ import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
 import { AnimeService } from '@/lib/AnimeService';
-import AnimeImage from '@/components/AnimeImage';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 interface HomeDataWithQtips extends HomeData {
     qtips: Record<string, QtipAnime>;
@@ -52,7 +52,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
     <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
         <div className="absolute inset-0">
             {spotlights.map((s, index) => (
-                <AnimeImage
+                <ProgressiveImage
                     key={s.id}
                     src={s.poster}
                     alt={s.name || "Spotlight Banner"}
@@ -143,7 +143,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
                     {animes.slice(0, 7).map((anime, index) => (
                         <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
                             <div className="relative w-12 h-[72px] flex-shrink-0">
-                                <AnimeImage 
+                                <ProgressiveImage 
                                   src={anime.poster}
                                   alt={anime.name || "Anime Poster"} 
                                   fill 
@@ -260,7 +260,7 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                     href={`/anime/${anime.id}`}
                     className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
                 >
-                    <AnimeImage
+                    <ProgressiveImage
                         src={anime.poster}
                         alt={anime.name || "Anime Poster"}
                         fill

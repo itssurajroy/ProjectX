@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { format, isToday, isYesterday, formatDistanceToNow } from 'date-fns';
 import { useMemo } from 'react';
 import { Progress } from '@/components/ui/progress';
-import AnimeImage from '@/components/AnimeImage';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | undefined }) => {
     if (!anime) return null;
@@ -22,7 +22,7 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
     return (
         <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-border/50">
             <Link href={watchUrl} className="relative w-16 h-24 flex-shrink-0 group">
-                <AnimeImage 
+                <ProgressiveImage 
                     src={anime.poster}
                     alt={anime.name || "Anime Poster"} 
                     fill 

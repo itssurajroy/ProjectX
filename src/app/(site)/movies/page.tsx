@@ -15,7 +15,7 @@ import { years } from '@/lib/data';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import AnimeImage from '@/components/AnimeImage';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 
 function MoviesFilter() {
@@ -180,9 +180,8 @@ function MoviesPageContent() {
     <>
       <div className="relative h-[50vh] md:h-[60vh] flex items-center justify-center text-center overflow-hidden -mt-16">
         <div className="absolute inset-0 z-0">
-            <AnimeImage 
+            <ProgressiveImage 
               src="https://picsum.photos/seed/movies-hero/1920/1080" 
-              data-ai-hint="epic movie cinematic" 
               alt="Movies Background" 
               fill
               priority 

@@ -26,7 +26,7 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
-import AnimeImage from '../AnimeImage';
+import ProgressiveImage from '../ProgressiveImage';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -46,7 +46,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
         {/* Character */}
         <div className="w-1/2 flex items-center gap-3 p-3">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
-                <AnimeImage 
+                <ProgressiveImage 
                   src={cv.character.poster}
                   alt={cv.character.name || "Character"} 
                   fill
@@ -67,7 +67,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
                 </div>
                 <div className="relative aspect-square w-12 flex-shrink-0">
-                    <AnimeImage 
+                    <ProgressiveImage 
                       src={cv.voiceActor.poster}
                       alt={cv.voiceActor.name || "Voice Actor"} 
                       fill 
@@ -155,7 +155,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
         <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
           <div className="absolute inset-0 z-0">
-            <AnimeImage
+            <ProgressiveImage
               src={animeInfo.poster}
               alt={animeInfo.name || "Anime Banner"}
               fill
@@ -168,7 +168,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
           <div className="container mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
             <div className="lg:col-span-3 flex justify-center lg:justify-start">
-              <AnimeImage
+              <ProgressiveImage
                 src={animeInfo.poster}
                 alt={animeInfo.name || "Anime Poster"}
                 width={250}

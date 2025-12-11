@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { Clapperboard, Users } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
-import AnimeImage from "../AnimeImage";
+import ProgressiveImage from "../ProgressiveImage";
 
 interface W2GRoomCardProps {
     room: WatchTogetherRoom;
@@ -38,7 +38,7 @@ export function W2GRoomCard({ room }: W2GRoomCardProps) {
         <Link href={`/watch2gether/${room.id}`} className="group">
             <div className="bg-card border border-border/50 rounded-lg overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
                 <div className="relative aspect-[2/3] w-full">
-                    <AnimeImage
+                    <ProgressiveImage
                         src={room.animePoster}
                         alt={room.animeName || "Anime Poster"}
                         fill

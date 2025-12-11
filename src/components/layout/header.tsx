@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import SiteLogo from './SiteLogo';
 import { AnimeService } from '@/lib/AnimeService';
-import AnimeImage from '../AnimeImage';
+import ProgressiveImage from '../ProgressiveImage';
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
@@ -242,7 +242,7 @@ export default function Header() {
                     ) : suggestions.length > 0 ? suggestions.map(anime => (
                       <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setSearchQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                         <div className="relative w-10 h-14 flex-shrink-0">
-                           <AnimeImage 
+                           <ProgressiveImage 
                               src={anime.poster} 
                               alt={anime.name || "Anime Poster"}
                               fill

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/carousel"
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import AnimeImage from "../AnimeImage";
+import ProgressiveImage from "../ProgressiveImage";
 
 interface SeasonsSwiperProps {
     seasons: AnimeSeason[];
@@ -35,7 +35,7 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
                                     "relative aspect-[2/3] rounded-lg overflow-hidden group border-2 transition-all", 
                                     season.id === currentAnimeId ? "border-primary shadow-lg shadow-primary/30" : "border-transparent hover:border-primary/50"
                                 )}>
-                                    <AnimeImage 
+                                    <ProgressiveImage 
                                         src={season.poster}
                                         alt={season.title || "Season Poster"} 
                                         fill 

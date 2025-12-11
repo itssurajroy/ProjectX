@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/carousel"
 import { PromotionalVideo } from '@/types/anime';
 import { PlayCircle } from "lucide-react";
-import AnimeImage from "../AnimeImage";
+import ProgressiveImage from "../ProgressiveImage";
 
 interface PVCarouselProps {
   videos: PromotionalVideo[];
@@ -42,7 +42,7 @@ export default function PVCarousel({ videos, fallbackPoster }: PVCarouselProps) 
                 className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-lg"
                 onClick={() => openVideo(video.source)}
               >
-                <AnimeImage
+                <ProgressiveImage
                   src={video.thumbnail || fallbackPoster}
                   alt={video.title || `Promotional Video ${index + 1}`}
                   fill

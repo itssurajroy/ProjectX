@@ -1,9 +1,10 @@
 
+
 import { AnimeBase } from "@/types/anime"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
 import { Clapperboard, Mic, Play, Clock } from "lucide-react"
-import AnimeImage from "./AnimeImage"
+import ProgressiveImage from "./ProgressiveImage"
 
 type AnimeCardProps = {
   anime: AnimeBase;
@@ -26,11 +27,10 @@ export function AnimeCard({ anime, rank }: AnimeCardProps) {
             </div>
           )}
 
-          <AnimeImage
+          <ProgressiveImage
             src={anime.poster}
             alt={anime.name || "Anime Poster"}
-            width={400}
-            height={600}
+            fill
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
 

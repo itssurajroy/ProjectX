@@ -11,7 +11,7 @@ import Balancer from "react-wrap-balancer";
 import { AnimeBase, HomeData, SearchSuggestion } from "@/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/AnimeService";
-import AnimeImage from "@/components/AnimeImage";
+import ProgressiveImage from "@/components/ProgressiveImage";
 
 const socialLinks = [
     { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },
@@ -73,9 +73,8 @@ export default function LandingPage() {
                 {/* Hero Section */}
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
-                        <AnimeImage 
+                        <ProgressiveImage 
                             src="https://picsum.photos/seed/anime-collage/1920/1080" 
-                            data-ai-hint="anime collage cyberpunk" 
                             alt="Anime Collage" 
                             fill 
                             priority 
@@ -115,7 +114,7 @@ export default function LandingPage() {
                                     {suggestions.map(anime => (
                                     <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
                                         <div className="relative w-10 h-14 flex-shrink-0">
-                                            <AnimeImage 
+                                            <ProgressiveImage 
                                                 src={anime.poster}
                                                 alt={anime.name || "Anime Poster"} 
                                                 fill 

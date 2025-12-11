@@ -13,7 +13,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { CldImage } from 'next-cloudinary';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 
 const ActivityHeatmap = dynamic(() => import('@/components/dashboard/ActivityHeatmap'), {
@@ -36,16 +36,7 @@ const StatCard = ({ title, value, icon: Icon }: { title: string, value: string |
 const MostWatchedAnimeCard = ({ anime, count }: { anime: AnimeBase, count: number }) => (
     <Link href={`/anime/${anime.id}`} className="flex items-center gap-3 group p-2 rounded-md hover:bg-muted/50 transition-colors">
         <div className="relative w-12 h-[72px] flex-shrink-0">
-            <CldImage 
-              src={anime.poster || "https://res.cloudinary.com/dyq1rxdmm/image/upload/v1/placeholder.jpg"} 
-              alt={anime.name || "Anime Poster"} 
-              fill 
-              sizes="48px" 
-              className="object-cover rounded-md"
-              loading="lazy"
-              placeholder="blur"
-              blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-            />
+            <ProgressiveImage src={anime.poster} alt={anime.name} fill className="object-cover rounded-md" />
         </div>
         <div className='overflow-hidden flex-1'>
             <p className='font-semibold text-sm group-hover:text-primary line-clamp-1'>{anime.name}</p>
