@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -7,9 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, KeyRound } from 'lucide-react';
+import { Loader2, KeyRound, Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -39,77 +41,86 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Tabs defaultValue="login" className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
+    <div className="relative flex min-h-screen items-center justify-center bg-background p-4 overflow-hidden">
+      <div className="absolute inset-0 z-0">
+          <ProgressiveImage
+              src="https://picsum.photos/seed/login-bg/1920/1080"
+              alt="Login background"
+              fill
+              className="object-cover opacity-20 blur-sm"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-background/50 via-background to-background" />
+      </div>
+      
+      <Tabs defaultValue="login" className="w-full max-w-md z-10">
+        <div className="flex justify-center mb-8">
             <SiteLogo />
         </div>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Login</TabsTrigger>
-          <TabsTrigger value="signup">Sign Up</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="login">
-          <Card>
-            <CardHeader>
-              <CardTitle>Welcome Back</CardTitle>
-              <CardDescription>Sign in to continue your anime journey.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
-                <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="login-password">Password</Label>
-                <Input id="login-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled />
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <Button onClick={() => handleAuthAction('login')} disabled={true} className="w-full">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Login
-              </Button>
-              <div className="relative w-full">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                  <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
-              </div>
-              <Button variant="outline" onClick={handleGoogleSignIn} disabled={true} className="w-full">
-                <GoogleIcon /> Google
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
 
-        <TabsContent value="signup">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create an Account</CardTitle>
-              <CardDescription>Join Project X to track your anime and more.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
-                <Input id="signup-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled />
-              </div>
-            </CardContent>
-             <CardFooter className="flex flex-col gap-4">
-              <Button onClick={() => handleAuthAction('signup')} disabled={true} className="w-full">
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Sign Up
-              </Button>
-               <div className="relative w-full">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                  <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or sign up with</span></div>
-              </div>
-              <Button variant="outline" onClick={handleGoogleSignIn} disabled={true} className="w-full">
-                <GoogleIcon /> Google
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+        <Card className="bg-card/50 backdrop-blur-lg border-border/50">
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="login">
+                <CardHeader>
+                    <CardTitle>Welcome Back</CardTitle>
+                    <CardDescription>Sign in to continue your anime journey.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled className="pl-10" />
+                    </div>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input id="login-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled className="pl-10"/>
+                    </div>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4">
+                    <Button onClick={() => handleAuthAction('login')} disabled={true} className="w-full">
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Login
+                    </Button>
+                    <div className="relative w-full">
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
+                    </div>
+                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={true} className="w-full">
+                        <GoogleIcon /> Google
+                    </Button>
+                </CardFooter>
+            </TabsContent>
+
+            <TabsContent value="signup">
+                <CardHeader>
+                    <CardTitle>Create an Account</CardTitle>
+                    <CardDescription>Join Project X to track your anime and more.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled className="pl-10"/>
+                    </div>
+                    <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input id="signup-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled className="pl-10"/>
+                    </div>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-4">
+                    <Button onClick={() => handleAuthAction('signup')} disabled={true} className="w-full">
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Sign Up
+                    </Button>
+                    <div className="relative w-full">
+                        <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
+                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or sign up with</span></div>
+                    </div>
+                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={true} className="w-full">
+                        <GoogleIcon /> Google
+                    </Button>
+                </CardFooter>
+            </TabsContent>
+        </Card>
         {error && <p className="text-center text-sm text-destructive mt-4">{error}</p>}
       </Tabs>
     </div>
