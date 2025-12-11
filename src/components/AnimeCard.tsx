@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
 import { Clapperboard, Mic, Play, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { CldImage } from "next-cloudinary"
 
 type AnimeCardProps = {
   anime: AnimeBase;
@@ -27,12 +28,14 @@ export function AnimeCard({ anime, rank }: AnimeCardProps) {
             </div>
           )}
 
-          <Image
+          <CldImage
             src={anime.poster}
             alt={anime.name}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
+            width={400}
+            height={600}
+            crop="fill"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-300 opacity-80 group-hover:opacity-90" />

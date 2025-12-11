@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
 import Image from "next/image";
+import { CldUploadButton } from "next-cloudinary";
 
 export default function AnimeManagement() {
   const [animeList, setAnimeList] = useState<any[]>([]);
@@ -28,9 +29,13 @@ export default function AnimeManagement() {
         <h1 className="text-6xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
           ANIME MANAGEMENT ({animeList.length})
         </h1>
-        <button className="px-10 py-6 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-2xl font-bold hover:scale-105 transition-transform">
+        <CldUploadButton
+          uploadPreset="anime-posters"
+          onSuccess={(result: any) => console.log(result.info.secure_url)}
+          className="px-10 py-6 bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl text-2xl font-bold hover:scale-105 transition-transform"
+        >
           + ADD ANIME
-        </button>
+        </CldUploadButton>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
