@@ -1,0 +1,49 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users can read their own profile, admins can read any
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null; // Anyone can create their user doc
+      allow update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Anime can be read by anyone
+    match /anime/{animeId} {
+        allow read: if true;
+        // Write access could be restricted to admins in the future
+        allow write: if true; 
+    }
+    
+    // Comments can be read by anyone
+    match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null; // Must be logged in to comment
+        // Users can only edit/delete their own comments
+        allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // Notifications: users can only access their own
+    match /notifications/{notificationId} {
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if true; // Allow backend services to create notifications
+    }
+    
+    // Watchlist & History: users can only access their own
+    match /users/{userId}/watchlist/{animeId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /users/{userId}/history/{episodeId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+  }
+}

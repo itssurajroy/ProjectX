@@ -13,6 +13,15 @@ import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import Link from 'next/link';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
+
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -30,15 +39,40 @@ export default function LoginPage() {
   const handleAuthAction = async (action: 'login' | 'signup') => {
     setIsLoading(true);
     setError(null);
-    toast.error("Login functionality is temporarily disabled.");
-    setIsLoading(false);
+    try {
+        if (action === 'signup') {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } else {
+            await signInWithEmailAndPassword(auth, email, password);
+        }
+        toast.success(`Successfully ${action === 'signup' ? 'signed up' : 'logged in'}!`);
+        router.push('/dashboard');
+    } catch (err: any) {
+        console.error(err.code, err.message);
+        const friendlyError = getFirebaseErrorMessage(err.code);
+        setError(friendlyError);
+        toast.error(friendlyError);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-    toast.error("Login functionality is temporarily disabled.");
-    setIsLoading(false);
+    try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+        toast.success("Successfully logged in with Google!");
+        router.push('/dashboard');
+    } catch (err: any) {
+        console.error(err.code, err.message);
+        const friendlyError = getFirebaseErrorMessage(err.code);
+        setError(friendlyError);
+        toast.error(friendlyError);
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   return (
@@ -77,23 +111,24 @@ export default function LoginPage() {
                 <CardContent className="space-y-4">
                     <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled className="pl-10" />
+                        <Input id="login-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-10" />
                     </div>
                     <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input id="login-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled className="pl-10"/>
+                        <Input id="login-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10"/>
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                    <Button onClick={() => handleAuthAction('login')} disabled={true} className="w-full">
+                    <Button onClick={() => handleAuthAction('login')} disabled={isLoading} className="w-full">
                         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Login
                     </Button>
                     <div className="relative w-full">
                         <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
                     </div>
-                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={true} className="w-full">
-                        <GoogleIcon /> Google
+                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full">
+                       {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon /> }
+                        Google
                     </Button>
                 </CardFooter>
             </TabsContent>
@@ -106,23 +141,24 @@ export default function LoginPage() {
                 <CardContent className="space-y-4">
                     <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled className="pl-10"/>
+                        <Input id="signup-email" type="email" placeholder="m@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required className="pl-10"/>
                     </div>
                     <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input id="signup-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required disabled className="pl-10"/>
+                        <Input id="signup-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="pl-10"/>
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                    <Button onClick={() => handleAuthAction('signup')} disabled={true} className="w-full">
+                    <Button onClick={() => handleAuthAction('signup')} disabled={isLoading} className="w-full">
                         {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />} Sign Up
                     </Button>
                     <div className="relative w-full">
                         <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or sign up with</span></div>
                     </div>
-                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={true} className="w-full">
-                        <GoogleIcon /> Google
+                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full">
+                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon /> }
+                        Google
                     </Button>
                 </CardFooter>
             </TabsContent>

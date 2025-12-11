@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -8,31 +9,80 @@ import { Comment } from '@/types/comment';
 import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import Spoiler from './comments/Spoiler';
+import { useUser, useCollection } from '@/firebase';
+import { db } from '@/lib/firebase';
+import { collection, query, where, addDoc, serverTimestamp, deleteDoc, doc, runTransaction } from 'firebase/firestore';
+import toast from 'react-hot-toast';
 
 export default function CommentSection({ animeId, episodeId }: { animeId: string; episodeId?: string }) {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const { user, userProfile } = useUser();
+
+  const commentQuery = episodeId
+    ? query(collection(db, 'comments'), where('animeId', '==', animeId), where('episodeId', '==', episodeId))
+    : query(collection(db, 'comments'), where('animeId', '==', animeId), where('episodeId', '==', null));
+
+  const { data: comments, loading: isLoading } = useCollection<Comment>(commentQuery.path, commentQuery);
+
   const [input, setInput] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // This component is now disconnected from any backend database.
-  // The logic below is placeholder and would need to be adapted
-  // to a new backend service if one is implemented.
-
-  useEffect(() => {
-    // Simulate fetching comments
-    setTimeout(() => {
-      setComments([]); // No comments since there is no backend
-      setIsLoading(false);
-    }, 1000);
-  }, [animeId, episodeId]);
 
   const postComment = async () => {
-    alert("Commenting is temporarily disabled.");
+    if (!input.trim() || !user || !userProfile) {
+        if (!user) toast.error("You must be logged in to comment.");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, 'comments'), {
+            animeId,
+            episodeId: episodeId || null,
+            userId: user.uid,
+            username: userProfile.displayName,
+            userAvatar: userProfile.photoURL,
+            text: input,
+            spoiler: isSpoiler,
+            likes: [],
+            parentId: null,
+            timestamp: serverTimestamp(),
+        });
+        setInput('');
+        setIsSpoiler(false);
+        toast.success("Comment posted!");
+    } catch (error) {
+        toast.error("Failed to post comment.");
+        console.error("Error posting comment:", error);
+    }
   };
   
   const likeComment = async (id: string) => {
-    alert("Liking comments is temporarily disabled.");
+    if (!user) {
+        toast.error("You must be logged in to like comments.");
+        return;
+    }
+    const commentRef = doc(db, 'comments', id);
+    try {
+        await runTransaction(db, async (transaction) => {
+            const commentDoc = await transaction.get(commentRef);
+            if (!commentDoc.exists()) {
+                throw "Comment does not exist!";
+            }
+            const data = commentDoc.data();
+            const likes: string[] = data.likes || [];
+            
+            if (likes.includes(user.uid)) {
+                // Unlike
+                const newLikes = likes.filter(uid => uid !== user.uid);
+                transaction.update(commentRef, { likes: newLikes });
+            } else {
+                // Like
+                const newLikes = [...likes, user.uid];
+                transaction.update(commentRef, { likes: newLikes });
+            }
+        });
+    } catch (e) {
+        toast.error("Failed to update like.");
+        console.error(e);
+    }
   };
 
   return (
@@ -42,36 +92,42 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
         Comments ({comments.length})
       </h2>
 
-      <div className="flex gap-3">
+      {user ? (
+        <div className="flex gap-3">
           <Avatar className="w-10 h-10">
-            <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=guest`} />
-            <AvatarFallback>{'G'}</AvatarFallback>
+            <AvatarImage src={userProfile?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} />
+            <AvatarFallback>{userProfile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Commenting is temporarily disabled..."
+              placeholder="Add a public comment..."
               className="w-full p-4 bg-card/80 rounded-xl border-border/50 resize-none focus:outline-none focus:border-primary"
               rows={3}
-              disabled
             />
             <div className="flex justify-between items-center mt-2">
               <div className="flex items-center gap-2">
-                  <input type="checkbox" id="isSpoiler" checked={isSpoiler} onChange={(e) => setIsSpoiler(e.target.checked)} className="form-checkbox h-4 w-4 rounded bg-muted/50 border-border text-primary focus:ring-primary" disabled />
+                  <input type="checkbox" id="isSpoiler" checked={isSpoiler} onChange={(e) => setIsSpoiler(e.target.checked)} className="form-checkbox h-4 w-4 rounded bg-muted/50 border-border text-primary focus:ring-primary" />
                   <label htmlFor="isSpoiler" className="text-sm text-muted-foreground">Mark as Spoiler</label>
               </div>
               <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => setInput('')} disabled>
+                  <Button variant="ghost" onClick={() => setInput('')}>
                       Cancel
                   </Button>
-                  <Button onClick={postComment} disabled>
+                  <Button onClick={postComment} disabled={!input.trim()}>
                       Post Comment
                   </Button>
               </div>
             </div>
           </div>
         </div>
+      ) : (
+          <div className="text-center p-6 bg-card/50 border border-dashed border-border/50 rounded-lg">
+            <p className="text-muted-foreground">You must be logged in to comment.</p>
+             <Button asChild variant="link"><Link href="/login">Login or Sign Up</Link></Button>
+          </div>
+      )}
 
       {/* Comments List */}
       <div className="space-y-4">

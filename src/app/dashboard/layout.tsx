@@ -1,11 +1,16 @@
+
 'use client';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper } from 'lucide-react';
+import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper, LogOut } from 'lucide-react';
 import SiteLogo from '@/components/layout/SiteLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
+import { useUser } from '@/firebase';
+import { auth } from '@/lib/firebase';
+import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { name: 'Home', icon: Home, href: '/dashboard' },
@@ -63,6 +68,20 @@ const MobileBottomNav = () => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const isExpanded = true; // For now, sidebar is always expanded
+    const { user, userProfile } = useUser();
+    const router = useRouter();
+
+    const handleSignOut = async () => {
+      try {
+        await auth.signOut();
+        toast.success("Signed out successfully.");
+        router.push('/home');
+      } catch (error) {
+        toast.error("Failed to sign out.");
+        console.error("Sign out error:", error);
+      }
+    };
+
 
     return (
         <>
@@ -76,12 +95,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                          {isExpanded && (
                             <div className="flex items-center gap-3 overflow-hidden">
                                 <Avatar className="w-9 h-9">
-                                    <AvatarImage src={'/placeholder-user.jpg'} />
-                                    <AvatarFallback>{'G'}</AvatarFallback>
+                                    <AvatarImage src={userProfile?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
+                                    <AvatarFallback>{userProfile?.displayName?.charAt(0) || 'G'}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col overflow-hidden">
-                                    <p className="text-sm font-semibold truncate">Guest</p>
-                                    <p className="text-xs text-muted-foreground truncate">guest@projectx.com</p>
+                                    <p className="text-sm font-semibold truncate">{userProfile?.displayName || 'Guest'}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{userProfile?.email || 'guest@projectx.com'}</p>
                                 </div>
                             </div>
                          )}
@@ -91,6 +110,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             <NavLink key={item.href} item={item} isExpanded={isExpanded} />
                         ))}
                     </nav>
+                    <div className="p-4 border-t border-border">
+                        <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
+                            <LogOut className="w-5 h-5"/>
+                            {isExpanded && <span>Logout</span>}
+                        </Button>
+                    </div>
                 </aside>
                 <main className={cn(
                     "flex-1 transition-all duration-300 ease-in-out pb-16 lg:pb-0",

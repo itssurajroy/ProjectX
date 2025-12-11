@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -11,6 +12,12 @@ import { Input } from '../ui/input';
 import SiteLogo from './SiteLogo';
 import { AnimeService } from '@/lib/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
+import { useUser } from '@/firebase';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { auth } from '@/lib/firebase';
+import toast from 'react-hot-toast';
+
 
 const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const navItems = [
@@ -60,6 +67,56 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 }
 
 function UserAuth() {
+  const { user, userProfile, loading } = useUser();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      toast.success("Signed out successfully.");
+      router.push('/home');
+    } catch (error) {
+      toast.error("Failed to sign out.");
+      console.error("Sign out error:", error);
+    }
+  };
+
+
+  if (loading) {
+      return <Loader2 className="w-6 h-6 animate-spin" />;
+  }
+
+  if (user && userProfile) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={userProfile.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} alt={userProfile.displayName} />
+                        <AvatarFallback>{userProfile.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{userProfile.displayName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{userProfile.email}</p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild><Link href="/dashboard">Dashboard</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/dashboard/profile">Profile</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/dashboard/watchlist">Watchlist</Link></DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                    Log out
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+  }
+
   return (
     <Button asChild>
         <Link href="/login">Login</Link>
@@ -205,7 +262,7 @@ export default function Header() {
                   <Users className="w-5 h-5 text-primary" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" title="Notifications" disabled><Bell className="w-5 h-5" /></Button>
+              <Button variant="ghost" size="icon" title="Notifications"><Link href="/dashboard/notifications"><Bell className="w-5 h-5" /></Link></Button>
               <Button asChild variant="ghost" size="icon">
                 <Link href="/random" title="Random Anime">
                   <Shuffle className="w-5 h-5 text-primary" />

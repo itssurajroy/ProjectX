@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AnimeBase, UserHistory, HomeData } from '@/types/anime';
@@ -7,6 +8,8 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/AnimeService';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useUser, useCollection } from '@/firebase';
+import { useMemo } from 'react';
 
 const Section = ({ title, icon: Icon, children, href }: { title: string, icon: React.ElementType, children: React.ReactNode, href?: string }) => (
     <section className="space-y-4">
@@ -45,8 +48,31 @@ const ContinueWatchingCard = ({ historyItem, animeDetails }: { historyItem: User
 };
 
 const ContinueWatchingSection = () => {
-    const isLoading = false;
-    const history: UserHistory[] = [];
+    const { user } = useUser();
+    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
+
+    const animeIds = useMemo(() => {
+        if (!history || history.length === 0) return [];
+        return [...new Set(history.map(item => item.animeId))];
+    }, [history]);
+    
+    const { data: animeDetails, isLoading: isLoadingAnime } = useQuery<Map<string, AnimeBase>>({
+        queryKey: ['animeDetails', animeIds],
+        queryFn: async () => {
+            const promises = animeIds.map(id => AnimeService.qtip(id).catch(() => null));
+            const results = await Promise.all(promises);
+            const animeMap = new Map<string, AnimeBase>();
+            results.forEach(res => {
+                if (res && res.anime) {
+                    animeMap.set(res.anime.id, res.anime as AnimeBase);
+                }
+            });
+            return animeMap;
+        },
+        enabled: animeIds.length > 0
+    });
+
+    const isLoading = isLoadingHistory || (animeIds.length > 0 && isLoadingAnime);
 
     if (isLoading) {
         return (
@@ -59,17 +85,26 @@ const ContinueWatchingSection = () => {
     if (!history || history.length === 0) {
         return (
             <div className="text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
-                <p className="text-muted-foreground text-sm">Log in to see your watch history.</p>
+                <p className="text-muted-foreground text-sm">Your watch history is empty.</p>
                 <Link href="/home" className="text-primary font-semibold text-sm hover:underline mt-2 inline-block">Start Watching Now</Link>
             </div>
         )
     }
     
-    return null; // Placeholder as there is no data
+    return (
+        <div className="grid-cards">
+            {history.slice(0, 6).map(item => {
+                const details = animeDetails?.get(item.animeId);
+                if (!details) return null;
+                return <ContinueWatchingCard key={item.id} historyItem={item} animeDetails={details} />
+            })}
+        </div>
+    )
 };
 
 
 export default function DashboardHomePage() {
+     const { user, userProfile } = useUser();
      const { data: homeData, isLoading: isLoadingHome } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: AnimeService.home,
@@ -87,14 +122,16 @@ export default function DashboardHomePage() {
         <div className="space-y-12">
             <header>
                 <h1 className="text-4xl font-black font-display text-glow">
-                    Welcome back, Guest.
+                    Welcome back, {userProfile?.displayName || 'Guest'}.
                 </h1>
                 <p className="text-muted-foreground mt-1">Here's what's happening in your anime world.</p>
             </header>
             
-            <Section title="Continue Watching" icon={Activity} href="/dashboard/history">
-                 <ContinueWatchingSection />
-            </Section>
+            {user && (
+                <Section title="Continue Watching" icon={Activity} href="/dashboard/history">
+                    <ContinueWatchingSection />
+                </Section>
+            )}
             
             {homeData?.latestEpisodeAnimes && homeData.latestEpisodeAnimes.length > 0 && (
                 <Section title="New Episodes Today" icon={Flame}>
