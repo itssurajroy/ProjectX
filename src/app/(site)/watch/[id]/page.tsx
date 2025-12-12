@@ -120,7 +120,7 @@ function WatchPageComponent() {
   
   const currentEpisodeId = useMemo(() => {
       if (!currentEpisode) return null;
-      return currentEpisode.episodeId.split('?ep=')[0];
+      return currentEpisode.episodeId;
   }, [currentEpisode]);
 
   useEffect(() => {
@@ -234,10 +234,10 @@ function WatchPageComponent() {
 
         <div className={cn("lg:col-span-6 space-y-4", isFocusMode && "relative z-40")}>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                {currentEpisode && currentEpisodeId ? (
+                {currentEpisodeId && (
                     <AnimePlayer 
                         episodeId={currentEpisodeId}
-                        episodeNumber={String(currentEpisode.number)}
+                        episodeNumber={String(currentEpisode?.number)}
                         animeId={animeId}
                         onNext={() => navigateEpisode('next')}
                     />

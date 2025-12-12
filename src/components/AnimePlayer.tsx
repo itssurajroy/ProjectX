@@ -43,21 +43,20 @@ export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext 
   
   const { autoNext, autoPlay } = usePlayerSettings();
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
-  const rawEpisodeId = `${episodeId}?ep=${episodeNumber}`;
 
   const saveHistory = useCallback(async () => {
-    if (!user || !videoRef.current) return;
+    if (!user || !videoRef.current || !episodeId) return;
     const { currentTime, duration } = videoRef.current;
     if (isNaN(duration) || duration === 0) return;
 
-    const historyDocId = sanitizeFirestoreId(rawEpisodeId);
+    const historyDocId = sanitizeFirestoreId(episodeId);
     const historyRef = doc(db, `users/${user.uid}/history`, historyDocId);
 
     try {
       await setDoc(historyRef, {
         id: historyDocId,
         animeId: animeId,
-        episodeId: rawEpisodeId,
+        episodeId: episodeId,
         episodeNumber: Number(episodeNumber),
         watchedAt: serverTimestamp(),
         progress: currentTime,
@@ -66,7 +65,7 @@ export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext 
     } catch(err) {
       console.error("Failed to save watch history:", err);
     }
-  }, [user, animeId, rawEpisodeId, episodeNumber]);
+  }, [user, animeId, episodeId, episodeNumber]);
 
   useEffect(() => {
     const video = videoRef.current;
