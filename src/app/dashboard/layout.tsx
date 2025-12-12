@@ -3,8 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper, LogOut, Shield } from 'lucide-react';
-import SiteLogo from '@/components/layout/SiteLogo';
+import { Home, Bookmark, History, User, LogOut, Shield } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
 import { useUser } from '@/firebase/auth/use-user';
@@ -17,20 +16,23 @@ const navItems = [
   { name: 'Watchlist', icon: Bookmark, href: '/dashboard/watchlist' },
   { name: 'History', icon: History, href: '/dashboard/history' },
   { name: 'Profile', icon: User, href: '/dashboard/profile' },
-  { name: 'Statistics', icon: BarChart3, href: '/dashboard/stats' },
-  { name: 'Achievements', icon: Trophy, href: '/dashboard/achievements' },
-  { name: 'Friends', icon: Users, href: '/dashboard/friends' },
-  { name: 'Calendar', icon: Calendar, href: '/dashboard/calendar' },
-  { name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' },
-  { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
+];
+
+const desktopNavItems = [
+  ...navItems,
+  { name: 'Statistics', icon: require('lucide-react').BarChart3, href: '/dashboard/stats' },
+  { name: 'Achievements', icon: require('lucide-react').Trophy, href: '/dashboard/achievements' },
+  { name: 'Friends', icon: require('lucide-react').Users, href: '/dashboard/friends' },
+  { name: 'Calendar', icon: require('lucide-react').Calendar, href: '/dashboard/calendar' },
+  { name: 'AI Curator', icon: require('lucide-react').Sparkles, href: '/dashboard/ai-curator' },
+  { name: 'Watch Parties', icon: require('lucide-react').PartyPopper, href: '/dashboard/watch-parties' },
 ];
 
 const adminNavItem = { name: 'Admin', icon: Shield, href: '/admin' };
 
-
 const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: boolean }) => {
     const pathname = usePathname();
-    const isActive = pathname.startsWith(item.href);
+    const isActive = pathname === item.href;
 
     return (
         <Link href={item.href} className={cn(
@@ -46,14 +48,13 @@ const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: b
 }
 
 const MobileBottomNav = () => {
-    const mobileNavItems = navItems.filter(item => ['Home', 'Watchlist', 'History', 'Profile'].includes(item.name));
     const pathname = usePathname();
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 lg:hidden">
             <div className="grid grid-cols-4 items-center justify-around h-full">
-                {mobileNavItems.map(item => {
-                    const isActive = pathname.startsWith(item.href);
+                {navItems.map(item => {
+                    const isActive = pathname === item.href;
                     return (
                         <Link key={item.href} href={item.href} className={cn(
                             "flex flex-col items-center justify-center gap-1 text-xs w-full h-full transition-colors",
@@ -111,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                          )}
                     </div>
                     <nav className="flex-1 overflow-y-auto px-4 space-y-2">
-                        {navItems.map(item => (
+                        {desktopNavItems.map(item => (
                             <NavLink key={item.href} item={item} isExpanded={isExpanded} />
                         ))}
                         {isAdmin && (
@@ -131,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </aside>
                 <main className={cn(
-                    "flex-1 transition-all duration-300 ease-in-out pb-16 lg:pb-0",
+                    "flex-1 transition-all duration-300 ease-in-out pb-20 lg:pb-0", // Added more padding bottom for mobile
                     isExpanded ? "lg:ml-64" : "lg:ml-16"
                 )}>
                     <div className="container mx-auto p-4 sm:p-6 lg:p-8">

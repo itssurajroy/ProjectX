@@ -1,22 +1,24 @@
+
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { Loader2, Send } from 'lucide-react';
-import { ChatMessage } from '@/types/watch2gether';
+import { ChatMessage } from '@/lib/types/watch2gether';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
+import { useCollection } from '@/firebase/firestore/useCollection';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import toast from 'react-hot-toast';
 
 export default function W2GChat({ roomId }: { roomId: string }) {
+    const { user, userProfile } = useUser();
     const [message, setMessage] = useState('');
+    const { data: messages, loading: isLoading } = useCollection<ChatMessage>(`watch-together-rooms/${roomId}/chat`);
     const bottomRef = useRef<HTMLDivElement>(null);
-    
-    // This component is now disconnected from any backend database.
-    // The logic below is placeholder and would need to be adapted
-    // to a new backend service (e.g., WebSockets) if one is implemented.
-    const messages: ChatMessage[] = [];
-    const isLoading = false;
 
     useEffect(() => {
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -25,7 +27,26 @@ export default function W2GChat({ roomId }: { roomId: string }) {
 
     const handleSendMessage = async (e: FormEvent) => {
         e.preventDefault();
-        alert("Chat is temporarily disabled.");
+        if (!message.trim() || !user || !userProfile) {
+            if(!user) toast.error("You must be logged in to chat.");
+            return;
+        }
+
+        const chatRef = collection(db, `watch-together-rooms/${roomId}/chat`);
+        
+        try {
+            await addDoc(chatRef, {
+                userId: user.uid,
+                userName: userProfile.displayName,
+                avatar: userProfile.photoURL,
+                text: message,
+                timestamp: serverTimestamp(),
+            });
+            setMessage('');
+        } catch (error) {
+            console.error("Error sending chat message:", error);
+            toast.error("Failed to send message.");
+        }
     };
 
     return (
@@ -59,7 +80,7 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                 )}
                  {!isLoading && messages?.length === 0 && (
                     <div className="flex justify-center items-center h-full text-sm text-muted-foreground">
-                        Chat is currently offline.
+                        Be the first to say something!
                     </div>
                  )}
             </ScrollArea>
@@ -67,12 +88,12 @@ export default function W2GChat({ roomId }: { roomId: string }) {
                 <Input 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder={"Chat is disabled"}
+                    placeholder={user ? "Send a message..." : "Log in to chat"}
                     autoComplete="off"
-                    disabled
+                    disabled={!user}
                     className="bg-background/50"
                 />
-                <Button type="submit" size="icon" disabled>
+                <Button type="submit" size="icon" disabled={!message.trim() || !user}>
                     <Send className="w-4 h-4" />
                 </Button>
             </form>

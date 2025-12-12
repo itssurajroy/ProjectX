@@ -1,17 +1,18 @@
+
 'use client';
 
-import { WatchTogetherRoom } from "@/types/watch2gether";
+import { WatchTogetherRoom } from "@/lib/types/watch2gether";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { Clapperboard, Users } from "lucide-react";
 import ProgressiveImage from "../ProgressiveImage";
+import { formatDistanceToNow } from "date-fns";
 
 interface W2GRoomCardProps {
     room: WatchTogetherRoom;
 }
 
 const RoomStatus = ({ room }: { room: WatchTogetherRoom }) => {
-    // This logic is a placeholder. You'll need to define what these states mean.
     const isLive = room.playerState.isPlaying;
     
     if(isLive) {
@@ -23,7 +24,8 @@ const RoomStatus = ({ room }: { room: WatchTogetherRoom }) => {
 
 
 export function W2GRoomCard({ room }: W2GRoomCardProps) {
-    
+    const host = Object.values(room.userProfiles).find(u => u.isHost);
+
     return (
         <Link href={`/watch2gether/${room.id}`} className="group">
             <div className="bg-card border border-border/50 rounded-lg overflow-hidden transition-all duration-300 hover:border-primary/50 hover:-translate-y-1">
@@ -39,7 +41,7 @@ export function W2GRoomCard({ room }: W2GRoomCardProps) {
                     <h3 className="font-semibold truncate text-sm group-hover:text-primary transition-colors">{room.animeName || 'Unknown Anime'}</h3>
                     <div className="text-xs text-muted-foreground mt-1 flex items-center justify-between">
                        <span className="flex items-center gap-1"><Clapperboard className="w-3 h-3" /> Ep {room.episodeNumber}</span>
-                       <span className="flex items-center gap-1"><Users className="w-3 h-3"/> 1</span>
+                       <span className="flex items-center gap-1"><Users className="w-3 h-3"/> {room.users.length}</span>
                     </div>
 
                     <div className="mt-3">
@@ -48,12 +50,14 @@ export function W2GRoomCard({ room }: W2GRoomCardProps) {
 
                     <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
                         <Avatar className="w-6 h-6">
-                            <AvatarImage src={`https://api.dicebear.com/8.x/identicon/svg?seed=${room.hostId}`} />
-                            <AvatarFallback>{room.hostId.slice(0, 1)}</AvatarFallback>
+                            <AvatarImage src={host?.avatar} />
+                            <AvatarFallback>{host?.name?.charAt(0) || 'H'}</AvatarFallback>
                         </Avatar>
                         <div className="overflow-hidden">
-                             <p className="text-xs font-medium text-muted-foreground truncate">{room.name.split("'s")[0] || 'Host'}</p>
-                             <p className="text-xs text-muted-foreground/70">a while ago</p>
+                             <p className="text-xs font-medium text-muted-foreground truncate">{host?.name || 'Host'}</p>
+                             {room.createdAt && (
+                                <p className="text-xs text-muted-foreground/70">{formatDistanceToNow(room.createdAt.toDate(), { addSuffix: true })}</p>
+                             )}
                         </div>
                     </div>
                 </div>

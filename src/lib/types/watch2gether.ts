@@ -1,4 +1,12 @@
 
+
+export interface RoomUser {
+  id: string;
+  name: string;
+  avatar: string;
+  isHost: boolean;
+}
+
 export interface WatchTogetherRoom {
   id: string;
   name: string;
@@ -10,6 +18,7 @@ export interface WatchTogetherRoom {
   hostId: string;
   createdAt: any; // Could be Date or a server timestamp object
   users: string[]; // Array of user UIDs
+  userProfiles: Record<string, RoomUser>;
   playerState: {
     isPlaying: boolean;
     currentTime: number;
@@ -17,12 +26,6 @@ export interface WatchTogetherRoom {
   };
 }
 
-export interface RoomUser {
-  id: string;
-  name: string;
-  avatar: string;
-  isHost: boolean;
-}
 
 export interface ChatMessage {
   id: string;

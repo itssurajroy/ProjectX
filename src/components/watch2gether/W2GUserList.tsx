@@ -1,5 +1,4 @@
 
-// src/components/watch2gether/W2GUserList.tsx
 'use client';
 import { Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -8,6 +7,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/
 
 
 export default function W2GUserList({ users, hostId }: { users: RoomUser[], hostId: string }) {
+    if (!users) return null;
+    
     return (
         <div className="mt-4 space-y-2">
             {users.map(user => (

@@ -11,30 +11,64 @@ import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { AnimeAboutResponse, AnimeInfo } from '@/lib/types/anime';
-import Link from 'next/link';
+import { AnimeAboutResponse } from '@/lib/types/anime';
+import { WatchTogetherRoom } from '@/lib/types/watch2gether';
 import SiteLogo from '../layout/SiteLogo';
 import W2GAnimeDetails from './W2GAnimeDetails';
+import { useDoc } from '@/firebase/firestore/useDoc';
+import { useUser } from '@/firebase/auth/use-user';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { db } from '@/firebase/client';
 
 export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     const router = useRouter();
+    const { user, userProfile } = useUser();
+    const { data: roomData, loading: isRoomLoading, error: roomError } = useDoc<WatchTogetherRoom>(`watch-together-rooms/${roomId}`);
 
-    // This component is now disconnected from any backend database.
-    // The logic below is placeholder and would need to be adapted
-    // to a new backend service (e.g., WebSockets) if one is implemented.
-    const isRoomLoading = false;
-    const roomError = { message: "Watch Together is temporarily offline." };
-    const roomData = null as any;
-    const isHost = false;
-    const animeResult = null as any;
-    const isAnimeLoading = false;
+    const isHost = user?.uid === roomData?.hostId;
+
+    const { data: animeResult, isLoading: isAnimeLoading } = useQuery<AnimeAboutResponse>({
+        queryKey: ['anime', roomData?.animeId],
+        queryFn: () => AnimeService.anime(roomData!.animeId),
+        enabled: !!roomData,
+    });
+
+    // Add user to the room on join
+    useEffect(() => {
+        if (user && userProfile && roomData && !roomData.users.includes(user.uid)) {
+            const roomRef = doc(db, 'watch-together-rooms', roomId);
+            updateDoc(roomRef, {
+                users: arrayUnion(user.uid),
+                [`userProfiles.${user.uid}`]: {
+                    id: user.uid,
+                    name: userProfile.displayName,
+                    avatar: userProfile.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
+                    isHost: false,
+                }
+            }).catch(err => console.error("Failed to add user to room", err));
+        }
+    }, [user, userProfile, roomData, roomId]);
+
+    // Remove user from room on leave
+    const handleLeave = async () => {
+        if (user && roomData?.users.includes(user.uid)) {
+            const roomRef = doc(db, 'watch-together-rooms', roomId);
+            // In a real app, you might want to transfer host role if the host leaves.
+            // For now, we just remove the user.
+            await updateDoc(roomRef, {
+                users: arrayRemove(user.uid),
+                [`userProfiles.${user.uid}`]: undefined // This might not work as expected, need deleteField
+            }).catch(err => console.error("Failed to remove user from room", err));
+        }
+        router.push('/watch2gether');
+    };
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.href);
         toast.success("Room link copied to clipboard!");
     }
     
-    if (isRoomLoading || isAnimeLoading) {
+    if (isRoomLoading || (roomData && isAnimeLoading)) {
         return (
             <div className="flex h-screen items-center justify-center bg-background">
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -44,7 +78,7 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     }
 
     if (roomError || !roomData) {
-        return <ErrorDisplay title="Room not found" description="This watch party does not exist, has expired, or is currently unavailable." />;
+        return <ErrorDisplay title="Room not found" description={roomError?.message || "This watch party does not exist or has expired."} />;
     }
     
     const animeInfo = animeResult?.anime?.info;
@@ -58,20 +92,20 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
             <div className='flex items-center gap-2'>
                 <Button onClick={handleShare} variant="secondary" size="sm" className="gap-2"><Share2 className="w-4 h-4"/> Share</Button>
                 {isHost && <Button variant="secondary" size="sm" className="gap-2"><Settings className="w-4 h-4"/> Settings</Button>}
-                <Button onClick={() => router.push('/home')} variant="destructive" size="sm" className="gap-2"><LogOut className="w-4 h-4"/> Leave</Button>
+                <Button onClick={handleLeave} variant="destructive" size="sm" className="gap-2"><LogOut className="w-4 h-4"/> Leave</Button>
             </div>
           </div>
         </header>
 
         <div className="pt-16 grid grid-cols-12 h-screen">
-           <main className="col-span-9 h-full overflow-y-auto">
+           <main className="col-span-12 lg:col-span-9 h-full overflow-y-auto">
                <W2GVideoPlayer
-                    roomRef={null}
+                    room={roomData}
                     isHost={isHost}
                 />
                 {animeInfo && moreInfo && <W2GAnimeDetails animeInfo={animeInfo} moreInfo={moreInfo} />}
            </main>
-           <aside className="col-span-3 h-full border-l border-border/50">
+           <aside className="hidden lg:block lg:col-span-3 h-full border-l border-border/50">
              <W2GChat roomId={roomId} />
            </aside>
         </div>

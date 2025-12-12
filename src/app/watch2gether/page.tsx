@@ -24,19 +24,21 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from "@/firebase/client";
 
 const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-    const { user } = useUser();
+    const { user, userProfile } = useUser();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery] = useDebounce(searchQuery, 500);
     const [selectedAnime, setSelectedAnime] = useState<AnimeBase | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
-    const { data: searchResults, isLoading: isSearchLoading } = useQuery<SearchResult>({
+    const { data: searchResults, isLoading: isSearchLoading } = useInfiniteQuery<SearchResult>({
         queryKey: ['w2g-anime-search', debouncedQuery],
-        queryFn: () => {
-            const params = new URLSearchParams({ q: debouncedQuery, limit: '12' });
+        queryFn: ({ pageParam = 1 }) => {
+            const params = new URLSearchParams({ q: debouncedQuery, limit: '12', page: String(pageParam) });
             return AnimeService.search(params);
         },
+        initialPageParam: 1,
+        getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
         enabled: !!debouncedQuery && !selectedAnime,
     });
     
@@ -45,9 +47,11 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         queryFn: () => AnimeService.episodes(selectedAnime!.id),
         enabled: !!selectedAnime,
     });
+    
+    const animes = searchResults?.pages.flatMap(page => page.animes) ?? [];
 
     const handleCreateRoom = async () => {
-        if (!user || !selectedAnime || !episodesData?.episodes?.[0]) {
+        if (!user || !userProfile || !selectedAnime || !episodesData?.episodes?.[0]) {
             toast.error("Please select an anime with available episodes.");
             return;
         }
@@ -57,8 +61,10 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         
         try {
             const firstEpisode = episodesData.episodes[0];
+            const firstEpisodeId = firstEpisode.episodeId.split('?ep=')[0];
+
             const roomData: Omit<WatchTogetherRoom, 'id'> = {
-                name: `${user.displayName}'s Room for ${selectedAnime.name}`,
+                name: `${userProfile.displayName}'s Room`,
                 animeId: selectedAnime.id,
                 animeName: selectedAnime.name,
                 animePoster: selectedAnime.poster,
@@ -72,6 +78,14 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                     updatedAt: serverTimestamp(),
                 },
                 users: [user.uid],
+                userProfiles: {
+                  [user.uid]: {
+                    id: user.uid,
+                    name: userProfile.displayName,
+                    avatar: userProfile.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
+                    isHost: true,
+                  }
+                }
             };
             
             const docRef = await addDoc(collection(db, 'watch-together-rooms'), roomData);
@@ -108,9 +122,9 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                         </div>
 
                         <ScrollArea className="h-96">
-                            {isSearchLoading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin" /></div>}
+                            {isSearchLoading && animes.length === 0 && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin" /></div>}
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {searchResults?.animes.map(anime => (
+                                {animes.map(anime => (
                                     <div key={anime.id} onClick={() => setSelectedAnime(anime)} className="cursor-pointer">
                                         <AnimeCard anime={anime} />
                                     </div>
