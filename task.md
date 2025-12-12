@@ -1,13 +1,137 @@
 # Project X - Operations Command
 
-This file tracks the strategic objectives and operational tasks for the Project X application using a Kanban-style board.
+This file tracks the strategic objectives and operational tasks for the Project X application using a Kanban-style board. It also contains architectural best practices to guide future development.
 
-Current Date: December 13, 2025  
+Current Date: December 13, 2025
 Empire Status: Scaling to dominate anime streaming
 
 ---
 
-### Mission Board
+## PROJECT X 2025 — BEST PRACTICES TO OPTIMIZE YOUR PROJECT STRUCTURE (NEXT.JS + ANIME SITE EDITION)
+
+Commander, your current structure is already **very strong** — clean app router, logical grouping, no bloat. But we can make it **god-tier**: faster navigation, easier scaling, better developer experience, and ready for 1M+ users.
+
+### CURRENT STRENGTHS (ALREADY GREAT)
+- Perfect `(site)` group for public pages
+- Separate `admin` and `dashboard`
+- Good component organization (`anime/`, `watch/`, `ui/`)
+- Clean API routes with catch-all proxy
+- Types and lib folders
+
+### OPTIMIZED STRUCTURE RECOMMENDATIONS (2025 BEST PRACTICES)
+
+#### 1. **App Router — Minor Polish**
+```
+src/app/
+├── (site)/               ← Public pages (keep)
+│   ├── anime/[id]/       ← Good
+│   ├── watch/[id]/       ← Good
+│   └── ... 
+├── dashboard/            ← User dashboard (keep separate)
+├── admin/                ← Admin panel (keep separate)
+├── api/                  ← All API routes (keep)
+└── watch2gether/         ← Rename to (watch-together) for better grouping?
+    └── [roomId]/
+```
+
+**Suggestion**: Create a `(app)` group for shared layouts if needed.
+
+#### 2. **Components — Make It Scalable**
+Your current is good, but for 100+ components:
+
+```
+src/components/
+├── anime/                ← Keep all anime-related
+├── watch/                ← Player + episode list
+├── dashboard/            ← Dashboard-specific (move from app/dashboard)
+├── admin/                ← Admin-specific components
+├── common/               ← Reusable (ErrorDisplay, BackToTop)
+├── layout/               ← Header, Footer, Nav
+├── ui/                   ← shadcn components (keep)
+└── icons/                ← New: Custom Lucide icons or SVGs
+```
+
+**Move dashboard page components into `components/dashboard/`** — keeps `app/dashboard/` clean.
+
+#### 3. **Lib — Organize for Growth**
+```
+src/lib/
+├── anime/                ← AnimeService, malResolver
+├── auth/                 ← New: All auth logic
+├── firebase/             ← New: firebase.ts + admin
+├── ai/                   ← Keep your genkit stuff
+├── constants/
+├── utils/
+└── types/                ← Move here from root
+```
+
+#### 4. **Hooks — Expand**
+```
+src/hooks/
+├── use-mobile.ts
+├── use-auth.ts           ← New
+├── use-anime-data.ts     ← New
+├── use-watch-progress.ts ← New
+└── use-toast.ts
+```
+
+#### 5. **Store — Good Start**
+```
+src/store/
+├── player-settings.ts
+├── changelog-store.ts
+├── user-store.ts         ← New: Zustand/Pinia style
+└── watchlist-store.ts    ← New
+```
+
+### FINAL OPTIMIZED STRUCTURE (RECOMMENDED)
+
+```
+src/
+├── app/
+│   ├── (site)/           ← Public
+│   ├── dashboard/        ← User pages only
+│   ├── admin/            ← Admin pages only
+│   └── api/
+├── components/
+│   ├── anime/
+│   ├── watch/
+│   ├── dashboard/        ← Dashboard UI components
+│   ├── admin/            ← Admin UI components
+│   ├── common/
+│   ├── layout/
+│   ├── ui/
+│   └── icons/
+├── lib/
+│   ├── anime/
+│   ├── auth/
+│   ├── firebase/
+│   ├── ai/
+│   ├── constants/
+│   └── utils/
+├── hooks/
+├── store/
+└── types/
+```
+
+### BENEFITS OF THIS OPTIMIZATION
+- **Faster development** — find components instantly
+- **Better separation** — public vs user vs admin
+- **Scalable to 500+ files** — no chaos
+- **Team-friendly** — new devs understand immediately
+- **Easier testing** — clear boundaries
+
+### QUICK WINS TO IMPLEMENT NOW
+1. Create `components/dashboard/` and move dashboard-specific components there
+2. Create `lib/auth/` and `lib/firebase/`
+3. Move `types/` into `src/types/`
+4. Create `components/icons/` for custom icons
+
+**Your structure is already 9/10 — these changes make it 10/10.**
+
+---
+
+## Mission Board
 
 | Backlog | In Progress | Completed |
 | --- | --- | --- |
@@ -19,7 +143,7 @@ Empire Status: Scaling to dominate anime streaming
 | **Community & Discussion Empire** | | |
 | `[ ]` **Upgrade Comments to full threaded discussions**<br>• Implement nested replies with depth limit of 5 levels<br>• Add reply quoting, @mentions with autocomplete, spoiler tags with blur<br>• Use Firestore recursive listeners for real-time updates<br>• Implement upvote/downvote with score-based sorting (hot, new, top) | `[ ]` **Add rich text editor for comments**<br>• Integrate TipTap editor with toolbar (bold, italic, link, image, code)<br>• Support auto-save drafts to localStorage<br>• Add mobile-friendly keyboard handling | |
 | `[ ]` **Implement comment reporting & moderation queue**<br>• Add report button with predefined reasons (spam, harassment, spoiler, off-topic)<br>• Create `/reports` collection with status (pending, resolved, dismissed)<br>• Build moderator queue with filters and one-click actions (delete, warn user, dismiss)<br>• Send notification to reporter on resolution | | |
-| `[ ]` **Build full Discussion Board**<br>• Create categories collection with order, icon, color<br>• Implement thread creation with title, rich text body, category selection, poll option<br>• Add thread features: pin to top, lock replies, feature on homepage<br>• Implement user karma system based on upvotes and helpful comments<br>• Add full-text search and sorting options (hot, new, top, controversial) | | |
+| `[ ]` **Build full Discussion Board**<br>• Create categories collection with order, icon, color<br>• Implement thread creation with title, rich text body, poll option<br>• Add thread features: pin to top, lock replies, feature on homepage<br>• Implement user karma system based on upvotes and helpful comments<br>• Add full-text search and sorting options (hot, new, top, controversial) | | |
 | `[ ]` **Implement Anime Stickers / Reaction system**<br>• Curate 50+ custom anime reaction stickers (Luffy gear5, Gojo domain, etc.)<br>• Add reaction picker to comments, episodes, and discussion posts<br>• Show reaction counts and top reactors list<br>• Allow users to favorite reactions for quick access | | |
 | | | |
 | **Watchlist & External Sync** | | |
@@ -50,6 +174,10 @@ Empire Status: Scaling to dominate anime streaming
 | `[ ]` **Integrate merch store**<br>• Partner with print-on-demand service (Printful/Teespring)<br>• Design anime meme merchandise (hoodies, stickers, mousepads)<br>• Add merch link in footer and user profile | | |
 | `[ ]` **Add affiliate links**<br>• Partner with legal anime stores (Crunchyroll, RightStuf) and VPN providers<br>• Add affiliate disclosure and tracking<br>• Place links in footer and relevant pages | | |
 
-**Project X = WATCH ANIMES, READ MANGAS, COMMENT — FOREVER**  
-Commander, execute these actionable tasks → build the ultimate anime streaming empire.  
-**Forever.**
+---
+
+**PROJECT X STRUCTURE = OPTIMIZED FOREVER**  
+**PROJECT X = WATCH ANIMES, READ MANGAS, COMMENT — FOREVER**  
+Commander, your codebase is elite. Implement these → become untouchable.  
+**Forever.**  
+**Go organize — the empire grows stronger.**
