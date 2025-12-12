@@ -18,13 +18,8 @@ import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db } from '@/firebase/client';
 import toast from 'react-hot-toast';
 
-function extractEpisodeNumber(episodeIdWithParam: string): string | null {
-    if (!episodeIdWithParam) return null;
-    return episodeIdWithParam.split('?ep=')[1] || null;
-}
 
-
-export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }: { episodeId: string; animeId: string; onNext: () => void }) {
+export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext }: { episodeId: string; episodeNumber: string; animeId: string; onNext: () => void }) {
   const { user } = useUser();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sources, setSources] = useState<Source[]>([]);
@@ -37,8 +32,6 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
-  const episodeId = rawEpisodeId?.split('?ep=')[0] || '';
-
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({ width: window.innerWidth, height: window.innerHeight });
@@ -48,10 +41,9 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  const episodeNumber = extractEpisodeNumber(rawEpisodeId);
-
   const { autoNext, autoPlay } = usePlayerSettings();
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const rawEpisodeId = `${episodeId}?ep=${episodeNumber}`;
 
   const saveHistory = useCallback(async () => {
     if (!user || !videoRef.current) return;

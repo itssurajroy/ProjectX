@@ -117,21 +117,17 @@ function WatchPageComponent() {
       }) || episodes[0]
     );
   }, [episodes, episodeParam]);
+  
+  const currentEpisodeId = useMemo(() => {
+      if (!currentEpisode) return null;
+      return currentEpisode.episodeId.split('?ep=')[0];
+  }, [currentEpisode]);
 
   useEffect(() => {
     if (currentEpisode?.isFiller) {
       setShowFillerAlert(true);
     }
   }, [currentEpisode]);
-
-  const { 
-    data: sourcesData, 
- } = useQuery<SourcesData>({
-    queryKey: ['episode-sources', currentEpisode?.episodeId, language],
-    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, 'vidstreaming'), // Defaulting to a server, player handles switching
-    enabled: !!currentEpisode,
-    retry: false, // Let the player handle retries
-  });
   
   const nextAiringTime = aboutResponse?.anime.moreInfo.nextAiringEpisode?.airingTime;
 
@@ -238,9 +234,10 @@ function WatchPageComponent() {
 
         <div className={cn("lg:col-span-6 space-y-4", isFocusMode && "relative z-40")}>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                {currentEpisode ? (
+                {currentEpisode && currentEpisodeId ? (
                     <AnimePlayer 
-                        episodeId={currentEpisode.episodeId} 
+                        episodeId={currentEpisodeId}
+                        episodeNumber={String(currentEpisode.number)}
                         animeId={animeId}
                         onNext={() => navigateEpisode('next')}
                     />
@@ -279,7 +276,7 @@ function WatchPageComponent() {
         <div className="lg:col-span-3">
             <EpisodeList 
                 episodes={episodes}
-                currentEpisodeId={currentEpisode?.episodeId || null}
+                currentEpisodeId={episodeParam}
                 onEpisodeSelect={handleEpisodeSelect}
             />
         </div>
