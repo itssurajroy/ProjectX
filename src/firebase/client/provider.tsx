@@ -54,7 +54,7 @@ export function FirebaseProvider({ children }: FirebaseProviderProps) {
                 displayName: user.displayName || 'Anonymous',
                 email: user.email || '',
                 photoURL: user.photoURL || '',
-                role: 'user',
+                role: 'user', // Set default role
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
               };
