@@ -15,13 +15,13 @@ export default function SiteLayout({
 }>) {
   const pathname = usePathname();
 
-  // Don't render header/footer for watch2gether rooms, but do for the lobby
+  // Don't render header/footer for watch2gether rooms or dashboard pages
   const isW2GRoom = /^\/watch2gether\/[^/]+$/.test(pathname);
+  const isDashboard = pathname.startsWith('/dashboard');
 
-  if (isW2GRoom) {
+  if (isW2GRoom || isDashboard) {
     return <main>{children}</main>;
   }
-
 
   return (
     <div className="flex flex-col min-h-screen w-full">

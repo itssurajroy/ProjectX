@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, User, LogOut, Shield, X, Menu } from 'lucide-react';
+import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
 import { useUser } from '@/firebase/auth/use-user';
@@ -19,12 +19,12 @@ const desktopNavItems = [
   { name: 'Watchlist', icon: Bookmark, href: '/dashboard/watchlist' },
   { name: 'History', icon: History, href: '/dashboard/history' },
   { name: 'Profile', icon: User, href: '/dashboard/profile' },
-  { name: 'Statistics', icon: require('lucide-react').BarChart3, href: '/dashboard/stats' },
-  { name: 'Achievements', icon: require('lucide-react').Trophy, href: '/dashboard/achievements' },
-  { name: 'Friends', icon: require('lucide-react').Users, href: '/dashboard/friends' },
-  { name: 'Calendar', icon: require('lucide-react').Calendar, href: '/dashboard/calendar' },
-  { name: 'AI Curator', icon: require('lucide-react').Sparkles, href: '/dashboard/ai-curator' },
-  { name: 'Watch Parties', icon: require('lucide-react').PartyPopper, href: '/dashboard/watch-parties' },
+  { name: 'Statistics', icon: BarChart3, href: '/dashboard/stats' },
+  { name: 'Achievements', icon: Trophy, href: '/dashboard/achievements' },
+  { name: 'Friends', icon: Users, href: '/dashboard/friends' },
+  { name: 'Calendar', icon: Calendar, href: '/dashboard/calendar' },
+  { name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' },
+  { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
 ];
 
 const adminNavItem = { name: 'Admin', icon: Shield, href: '/admin' };
@@ -101,15 +101,21 @@ const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const pathname = usePathname();
+    const isDashboardPage = pathname.startsWith('/dashboard');
+
+    if (!isDashboardPage) {
+        return (
+            <>
+                <Header />
+                <main className="pt-16">{children}</main>
+            </>
+        )
+    }
 
     return (
         <>
-            <div className="hidden lg:block">
-              <Header />
-            </div>
-            <div className="block lg:hidden">
-              <DashboardHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
-            </div>
+            <DashboardHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
             
             <div className="flex min-h-screen pt-16">
                 {/* Mobile Sidebar */}
