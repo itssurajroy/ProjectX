@@ -3,7 +3,7 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Clock, Tv, Loader2, Star, BarChart3, TrendingUp, Fire Extinguisher } from 'lucide-react';
+import { Clock, Tv, Loader2, Star, BarChart3, TrendingUp } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import dynamic from 'next/dynamic';
 import { useUser } from '@/firebase/auth/use-user';
