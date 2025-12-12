@@ -9,7 +9,7 @@ import { Tv, Sparkles, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Suspense, useState, useMemo, useCallback } from 'react';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { HomeData, SearchResult } from '@/types/anime';
+import { HomeData, SearchResult } from '@/lib/types/anime';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { years } from '@/lib/data';
 import ErrorDisplay from '@/components/common/ErrorDisplay';

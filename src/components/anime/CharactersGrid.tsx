@@ -1,7 +1,7 @@
 
 'use client';
 
-import { CharacterVoiceActor } from "@/types/anime";
+import { CharacterVoiceActor } from "@/lib/types/anime";
 import Image from "next/image";
 
 interface CharactersGridProps {

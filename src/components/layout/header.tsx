@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, Menu, Shuffle, X, Users, Bell, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { SearchSuggestion } from '@/types/anime';
+import { SearchSuggestion } from '@/lib/types/anime';
 import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -14,6 +14,8 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { useUser } from '@/firebase/auth/use-user';
+import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 
 
@@ -65,12 +67,11 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
 }
 
 function UserAuth() {
-  const loading = false;
-  const user = null; // Mock user
-  const userProfile = null; // Mock user profile
+  const { user, userProfile, loading } = useUser();
   const router = useRouter();
 
   const handleSignOut = async () => {
+    await auth.signOut();
     toast.success("Signed out successfully.");
     router.push('/home');
   };

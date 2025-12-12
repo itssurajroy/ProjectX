@@ -1,4 +1,5 @@
 
+// src/lib/services/MALService.ts
 const API_BASE = "/api/mal";
 
 interface MALAnime {

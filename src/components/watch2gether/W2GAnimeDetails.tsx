@@ -1,7 +1,8 @@
+
 // src/components/watch2gether/W2GAnimeDetails.tsx
 'use client';
 
-import { AnimeInfo } from "@/types/anime";
+import { AnimeInfo } from "@/lib/types/anime";
 import Synopsis from "../anime/Synopsis";
 import { Badge } from "../ui/badge";
 import { Clapperboard } from "lucide-react";

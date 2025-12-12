@@ -1,14 +1,16 @@
 
 'use client';
 
-import { UserHistory, AnimeBase } from '@/lib/types/anime';
-import { History, Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
-import Link from 'next/link';
-import { format, isToday, isYesterday } from 'date-fns';
 import { useMemo } from 'react';
-import { useUser, useCollection } from '@/firebase/client';
+import { useQuery } from '@tanstack/react-query';
+import { History, Loader2 } from 'lucide-react';
+import { format, isToday, isYesterday } from 'date-fns';
+import Link from 'next/link';
+
+import { UserHistory, AnimeBase } from '@/lib/types/anime';
+import { AnimeService } from '@/lib/services/AnimeService';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/firestore/useCollection';
 import HistoryGroup from '@/components/dashboard/HistoryGroup';
 
 export default function HistoryPage() {

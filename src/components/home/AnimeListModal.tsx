@@ -4,7 +4,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { AnimeService } from '@/lib/services/AnimeService';
-import { AnimeBase, SearchResult } from "@/types/anime";
+import { AnimeBase, SearchResult } from "@/lib/types/anime";
 import { AnimeCard } from "../AnimeCard";
 import { Skeleton } from "../ui/skeleton";
 import ErrorDisplay from "../common/ErrorDisplay";

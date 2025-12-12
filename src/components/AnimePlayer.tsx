@@ -8,7 +8,7 @@ import { Loader2, ServerCrash, Tv } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { AnimeService } from '@/lib/services/AnimeService';
 import { sanitizeFirestoreId } from '@/lib/utils';
-import { EpisodeServer, Source, Subtitle } from '@/types/anime';
+import { EpisodeServer, Source, Subtitle } from '@/lib/types/anime';
 import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';

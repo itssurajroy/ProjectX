@@ -1,14 +1,15 @@
 
 'use client';
 import { useMemo, useState } from 'react';
-import { AnimeBase } from '@/lib/types/anime';
-import { Bookmark, Loader2 } from 'lucide-react';
-import { AnimeCard } from '@/components/AnimeCard';
-import { useUser, useCollection } from '@/firebase/client';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
+import { Bookmark, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+
+import { AnimeBase } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
+import { AnimeService } from '@/lib/services/AnimeService';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/firestore/useCollection';
 import WatchlistGrid from '@/components/dashboard/WatchlistGrid';
 import WatchlistControls from '@/components/dashboard/WatchlistControls';
 

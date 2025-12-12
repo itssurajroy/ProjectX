@@ -3,7 +3,7 @@
 'use client';
 import { Crown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { RoomUser } from "@/types/watch2gether";
+import { RoomUser } from "@/lib/types/watch2gether";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 

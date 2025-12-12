@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeSeason } from "@/types/anime";
+import { AnimeSeason } from "@/lib/types/anime";
 import {
   Carousel,
   CarouselContent,

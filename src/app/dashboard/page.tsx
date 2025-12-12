@@ -1,15 +1,19 @@
 
 'use client';
 
-import { AnimeBase, UserHistory, HomeData } from '@/types/anime';
-import { Flame, Activity, TrendingUp, Sparkles, Users, Loader2 } from 'lucide-react';
-import { AnimeCard } from '@/components/AnimeCard';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useUser, useCollection } from '@/firebase/client';
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Flame, Activity, TrendingUp, Sparkles, Users, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+
+import { AnimeBase, UserHistory, HomeData } from '@/lib/types/anime';
+import { AnimeService } from '@/lib/services/AnimeService';
+import { AnimeCard } from '@/components/AnimeCard';
+import { Button } from '@/components/ui/button';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/firestore/useCollection';
+import ContinueWatchingCard from '@/components/dashboard/ContinueWatchingCard';
+
 
 const Section = ({ title, icon: Icon, children, href }: { title: string, icon: React.ElementType, children: React.ReactNode, href?: string }) => (
     <section className="space-y-4">
@@ -27,25 +31,6 @@ const Section = ({ title, icon: Icon, children, href }: { title: string, icon: R
         {children}
     </section>
 );
-
-
-const ContinueWatchingCard = ({ historyItem, animeDetails }: { historyItem: UserHistory, animeDetails: AnimeBase }) => {
-    const progress = (historyItem.progress / historyItem.duration) * 100;
-    const watchUrl = `/watch/${historyItem.animeId}?ep=${historyItem.episodeNumber}`;
-    
-    return (
-        <Link href={watchUrl}>
-            <div className="w-full">
-                <div className="relative aspect-[2/3] group">
-                    <AnimeCard anime={animeDetails} />
-                    <div className="absolute bottom-2 left-2 right-2 h-1.5 bg-muted/70 rounded-full overflow-hidden backdrop-blur-sm">
-                        <div className="bg-primary h-full rounded-full" style={{ width: `${progress}%` }} />
-                    </div>
-                </div>
-            </div>
-        </Link>
-    );
-};
 
 const ContinueWatchingSection = () => {
     const { user } = useUser();

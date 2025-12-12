@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { PromotionalVideo } from '@/types/anime';
+import { PromotionalVideo } from '@/lib/types/anime';
 import { PlayCircle } from "lucide-react";
 import ProgressiveImage from "../ProgressiveImage";
 

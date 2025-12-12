@@ -4,7 +4,7 @@
 import { useContext } from 'react';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types/user';
-import { FirebaseContext } from '@/firebase/client-provider';
+import { FirebaseContext } from '@/firebase/client/provider';
 
 export interface UseUserResult {
   user: User | null;

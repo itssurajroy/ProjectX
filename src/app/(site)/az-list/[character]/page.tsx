@@ -8,7 +8,7 @@ import { Suspense, useState, useRef, useEffect, useCallback } from 'react';
 import { AnimeCard } from '@/components/AnimeCard';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { SearchResult } from '@/types/anime';
+import { SearchResult } from '@/lib/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnimeService } from '@/lib/services/AnimeService';

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Balancer from "react-wrap-balancer";
-import { AnimeBase, HomeData, SearchSuggestion } from "@/types/anime";
+import { AnimeBase, HomeData, SearchSuggestion } from "@/lib/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from "@/components/ProgressiveImage";

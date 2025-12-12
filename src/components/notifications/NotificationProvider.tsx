@@ -3,7 +3,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import type { Notification } from '@/types/notification';
+import type { Notification } from '@/lib/types/notification';
 
 interface NotificationContextType {
   notifications: Notification[];

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,7 +7,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SpotlightAnime } from '@/types/anime';
+import { SpotlightAnime } from '@/lib/types/anime';
 import { cn } from '@/lib/utils';
 import Balancer from 'react-wrap-balancer';
 

@@ -8,7 +8,7 @@ import { useDebounce } from 'use-debounce';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { HomeData, SearchResult, AnimeBase } from '@/types/anime';
+import { HomeData, SearchResult, AnimeBase } from '@/lib/types/anime';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';

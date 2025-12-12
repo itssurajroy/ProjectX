@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeAbout } from '@/types/anime';
+import { AnimeAbout } from '@/lib/types/anime';
 import { Badge } from '@/components/ui/badge';
 
 interface InfoSidebarProps {

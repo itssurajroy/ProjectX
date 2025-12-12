@@ -1,6 +1,6 @@
 
 'use client';
-import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/types/anime';
+import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star } from 'lucide-react';
 import Link from 'next/link';

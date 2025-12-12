@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Menu } from 'lucide-react';
 import EpisodeList from '@/components/watch/episode-list';
-import { AnimeEpisode, AnimeAboutResponse, Source, Subtitle, AnimeAbout } from '@/types/anime';
+import { AnimeEpisode, AnimeAboutResponse, Source, Subtitle, AnimeAbout } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
 import LanguageToggle, { Language } from '@/components/watch/LanguageToggle';
@@ -128,7 +128,7 @@ function WatchPageComponent() {
     data: sourcesData, 
  } = useQuery<SourcesData>({
     queryKey: ['episode-sources', currentEpisode?.episodeId, language],
-    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, language),
+    queryFn: () => AnimeService.getEpisodeSources(currentEpisode!.episodeId, 'vidstreaming'), // Defaulting to a server, player handles switching
     enabled: !!currentEpisode,
     retry: false, // Let the player handle retries
   });

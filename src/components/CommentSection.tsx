@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Heart, MessageCircle, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Comment } from '@/types/comment';
+import { Comment } from '@/lib/types/comment';
 import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import Spoiler from './comments/Spoiler';

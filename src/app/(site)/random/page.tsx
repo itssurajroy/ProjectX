@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimeService } from '@/lib/services/AnimeService';
 import { Loader2, Sparkles } from 'lucide-react';
-import { HomeData } from '@/types/anime';
+import { HomeData } from '@/lib/types/anime';
 
 export default function RandomAnimePage() {
   const router = useRouter();

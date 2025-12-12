@@ -2,19 +2,20 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AnimeBase } from '@/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
 import { Sparkles, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { curateAnime, CuratedAnime } from '@/ai/flows/curate-anime-flow';
-import { AnimeCard } from '@/components/AnimeCard';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
-import { useUser, useCollection } from '@/firebase/client';
-import { WatchlistItem } from '@/types/watchlist';
 import toast from 'react-hot-toast';
 
+import { AnimeService } from '@/lib/services/AnimeService';
+import { WatchlistItem } from '@/lib/types/watchlist';
+import { curateAnime, CuratedAnime } from '@/ai/flows/curate-anime-flow';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/firestore/useCollection';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { AnimeCard } from '@/components/AnimeCard';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+import Link from 'next/link';
 
 export default function AiCuratorPage() {
   const { user } = useUser();

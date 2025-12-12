@@ -1,18 +1,15 @@
 
 'use client';
 
-import { AnimeBase } from '@/lib/types/anime';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Award, BookOpen, Calendar, Clapperboard, Film, Flame, Loader2, Star, TrendingUp, Trophy } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/firebase/client';
+
+import { AnimeService } from '@/lib/services/AnimeService';
 import { UserHistory } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
-import { useCollection } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/firestore/useCollection';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 
 const achievementsList = [

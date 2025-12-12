@@ -1,4 +1,5 @@
 
+'use client';
 // src/firebase/firestore/useCollection.ts
 import { useState, useEffect } from 'react';
 import {
@@ -8,7 +9,7 @@ import {
   Query,
   DocumentData,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/firebase/client';
 import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 
 class FirestorePermissionError extends Error {

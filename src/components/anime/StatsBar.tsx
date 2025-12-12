@@ -3,7 +3,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Star, Tv, Clapperboard, Clock, Shield } from 'lucide-react';
-import { AnimeInfo } from '@/types/anime';
+import { AnimeInfo } from '@/lib/types/anime';
 
 interface StatsBarProps {
   stats: AnimeInfo['stats'];

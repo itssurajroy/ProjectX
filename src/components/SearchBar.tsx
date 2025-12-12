@@ -6,7 +6,7 @@ import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { useDebounce } from 'use-debounce';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { SearchSuggestion } from '@/types/anime';
+import { SearchSuggestion } from '@/lib/types/anime';
 import ProgressiveImage from './ProgressiveImage';
 
 export default function SearchBar() {
