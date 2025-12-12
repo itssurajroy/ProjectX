@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import { Loader2, PlusCircle, Users, Search } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,7 @@ import { WatchTogetherRoom } from "@/lib/types/watch2gether";
 import { useUser } from "@/firebase/auth/use-user";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/services/AnimeService";
 import { SearchResult, AnimeBase } from "@/lib/types/anime";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     const [selectedAnime, setSelectedAnime] = useState<AnimeBase | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
-    const { data: searchResults, isLoading: isSearchLoading } = useInfiniteQuery<SearchResult>({
+    const { data: searchResults, isLoading: isSearchLoading } = useInfiniteQuery<SearchResult, Error, SearchResult, [string, string], number>({
         queryKey: ['w2g-anime-search', debouncedQuery],
         queryFn: ({ pageParam = 1 }) => {
             const params = new URLSearchParams({ q: debouncedQuery, limit: '12', page: String(pageParam) });
