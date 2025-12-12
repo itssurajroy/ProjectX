@@ -2,7 +2,7 @@
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star } from 'lucide-react';
+import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star, BookmarkCheck, BookmarkPlus } from 'lucide-react';
 import Link from 'next/link';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
@@ -11,7 +11,6 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
-import { Bookmark } from 'lucide-react';
 import CommentSection from '@/components/CommentSection';
 import {
   AlertDialog,
@@ -27,6 +26,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
 import ProgressiveImage from '../ProgressiveImage';
+import { useUser } from '@/firebase/auth/use-user';
+import { useDoc } from '@/firebase/firestore/useDoc';
+import { WatchlistItem } from '@/lib/types/watchlist';
+import toast from 'react-hot-toast';
+import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase/client';
+import { cn } from '@/lib/utils';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -82,6 +88,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 
 export default function AnimeDetailsClient({ id }: { id: string }) {
   const router = useRouter();
+  const { user } = useUser();
   const [showAgeGate, setShowAgeGate] = useState(false);
   
   const {
@@ -93,6 +100,9 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     queryKey: ['anime', id],
     queryFn: () => AnimeService.anime(id),
   });
+
+  const { data: watchlistItem, loading: loadingWatchlist } = useDoc<WatchlistItem>(`users/${user?.uid}/watchlist/${id}`);
+  const isInWatchlist = !!watchlistItem;
   
   const anime = animeResult?.anime;
   const animeInfo: AnimeInfo | undefined = anime?.info;
@@ -105,9 +115,17 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
   useEffect(() => {
     if (animeInfo?.stats.rating === "R") {
-        setShowAgeGate(true);
+        const hasAgreed = sessionStorage.getItem('age-gate-agreed');
+        if (!hasAgreed) {
+          setShowAgeGate(true);
+        }
     }
   }, [animeInfo]);
+  
+  const handleAgeGateAgree = () => {
+    sessionStorage.setItem('age-gate-agreed', 'true');
+    setShowAgeGate(false);
+  }
 
   const { data: episodesResult } = useQuery<any>({
     queryKey: ['episodes', id],
@@ -117,9 +135,38 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
   const episodes = episodesResult?.episodes || [];
   
-  const isLoading = isLoadingAnime;
+  const isLoading = isLoadingAnime || loadingWatchlist;
 
-  if (isLoading) return (
+  const handleWatchlistToggle = async () => {
+    if (!user) {
+        toast.error("You must be logged in to manage your watchlist.");
+        router.push('/login');
+        return;
+    }
+    const toastId = toast.loading(isInWatchlist ? "Removing from watchlist..." : "Adding to watchlist...");
+    const docRef = doc(db, `users/${user.uid}/watchlist/${id}`);
+
+    try {
+        if (isInWatchlist) {
+            await deleteDoc(docRef);
+            toast.success("Removed from watchlist.", { id: toastId });
+        } else {
+            await setDoc(docRef, {
+                id: id,
+                status: 'Plan to Watch',
+                addedAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
+            toast.success("Added to watchlist!", { id: toastId });
+        }
+    } catch (e) {
+        console.error("Watchlist error:", e);
+        toast.error("Failed to update watchlist.", { id: toastId });
+    }
+  };
+
+
+  if (isLoadingAnime) return (
     <div className="flex justify-center items-center h-screen">
       <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
     </div>
@@ -148,7 +195,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => router.push('/home')}>Leave</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => setShowAgeGate(false)}>Enter</AlertDialogAction>
+                    <AlertDialogAction onClick={handleAgeGateAgree}>Enter</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
@@ -210,8 +257,8 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </Link>
                   </Button>
                 )}
-                 <Button size="lg" variant="secondary" className="h-12 px-8 text-lg">
-                    <Bookmark /> Add to Watchlist
+                 <Button onClick={handleWatchlistToggle} size="lg" variant="secondary" className="h-12 px-8 text-lg" disabled={isLoading}>
+                    {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
                 </Button>
               </div>
               

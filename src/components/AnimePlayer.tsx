@@ -13,6 +13,10 @@ import Link from 'next/link';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
+import { useUser } from '@/firebase/auth/use-user';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { db } from '@/firebase/client';
+import toast from 'react-hot-toast';
 
 function extractEpisodeNumber(episodeIdWithParam: string): string | null {
     if (!episodeIdWithParam) return null;
@@ -21,6 +25,7 @@ function extractEpisodeNumber(episodeIdWithParam: string): string | null {
 
 
 export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }: { episodeId: string; animeId: string; onNext: () => void }) {
+  const { user } = useUser();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sources, setSources] = useState<Source[]>([]);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
@@ -49,9 +54,27 @@ export default function AnimePlayer({ episodeId: rawEpisodeId, animeId, onNext }
   const updateProgressTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const saveHistory = useCallback(async () => {
-    // This function is now a placeholder since database is removed.
-    // In a real app with a different backend, the logic would go here.
-  }, [animeId, rawEpisodeId, episodeNumber]);
+    if (!user || !videoRef.current) return;
+    const { currentTime, duration } = videoRef.current;
+    if (isNaN(duration) || duration === 0) return;
+
+    const historyDocId = sanitizeFirestoreId(rawEpisodeId);
+    const historyRef = doc(db, `users/${user.uid}/history`, historyDocId);
+
+    try {
+      await setDoc(historyRef, {
+        id: historyDocId,
+        animeId: animeId,
+        episodeId: rawEpisodeId,
+        episodeNumber: Number(episodeNumber),
+        watchedAt: serverTimestamp(),
+        progress: currentTime,
+        duration: duration,
+      }, { merge: true });
+    } catch(err) {
+      console.error("Failed to save watch history:", err);
+    }
+  }, [user, animeId, rawEpisodeId, episodeNumber]);
 
   useEffect(() => {
     const video = videoRef.current;

@@ -13,6 +13,8 @@ import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import Link from 'next/link';
+import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, googleProvider, auth } from '@/firebase/client';
+import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -30,15 +32,41 @@ export default function LoginPage() {
   const handleAuthAction = async (action: 'login' | 'signup') => {
     setIsLoading(true);
     setError(null);
-    toast.error("Authentication is temporarily disabled.");
-    setIsLoading(false);
+    const toastId = toast.loading(action === 'login' ? 'Logging in...' : 'Signing up...');
+
+    try {
+      if (action === 'login') {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+      toast.success('Success! Redirecting...', { id: toastId });
+      router.push('/dashboard');
+    } catch (e: any) {
+      const errorMessage = getFirebaseErrorMessage(e.code);
+      setError(errorMessage);
+      toast.error(errorMessage, { id: toastId });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-    toast.error("Authentication is temporarily disabled.");
-    setIsLoading(false);
+    const toastId = toast.loading('Waiting for Google...');
+
+    try {
+      await signInWithPopup(auth, googleProvider);
+      toast.success('Logged in with Google!', { id: toastId });
+      router.push('/dashboard');
+    } catch (e: any) {
+      const errorMessage = getFirebaseErrorMessage(e.code);
+      setError(errorMessage);
+      toast.error(errorMessage, { id: toastId });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

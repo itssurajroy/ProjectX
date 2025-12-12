@@ -11,22 +11,72 @@ import { Badge } from './ui/badge';
 import Spoiler from './comments/Spoiler';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { useUser } from '@/firebase/auth/use-user';
+import { collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, arrayUnion, arrayRemove, doc, serverTimestamp } from 'firebase/firestore';
+import { db } from '@/firebase/client';
+import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 
 export default function CommentSection({ animeId, episodeId }: { animeId: string; episodeId?: string }) {
-  const user = null; // Mock user
-  const userProfile = null; // Mock user profile
-  const comments: Comment[] = [];
-  const isLoading = false;
+  const { user, userProfile } = useUser();
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [input, setInput] = useState('');
   const [isSpoiler, setIsSpoiler] = useState(false);
+
+   useEffect(() => {
+    setIsLoading(true);
+    const commentsCol = collection(db, 'comments');
+    const q = query(
+      commentsCol, 
+      where('animeId', '==', animeId), 
+      where('episodeId', '==', episodeId || null),
+      orderBy('timestamp', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedComments: Comment[] = [];
+      snapshot.forEach((doc) => {
+        fetchedComments.push({ id: doc.id, ...doc.data() } as Comment);
+      });
+      setComments(fetchedComments);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching comments: ", error);
+      toast.error("Could not load comments.");
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [animeId, episodeId]);
 
   const postComment = async () => {
     if (!input.trim() || !user || !userProfile) {
         if (!user) toast.error("You must be logged in to comment.");
         return;
     }
-    toast.error("Commenting is temporarily disabled.");
+
+    const toastId = toast.loading("Posting comment...");
+
+    try {
+        await addDoc(collection(db, 'comments'), {
+            animeId,
+            episodeId: episodeId || null,
+            userId: user.uid,
+            username: userProfile.displayName,
+            userAvatar: userProfile.photoURL,
+            text: input,
+            spoiler: isSpoiler,
+            likes: [],
+            timestamp: serverTimestamp(),
+            parentId: null
+        });
+        toast.success("Comment posted!", { id: toastId });
+        setInput('');
+        setIsSpoiler(false);
+    } catch(err: any) {
+        toast.error(`Failed to post: ${getFirebaseErrorMessage(err.code)}`, { id: toastId });
+    }
   };
   
   const likeComment = async (id: string) => {
@@ -34,7 +84,18 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
         toast.error("You must be logged in to like comments.");
         return;
     }
-    toast.error("Liking is temporarily disabled.");
+    const commentRef = doc(db, 'comments', id);
+    const comment = comments.find(c => c.id === id);
+
+    try {
+        if(comment?.likes.includes(user.uid)) {
+            await updateDoc(commentRef, { likes: arrayRemove(user.uid) });
+        } else {
+            await updateDoc(commentRef, { likes: arrayUnion(user.uid) });
+        }
+    } catch(err: any) {
+        toast.error(`Action failed: ${getFirebaseErrorMessage(err.code)}`);
+    }
   };
 
   return (
@@ -112,7 +173,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
                 )}
 
                 <div className="flex items-center gap-4 mt-2">
-                  <Button variant="ghost" size="sm" onClick={() => likeComment(comment.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => likeComment(comment.id)} className={cn(user && comment.likes?.includes(user.uid) && 'text-primary')}>
                     <Heart className="w-4 h-4" />
                     <span className="ml-1 text-xs">{comment.likes?.length || 0}</span>
                   </Button>
