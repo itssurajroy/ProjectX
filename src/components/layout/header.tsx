@@ -44,12 +44,14 @@ const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void 
                         <X className="w-5 h-5" />
                     </Button>
                 </div>
-                <nav className="flex-1 flex flex-col gap-2 mt-4 p-4 overflow-y-hidden">
-                    {navItems.map(item => (
-                        <Link key={item.href} href={item.href} className="text-lg font-medium p-2 rounded-md hover:bg-muted" onClick={onClose}>
-                        {item.label}
-                        </Link>
-                    ))}
+                <nav className="flex-1 flex flex-col p-4 overflow-y-hidden">
+                    <div className="flex flex-col gap-2">
+                        {navItems.map(item => (
+                            <Link key={item.href} href={item.href} className="text-lg font-medium p-2 rounded-md hover:bg-muted" onClick={onClose}>
+                            {item.label}
+                            </Link>
+                        ))}
+                    </div>
                     <div className="flex flex-col space-y-1 pt-4 flex-1 overflow-y-hidden">
                         <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
                         <div className="flex-1 overflow-y-auto">
