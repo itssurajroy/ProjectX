@@ -1,6 +1,6 @@
 
 'use client';
-import { User, Loader2, Save } from 'lucide-react';
+import { User, Loader2, Save, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,23 @@ import { useUser } from '@/firebase/auth/use-user';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase/client';
 import { updateProfile } from 'firebase/auth';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+
+const RoleBadge = ({ role }: { role: 'user' | 'moderator' | 'admin' }) => {
+    const roleStyles = {
+        user: 'bg-transparent text-muted-foreground border-border',
+        moderator: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+        admin: 'bg-primary/10 text-primary border-primary/20',
+    };
+    return (
+        <Badge className={cn('capitalize', roleStyles[role])}>
+            {role === 'admin' && <Shield className="w-3 h-3 mr-1" />}
+            {role}
+        </Badge>
+    );
+};
+
 
 export default function ProfilePage() {
     const { user, userProfile, loading } = useUser();
@@ -95,7 +112,9 @@ export default function ProfilePage() {
                         <div className='flex-1'>
                              <h2 className="text-2xl font-bold">{displayName}</h2>
                              <p className="text-muted-foreground">{userProfile.email}</p>
-                             <p className="text-sm text-primary font-semibold capitalize mt-1">{userProfile.role}</p>
+                             <div className="mt-2">
+                                <RoleBadge role={userProfile.role} />
+                            </div>
                         </div>
                     </div>
                     

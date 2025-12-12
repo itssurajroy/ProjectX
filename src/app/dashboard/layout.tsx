@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper, LogOut } from 'lucide-react';
+import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Sparkles, PartyPopper, LogOut, Shield } from 'lucide-react';
 import SiteLogo from '@/components/layout/SiteLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
@@ -25,9 +25,12 @@ const navItems = [
   { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
 ];
 
+const adminNavItem = { name: 'Admin', icon: Shield, href: '/admin' };
+
+
 const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: boolean }) => {
     const pathname = usePathname();
-    const isActive = pathname === item.href;
+    const isActive = pathname.startsWith(item.href);
 
     return (
         <Link href={item.href} className={cn(
@@ -50,7 +53,7 @@ const MobileBottomNav = () => {
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 lg:hidden">
             <div className="grid grid-cols-4 items-center justify-around h-full">
                 {mobileNavItems.map(item => {
-                    const isActive = pathname === item.href;
+                    const isActive = pathname.startsWith(item.href);
                     return (
                         <Link key={item.href} href={item.href} className={cn(
                             "flex flex-col items-center justify-center gap-1 text-xs w-full h-full transition-colors",
@@ -70,6 +73,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const isExpanded = true; // For now, sidebar is always expanded
     const { user, userProfile } = useUser();
     const router = useRouter();
+    const isAdmin = userProfile?.role === 'admin';
+
 
     const handleSignOut = async () => {
       try {
@@ -109,6 +114,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         {navItems.map(item => (
                             <NavLink key={item.href} item={item} isExpanded={isExpanded} />
                         ))}
+                        {isAdmin && (
+                          <>
+                            <div className="py-2">
+                              <div className="h-px bg-border"/>
+                            </div>
+                            <NavLink item={adminNavItem} isExpanded={isExpanded} />
+                          </>
+                        )}
                     </nav>
                     <div className="p-4 border-t border-border">
                         <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
