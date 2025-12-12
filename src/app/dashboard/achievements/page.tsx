@@ -13,14 +13,21 @@ import { useCollection } from '@/firebase/firestore/useCollection';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 
 const achievementsList = [
+    // Episodes
     { id: 'novice-watcher', title: 'Novice Watcher', description: 'Watch 10 episodes.', goal: 10, icon: <Clapperboard className="w-8 h-8" />, type: 'episodes' },
     { id: 'anime-adept', title: 'Anime Adept', description: 'Watch 100 episodes.', goal: 100, icon: <Film className="w-8 h-8" />, type: 'episodes' },
     { id: 'series-veteran', title: 'Series Veteran', description: 'Watch 500 episodes.', goal: 500, icon: <Flame className="w-8 h-8" />, type: 'episodes' },
     { id: 'anime-master', title: 'Anime Master', description: 'Watch 1000 episodes.', goal: 1000, icon: <Trophy className="w-8 h-8" />, type: 'episodes' },
+    // Series
     { id: 'series-starter', title: 'Series Starter', description: 'Start watching 5 different anime.', goal: 5, icon: <BookOpen className="w-8 h-8" />, type: 'series' },
+    { id: 'series-journeyman', title: 'Series Journeyman', description: 'Start watching 25 different anime.', goal: 25, icon: <BookOpen className="w-8 h-8" />, type: 'series' },
+    // Completed
     { id: 'series-completer', title: 'Series Completer', description: 'Mark 1 anime as "Completed".', goal: 1, icon: <Star className="w-8 h-8" />, type: 'completed' },
     { id: 'dedicated-fan', title: 'Dedicated Fan', description: 'Complete 10 anime.', goal: 10, icon: <Award className="w-8 h-8" />, type: 'completed' },
+    { id: 'completionist', title: 'Completionist', description: 'Complete 50 anime.', goal: 50, icon: <Trophy className="w-8 h-8" />, type: 'completed' },
+    // Genres
     { id: 'genre-explorer', title: 'Genre Explorer', description: 'Watch anime from 5 different genres.', goal: 5, icon: <TrendingUp className="w-8 h-8" />, type: 'genres' },
+    { id: 'genre-savant', title: 'Genre Savant', description: 'Watch anime from 15 different genres.', goal: 15, icon: <TrendingUp className="w-8 h-8" />, type: 'genres' },
 ];
 
 

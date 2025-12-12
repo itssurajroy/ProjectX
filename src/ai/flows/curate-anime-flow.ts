@@ -7,17 +7,18 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { SearchResult } from '@/types/anime';
+import { SearchResult } from '@/lib/types/anime';
 
 // Define the schema for a single watched anime
 const WatchedAnimeSchema = z.object({
   title: z.string().describe('The title of the anime.'),
   genres: z.string().describe('A comma-separated string of genres for the anime.'),
+  status: z.string().describe('The user\'s status for this anime (e.g., "Watching", "Completed").'),
 });
 
 // Define the input schema for the curation flow
 const CurateAnimeInputSchema = z.object({
-  watchedAnimes: z.array(WatchedAnimeSchema).describe('A list of anime the user has watched.'),
+  watchedAnimes: z.array(WatchedAnimeSchema).describe('A list of anime the user has watched or has in their watchlist.'),
   theme: z.string().describe('The user-provided theme or request for the recommendation (e.g., "hidden gems", "something action-packed").'),
 });
 export type CurateAnimeInput = z.infer<typeof CurateAnimeInputSchema>;
@@ -74,22 +75,22 @@ const curatorPrompt = ai.definePrompt({
     input: { schema: CurateAnimeInputSchema },
     output: { schema: CurateAnimeOutputSchema },
     tools: [searchAnimeTool],
-    prompt: `You are an expert anime curator named "X-Sensei". Your task is to provide 3-5 personalized anime recommendations based on a user's watch history and a specific theme.
+    prompt: `You are an expert anime curator named "X-Sensei". Your task is to provide 3-5 personalized anime recommendations based on a user's watch history/watchlist and a specific theme.
 
-User's Watch History:
+User's List (Includes Watchlist and Recently Watched):
 {{#each watchedAnimes}}
-- Title: {{title}} (Genres: {{genres}})
+- Title: {{title}} (Status: {{status}}, Genres: {{genres}})
 {{/each}}
 
 User's Request: "{{theme}}"
 
 Instructions:
-1. Analyze the user's watch history to understand their taste in genres, themes, and styles.
+1. Analyze the user's list to understand their taste in genres, themes, and styles. Pay attention to what they have 'Completed' vs 'Watching'.
 2. Consider the user's specific request ("{{theme}}").
 3. Generate 3-5 high-quality recommendations that match their taste and request.
 4. For EACH anime you recommend, you MUST use the 'searchAnime' tool to find its exact ID and poster URL. This is mandatory.
 5. Provide a short, one-sentence justification for each recommendation, explaining why the user would like it.
-6. Ensure your recommendations are not already in the user's watch history.
+6. Ensure your recommendations are not already in the user's list.
 7. Present the output in the required JSON format.
 `,
 });

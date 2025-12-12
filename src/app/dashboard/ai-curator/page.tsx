@@ -16,10 +16,12 @@ import { Input } from '@/components/ui/input';
 import { AnimeCard } from '@/components/AnimeCard';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Link from 'next/link';
+import { UserHistory } from '@/lib/types/anime';
 
 export default function AiCuratorPage() {
   const { user } = useUser();
   const { data: watchlist, loading: loadingWatchlist } = useCollection<WatchlistItem>(`users/${user?.uid}/watchlist`);
+  const { data: history, loading: loadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
 
   const [theme, setTheme] = useState('hidden gems similar to my favorites');
   const [curationResult, setCurationResult] = useState<CuratedAnime[] | null>(null);
@@ -27,12 +29,14 @@ export default function AiCuratorPage() {
   const [error, setError] = useState<string | null>(null);
 
   const animeIds = useMemo(() => {
-      if (!watchlist) return [];
-      return watchlist.map(item => item.id);
-  }, [watchlist]);
+    const combinedIds = new Set<string>();
+    if (watchlist) watchlist.forEach(item => combinedIds.add(item.id));
+    if (history) history.forEach(item => combinedIds.add(item.animeId));
+    return Array.from(combinedIds);
+  }, [watchlist, history]);
 
   const { data: animeDetails, isLoading: loadingAnimeDetails } = useQuery({
-      queryKey: ['watchlistDetailsForCuration', animeIds],
+      queryKey: ['watchlistAndHistoryDetailsForCuration', animeIds],
       queryFn: async () => {
           const promises = animeIds.map(id => AnimeService.qtip(id).catch(() => null));
           const results = await Promise.all(promises);
@@ -47,7 +51,7 @@ export default function AiCuratorPage() {
         return;
     }
     if (!animeDetails || animeDetails.length < 3) {
-        setError("You need at least 3 items in your watchlist for the curator to work effectively. Go watch some more anime!");
+        setError("You need at least 3 items in your watchlist or history for the curator to work effectively. Go watch some anime!");
         return;
     }
 
@@ -58,9 +62,12 @@ export default function AiCuratorPage() {
     const toastId = toast.loading("X-Sensei is analyzing your taste...");
 
     try {
+        const watchlistMap = new Map(watchlist?.map(item => [item.id, item.status]));
+        
         const watchedAnimes = animeDetails.map(anime => ({
             title: anime.name,
             genres: anime.genres.join(', '),
+            status: watchlistMap.get(anime.id) || 'Watched',
         }));
 
         const result = await curateAnime({ watchedAnimes, theme });
@@ -76,7 +83,7 @@ export default function AiCuratorPage() {
     }
   };
 
-  const isDataLoading = loadingWatchlist || loadingAnimeDetails;
+  const isDataLoading = loadingWatchlist || loadingHistory || loadingAnimeDetails;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -111,7 +118,7 @@ export default function AiCuratorPage() {
                     {isLoading || isDataLoading ? (
                         <>
                             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            {loadingWatchlist ? 'Loading Watchlist...' : 'Curating...'}
+                            {loadingWatchlist || loadingHistory ? 'Loading data...' : 'Curating...'}
                         </>
                     ) : (
                         <>
