@@ -2,7 +2,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Clock, Tv, Loader2, Star } from 'lucide-react';
+import { Clock, Tv, Loader2, Star, BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 import StatCard from '@/components/dashboard/StatCard';

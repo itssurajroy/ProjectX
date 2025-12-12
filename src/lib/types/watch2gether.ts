@@ -1,16 +1,15 @@
 
-// src/types/watch2gether.ts
-
 export interface WatchTogetherRoom {
   id: string;
   name: string;
   animeId: string;
-  animeName?: string;
-  animePoster?: string;
+  animeName: string;
+  animePoster: string;
   episodeId: string;
   episodeNumber: number;
   hostId: string;
   createdAt: any; // Could be Date or a server timestamp object
+  users: string[]; // Array of user UIDs
   playerState: {
     isPlaying: boolean;
     currentTime: number;

@@ -2,35 +2,163 @@
 'use client';
 
 import { useState } from "react";
-import { Loader2, PlusCircle, Users } from 'lucide-react';
+import { Loader2, PlusCircle, Users, Search } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { W2GRoomCard } from "@/components/watch2gether/W2GRoomCard";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCollection } from "@/firebase/firestore/useCollection";
 import { WatchTogetherRoom } from "@/lib/types/watch2gether";
 import { useUser } from "@/firebase/auth/use-user";
 import toast from "react-hot-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { AnimeService } from "@/lib/services/AnimeService";
+import { SearchResult, AnimeBase } from "@/lib/types/anime";
+import { Input } from "@/components/ui/input";
+import { AnimeCard } from "@/components/AnimeCard";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDebounce } from "use-debounce";
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from "@/firebase/client";
+
+const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    const { user } = useUser();
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery] = useDebounce(searchQuery, 500);
+    const [selectedAnime, setSelectedAnime] = useState<AnimeBase | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
+
+    const { data: searchResults, isLoading: isSearchLoading } = useQuery<SearchResult>({
+        queryKey: ['w2g-anime-search', debouncedQuery],
+        queryFn: () => {
+            const params = new URLSearchParams({ q: debouncedQuery, limit: '12' });
+            return AnimeService.search(params);
+        },
+        enabled: !!debouncedQuery && !selectedAnime,
+    });
+    
+    const { data: episodesData, isLoading: isEpisodesLoading } = useQuery({
+        queryKey: ['episodes', selectedAnime?.id],
+        queryFn: () => AnimeService.episodes(selectedAnime!.id),
+        enabled: !!selectedAnime,
+    });
+
+    const handleCreateRoom = async () => {
+        if (!user || !selectedAnime || !episodesData?.episodes?.[0]) {
+            toast.error("Please select an anime with available episodes.");
+            return;
+        }
+        
+        setIsCreating(true);
+        const toastId = toast.loading("Creating your room...");
+        
+        try {
+            const firstEpisode = episodesData.episodes[0];
+            const roomData: Omit<WatchTogetherRoom, 'id'> = {
+                name: `${user.displayName}'s Room for ${selectedAnime.name}`,
+                animeId: selectedAnime.id,
+                animeName: selectedAnime.name,
+                animePoster: selectedAnime.poster,
+                episodeId: firstEpisode.episodeId,
+                episodeNumber: firstEpisode.number,
+                hostId: user.uid,
+                createdAt: serverTimestamp(),
+                playerState: {
+                    isPlaying: false,
+                    currentTime: 0,
+                    updatedAt: serverTimestamp(),
+                },
+                users: [user.uid],
+            };
+            
+            const docRef = await addDoc(collection(db, 'watch-together-rooms'), roomData);
+            toast.success("Room created!", { id: toastId });
+            router.push(`/watch2gether/${docRef.id}`);
+
+        } catch (error) {
+            console.error("Error creating room:", error);
+            toast.error("Failed to create room.", { id: toastId });
+        } finally {
+            setIsCreating(false);
+        }
+    }
+
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Create a Watch Party Room</DialogTitle>
+                    <DialogDescription>Select an anime to start your watch party.</DialogDescription>
+                </DialogHeader>
+
+                {!selectedAnime ? (
+                    <div className="space-y-4">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search for an anime..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+
+                        <ScrollArea className="h-96">
+                            {isSearchLoading && <div className="flex justify-center items-center h-full"><Loader2 className="w-8 h-8 animate-spin" /></div>}
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {searchResults?.animes.map(anime => (
+                                    <div key={anime.id} onClick={() => setSelectedAnime(anime)} className="cursor-pointer">
+                                        <AnimeCard anime={anime} />
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollArea>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        <div className="flex items-start gap-4">
+                            <div className="w-1/4">
+                                <AnimeCard anime={selectedAnime} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold">{selectedAnime.name}</h3>
+                                <p className="text-sm text-muted-foreground">{selectedAnime.type} &bull; {episodesData?.episodes.length || '...'} Episodes</p>
+                                <div className="mt-4 flex gap-2">
+                                     <Button onClick={handleCreateRoom} disabled={isEpisodesLoading || isCreating}>
+                                        {isCreating ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : <PlusCircle className="w-4 h-4 mr-2"/>}
+                                        Create Room
+                                    </Button>
+                                    <Button variant="outline" onClick={() => setSelectedAnime(null)}>Back to Search</Button>
+                                </div>
+                                {isEpisodesLoading && <p className="text-sm text-muted-foreground mt-2">Loading episode data...</p>}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function Watch2GetherLobby() {
     const router = useRouter();
     const { user } = useUser();
     const [filter, setFilter] = useState('all');
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     
     const { data: rooms, loading: isLoading, error } = useCollection<WatchTogetherRoom>('watch-together-rooms');
 
-    const handleCreateRoom = () => {
+    const handleCreateRoomClick = () => {
         if (!user) {
             toast.error("You must be logged in to create a room.");
             router.push('/login');
             return;
         }
-        // Redirect to a page or open a modal to select anime for the room
-        // For simplicity, let's assume we're creating a room for a specific anime for now
-        // This would be replaced with a proper creation flow.
-        toast.error("Room creation is not fully implemented yet.");
+        setIsCreateModalOpen(true);
     }
     
     const filteredRooms = (rooms || []).filter(room => {
@@ -47,7 +175,7 @@ export default function Watch2GetherLobby() {
                     <h1 className="text-3xl font-bold flex items-center gap-3"><Users className="w-8 h-8 text-primary"/> Watch Together</h1>
                     <p className="text-muted-foreground mt-1">Join a public room or create your own party.</p>
                 </div>
-                <Button onClick={handleCreateRoom}>
+                <Button onClick={handleCreateRoomClick}>
                     <PlusCircle className="w-4 h-4 mr-2" />
                     Create New Room
                 </Button>
@@ -83,6 +211,8 @@ export default function Watch2GetherLobby() {
                     <p className="text-muted-foreground mt-2">Why not be the first to create one?</p>
                 </div>
             )}
+
+            <CreateRoomModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
         </div>
     );
 }

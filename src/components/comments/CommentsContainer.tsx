@@ -5,13 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import AnimeComments from './AnimeComments';
-import EpisodeComments from './EpisodeComments';
-import { AnimeEpisode } from '@/types/anime';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { AlertTriangle, ShieldCheck, ChevronsDown } from 'lucide-react';
-import Link from 'next/link';
+import { AnimeEpisode } from '@/lib/types/anime';
+import { ShieldCheck, ChevronsDown } from 'lucide-react';
 import { Button } from '../ui/button';
+import CommentSection from '../CommentSection';
 
 interface CommentsContainerProps {
   animeId: string;
@@ -24,7 +21,7 @@ const CommentRules = () => (
         <h3 className="font-bold text-base mb-3 flex items-center gap-2 text-primary"><ShieldCheck className="w-5 h-5"/> PROJECT X COMMENT RULES (Read or get banned)</h3>
         <ol className="list-decimal list-inside space-y-2 text-muted-foreground text-xs [&_strong]:text-foreground/90">
             <li><strong>Be respectful</strong> — no personal attacks, racism, homophobia, death threats, doxxing, or harassment. Instant permanent ban.</li>
-            <li><strong>No spoilers without warning</strong>. Use spoiler tags: `&gt;!spoiler text!&lt;`. Spoilers without tags = 7-day ban (first offense), permanent (second).</li>
+            <li><strong>No spoilers without warning</strong>. Use spoiler tags for new episodes. Repeated abuse = ban.</li>
             <li><strong>No illegal links or piracy discussion</strong>. No asking “where to download”, no torrent links. This is a streaming site, not a warehouse.</li>
             <li><strong>No excessive spam</strong>, copypasta, or all-caps screaming. Chill. We can hear you.</li>
             <li><strong>No advertising or self-promo</strong> in comments. Your own site, Discord, YouTube, TikTok, etc. → banned.</li>
@@ -46,11 +43,10 @@ const CommentRules = () => (
 export default function CommentsContainer({
   animeId,
   episodeId,
-  availableEpisodes,
 }: CommentsContainerProps) {
   const [showComments, setShowComments] = useState(true);
   const [showRules, setShowRules] = useState(false);
-  const defaultTab = episodeId ? 'episode' : 'anime';
+  const [activeTab, setActiveTab] = useState(episodeId ? 'episode' : 'anime');
 
   return (
     <Card className="bg-card/50 p-4">
@@ -71,7 +67,7 @@ export default function CommentsContainer({
         </div>
 
         {episodeId && (
-          <Tabs defaultValue={defaultTab} className="w-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
             <TabsList>
               <TabsTrigger value="anime">Anime</TabsTrigger>
               <TabsTrigger value="episode">Episode</TabsTrigger>
@@ -94,22 +90,8 @@ export default function CommentsContainer({
 
       {showComments && (
         <>
-          {episodeId ? (
-            <Tabs defaultValue={defaultTab} className="w-full">
-              <TabsContent value="anime" className="m-0">
-                <AnimeComments animeId={animeId} />
-              </TabsContent>
-              <TabsContent value="episode" className="m-0">
-                <EpisodeComments
-                  animeId={animeId}
-                  episodeId={episodeId}
-                  availableEpisodes={availableEpisodes || []}
-                />
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <AnimeComments animeId={animeId} />
-          )}
+            {activeTab === 'anime' && <CommentSection animeId={animeId} />}
+            {activeTab === 'episode' && episodeId && <CommentSection animeId={animeId} episodeId={episodeId} />}
         </>
       )}
     </Card>

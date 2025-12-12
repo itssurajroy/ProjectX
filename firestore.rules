@@ -10,7 +10,7 @@ service cloud.firestore {
 
     // Users can read their own profile, admins can read any
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null; // Anyone can read basic profile info
       allow create: if request.auth != null; // Anyone can create their user doc
       allow update: if request.auth != null && request.auth.uid == userId;
     }
@@ -25,9 +25,10 @@ service cloud.firestore {
     // Comments can be read by anyone
     match /comments/{commentId} {
         allow read: if true;
-        allow create: if request.auth != null; // Must be logged in to comment
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid; // Must be logged in to comment
         // Users can only edit/delete their own comments
-        allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
     // Notifications: users can only access their own
@@ -45,5 +46,17 @@ service cloud.firestore {
         allow read, write, delete: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Watch Together Rooms
+    match /watch-together-rooms/{roomId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
+        allow update: if request.auth != null && (resource.data.hostId == request.auth.uid || request.auth.uid in resource.data.users);
+        allow delete: if request.auth != null && resource.data.hostId == request.auth.uid;
+    }
+
+    match /watch-together-rooms/{roomId}/chat/{messageId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/watch-together-rooms/$(roomId)).data.users;
+    }
   }
 }
