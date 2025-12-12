@@ -10,33 +10,28 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Zap, SkipForward, Info, Bug, Search } from 'lucide-react';
+import { Zap, Smartphone, Sparkles, Bug } from 'lucide-react';
 import { useChangelogStore } from '@/store/changelog-store';
 
 const features = [
   {
-    title: 'Search Jutsu: Mind-Reader Technique',
-    description: 'Our search bar has mastered a forbidden art. It now reads your mind, providing instant, god-tier suggestions before you can even finish typing.',
-    icon: <Search className="w-5 h-5 text-primary" />,
+    title: 'Homepage Spotlight: Remastered',
+    description: 'The homepage hero section has been completely rebuilt with fluid animations, auto-rotating anime, and a real-time countdown for upcoming episodes.',
+    icon: <Sparkles className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'Filler Arc Time-Skip',
-    description: 'A new power awakens! You are now warned of filler episodes and can instantly time-skip to the next canon installment.',
-    icon: <SkipForward className="w-5 h-5 text-primary" />,
+    title: 'Mobile UI Overhaul: Details Page',
+    description: 'The anime details page on mobile has been redesigned from the ground up for a cleaner, more intuitive, and visually appealing experience.',
+    icon: <Smartphone className="w-5 h-5 text-primary" />,
   },
   {
-    title: 'System Power-Up & Stability Overhaul',
-    description: 'We\'ve powered up our core systems to the next level (Next.js 15) and defeated countless bugs for a legendary, lightning-fast experience.',
-    icon: <Zap className="w-5 h-5 text-primary" />,
-  },
-  {
-    title: 'Scroll of Knowledge: A-Z List',
-    description: 'The ancient tooltips on the A-Z List have had their seals removed. Hover to reveal forbidden knowledge about any series once more.',
-    icon: <Info className="w-5 h-5 text-primary" />,
+    title: 'Bug Extermination & Build Fortification',
+    description: 'We\'ve crushed critical bugs causing build failures and internal server errors, making the entire platform more stable and reliable than ever.',
+    icon: <Bug className="w-5 h-5 text-primary" />,
   },
 ];
 
-const CHANGELOG_VERSION = '1.02';
+const CHANGELOG_VERSION = '1.03';
 
 export default function ChangelogPopup() {
   const { isOpen, closeChangelog, openChangelog } = useChangelogStore();
@@ -59,10 +54,10 @@ export default function ChangelogPopup() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-2xl font-bold">
             <Zap className="w-7 h-7 text-primary" />
-            Update v1.02: The Saga Continues!
+            Update v1.03: The Experience Evolves!
           </DialogTitle>
           <DialogDescription>
-            A new chapter begins! We've unlocked new powers and fixed ancient bugs to forge a better anime empire for you.
+            We've deployed major upgrades and stability fixes to enhance your anime journey. Check out what's new.
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-4">

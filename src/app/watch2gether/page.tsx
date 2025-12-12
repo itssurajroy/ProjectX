@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { Loader2, PlusCircle, Users, Search } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,9 +31,9 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     const [selectedAnime, setSelectedAnime] = useState<AnimeBase | null>(null);
     const [isCreating, setIsCreating] = useState(false);
 
-    const { data: searchResults, isLoading: isSearchLoading } = useInfiniteQuery<SearchResult, Error, SearchResult, [string, string], number>({
+    const { data: searchResults, isLoading: isSearchLoading } = useInfiniteQuery({
         queryKey: ['w2g-anime-search', debouncedQuery],
-        queryFn: ({ pageParam = 1 }) => {
+        queryFn: async ({ pageParam = 1 }: { pageParam?: number }) => {
             const params = new URLSearchParams({ q: debouncedQuery, limit: '12', page: String(pageParam) });
             return AnimeService.search(params);
         },
