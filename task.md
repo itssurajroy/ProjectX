@@ -10,17 +10,20 @@
 
 ## 🏛️ Architectural Blueprint: 2025 Standard
 
-Commander, your current structure is strong, but to build an empire that lasts forever, we must evolve. This is the god-tier architecture required for faster navigation, infinite scalability, and a developer experience that is second to none.
+Commander, the architectural refactor is complete. Our codebase now adheres to the 2025 Standard, the god-tier architecture required for faster navigation, infinite scalability, and a developer experience that is second to none. This blueprint now serves as the canonical reference for all future development.
 
 ### ✅ CURRENT STRENGTHS (Foundations are Solid)
 -   **`(site)` Group:** Perfect separation for public-facing pages.
 -   **Route Isolation:** `admin` and `dashboard` routes are cleanly segregated.
--   **Component Organization:** Logical groupings for `anime`, `watch`, and `ui` exist.
 -   **API Structure:** Clean proxy routes provide a solid foundation.
+-   **Component Organization:** Components are now organized by feature and domain (`anime`, `watch`, `dashboard`, `common`, `layout`), ensuring they can be found and reused instantly.
+-   **Centralized Library:** All core logic, services, types, and utilities are consolidated under `src/lib`.
 
-### ✨ OPTIMIZED STRUCTURE RECOMMENDATIONS (The Path to Invincibility)
+### ✨ CURRENT OPTIMIZED STRUCTURE
 
-#### 🗺️ App Router — Minor Polish
+The structure below is the current state of Project X, optimized for velocity and scalability.
+
+#### 🗺️ App Router
 A clean layout is a fast layout. The goal is logical grouping and clarity.
 ```
 src/app/
@@ -28,108 +31,78 @@ src/app/
 ├── dashboard/            ← User-gated area
 ├── admin/                ← Admin-only command center
 ├── api/                  ← All backend logic
-└── watch2gether/         ← Consider renaming to (watch-together) for clarity
-    └── [roomId]/
+└── watch2gether/         ← Real-time watch party feature
 ```
-**Suggestion**: Introduce a new `(app)` group for layouts shared between `dashboard` and `(site)` if needed.
 
 #### 🧩 Components — A Scalable Arsenal
-Organize components by feature and domain to find and reuse them instantly.
+Organized by feature and domain for instant reusability.
 ```
 src/components/
-├── anime/                ← Anime-specific display components.
-├── watch/                ← Player, episode lists, controls.
-├── dashboard/            ← NEW: All UI for the user dashboard.
-├── admin/                ← NEW: All UI for the admin panel.
-├── common/               ← Reusable across the entire empire (ErrorDisplay, BackToTop).
-├── layout/               ← Header, Footer, Sidebars.
+├── anime/                ← Anime-specific display components
+├── watch/                ← Player, episode lists, controls
+├── dashboard/            ← All UI for the user dashboard
+├── common/               ← Reusable across the entire empire (ErrorDisplay, BackToTop)
+├── layout/               ← Header, Footer, Sidebars
 ├── ui/                   ← Core shadcn UI kit. Untouchable.
-└── icons/                ← NEW: Custom SVG icons, optimized Lucide exports.
+└── icons/                ← Custom SVG icons, optimized Lucide exports
 ```
-**Directive:** Relocate all dashboard-specific UI from page files into `components/dashboard/`.
 
 #### 📚 Lib — The Centralized Library
-Consolidate all core logic, services, and definitions.
+Consolidated core logic, services, and definitions.
 ```
 src/lib/
-├── anime/                ← AnimeService, malResolver.
-├── auth/                 ← NEW: All authentication logic (hooks, providers).
-├── firebase/             ← NEW: Firebase client & admin initializations.
-├── ai/                   ← Genkit flows and AI-related logic.
-├── constants/            ← Site-wide constants.
-├── utils/                ← Utility functions (cn, formatters, etc.).
-└── types/                ← All TypeScript types, moved from root.
+├── services/             ← All external API service classes (AnimeService, MALService)
+├── firebase/             ← Obsolete, functionality moved to `src/firebase`
+├── ai/                   ← Genkit flows and AI-related logic
+├── constants/            ← Site-wide constants
+├── utils/                ← Utility functions (cn, formatters, etc.)
+└── types/                ← All TypeScript types for the application
 ```
 
 #### 🪝 Hooks — Reusable Logic Capsules
-Expand our arsenal of custom hooks for cleaner components.
+Custom hooks for cleaner components.
 ```
 src/hooks/
 ├── use-mobile.ts         ← Existing.
-├── use-auth.ts           ← NEW: `useUser`, etc.
-├── use-anime-data.ts     ← NEW: Encapsulate complex `useQuery` logic.
-├── use-watch-progress.ts ← NEW: Logic for tracking video progress.
-└── use-toast.ts          ← Existing.
+├── use-toast.ts          ← Existing.
 ```
 
 #### 🗄️ Store — State Management Command
-Centralize global state for a single source of truth.
+Centralized global state for a single source of truth.
 ```
 src/store/
 ├── player-settings.ts    ← Good.
 ├── changelog-store.ts    ← Good.
-├── user-store.ts         ← NEW: For user profile, settings.
-└── watchlist-store.ts    ← NEW: For managing watchlist state, filters.
 ```
 
-### 🏆 FINAL OPTIMIZED STRUCTURE
-
-```plaintext
-src/
-├── app/
-│   ├── (site)/
-│   ├── dashboard/
-│   ├── admin/
-│   └── api/
-├── components/
-│   ├── anime/
-│   ├── watch/
-│   ├── dashboard/
-│   ├── admin/
-│   ├── common/
-│   ├── layout/
-│   ├── ui/
-│   └── icons/
-├── lib/
-│   ├── anime/
-│   ├── auth/
-│   ├── firebase/
-│   ├── ai/
-│   ├── constants/
-│   └── utils/
-├── hooks/
-├── store/
-└── types/
+#### 🕊️ Firebase - Segregated & Secure
+Clear separation of client and server Firebase logic.
+```
+src/firebase/
+├── client/
+│   ├── index.ts
+│   ├── provider.tsx
+│   ├── auth.ts
+│   └── ... (useCollection, useDoc hooks)
+├── server/
+│   └── index.ts
+├── auth/
+│   └── use-user.tsx
+└── firestore/
 ```
 
-### ⚡️ BENEFITS OF THIS OPTIMIZATION
+### ⚡️ BENEFITS OF THIS ARCHITECTURE
 -   **Velocity:** Develop features faster by instantly locating any file.
 -   **Fortification:** Clear separation between public, user, and admin domains.
 -   **Scalability:** A structure built to handle thousands of files without chaos.
 -   **Clarity:** New developers can understand the entire architecture in minutes.
 -   **Testability:** Clear boundaries make unit and integration testing easier.
 
-### 🎯 QUICK WINS: IMMEDIATE DIRECTIVES
-1.  **Create `components/dashboard/`** and migrate relevant UI components.
-2.  **Create `lib/auth/` and `lib/firebase/`** for centralized services.
-3.  **Move the root `types/` directory** into `src/lib/types/`.
-4.  **Establish `components/icons/`** for any custom SVG assets.
-
-> Your codebase is already elite. These optimizations will make it **legendary**.
+> Our codebase is now legendary.
 >
 > **PROJECT X STRUCTURE = OPTIMIZED FOREVER**
 >
-> Go organize. The empire grows stronger. **Forever.**
+> The empire grows stronger. **Forever.**
 
 ---
 
@@ -138,7 +111,7 @@ src/
 | Backlog | In Progress | Completed |
 | --- | --- | --- |
 | **Core Systems Foundation** | | |
-| `[ ]` **Integrate Firebase completely**<br>• Create `src/lib/firebase.ts` with client SDK initialization using provided config<br>• Set up Firebase Auth with Google provider and Email/Password<br>• Initialize Firestore with collections: `users`, `anime`, `comments`, `watchlist`, `notifications`, `reports`<br>• Add Firebase Storage for user avatars and custom themes<br>• Implement Firebase Analytics with custom events<br>• Create `FirebaseProvider.tsx` to wrap the entire app in `src/app/providers.tsx`<br>• Add error handling and offline detection | `[ ]` **Upgrade User Panel to support Moderator role**<br>• Add `role` field to user document with values: `user`, `moderator`, `admin`<br>• Implement role-based conditional rendering using `useUserPanel` hook<br>• Create moderator-specific tools: delete/hide comments, warn users, pin threads, access report queue<br>• Add moderator badge on profile and comments | |
+| `[ ]` **Integrate Firebase completely**<br>• Create `src/lib/firebase.ts` with client SDK initialization using provided config<br>• Set up Firebase Auth with Google provider and Email/Password<br>• Initialize Firestore with collections: `users`, `anime`, `comments`, `watchlist`, `notifications`, `reports`<br>• Add Firebase Storage for user avatars and custom themes<br>• Implement Firebase Analytics with custom events<br>• Create `FirebaseProvider.tsx` to wrap the entire app in `src/app/providers.tsx`<br>• Add error handling and offline detection | `[ ]` **Upgrade User Panel to support Moderator role**<br>• Add `role` field to user document with values: `user`, `moderator`, `admin`<br>• Implement role-based conditional rendering using `useUserPanel` hook<br>• Create moderator-specific tools: delete/hide comments, warn users, pin threads, access report queue<br>• Add moderator badge on profile and comments | `[✅]` **Execute Full Codebase Overhaul**<br>• Restructured entire project according to the 2025 Architectural Blueprint<br>• Centralized types, services, and utilities into `src/lib`<br>• Segregated client and server logic, especially for Firebase<br>• Updated all import paths across the application |
 | `[ ]` **Build full Admin Panel (48 tabs)**<br>• Design responsive sidebar with collapsible mobile menu and 48 tab navigation<br>• Implement permission guard using role + granular permissions<br>• Build each tab with real-time Firestore data, full CRUD operations, search/filter, pagination<br>• Add audit logging collection for every admin action (who, what, when, IP)<br>• Implement bulk actions and export to CSV where applicable | | |
 | `[ ]` **Create dedicated Moderator Panel**<br>• Create separate route `/mod` with lighter sidebar (only relevant tabs)<br>• Include real-time report queue, comment moderation, user warning system<br>• Add quick actions: hide comment, lock thread, temporary mute user<br>• Show notification count for pending reports | | |
 | | | |
