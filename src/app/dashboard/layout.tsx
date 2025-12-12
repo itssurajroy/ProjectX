@@ -3,23 +3,22 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, User, LogOut, Shield } from 'lucide-react';
+import { Home, Bookmark, History, User, LogOut, Shield, X, Menu } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
 import { useUser } from '@/firebase/auth/use-user';
 import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import SiteLogo from '@/components/layout/SiteLogo';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
 
-const navItems = [
+const desktopNavItems = [
   { name: 'Home', icon: Home, href: '/dashboard' },
   { name: 'Watchlist', icon: Bookmark, href: '/dashboard/watchlist' },
   { name: 'History', icon: History, href: '/dashboard/history' },
   { name: 'Profile', icon: User, href: '/dashboard/profile' },
-];
-
-const desktopNavItems = [
-  ...navItems,
   { name: 'Statistics', icon: require('lucide-react').BarChart3, href: '/dashboard/stats' },
   { name: 'Achievements', icon: require('lucide-react').Trophy, href: '/dashboard/achievements' },
   { name: 'Friends', icon: require('lucide-react').Users, href: '/dashboard/friends' },
@@ -30,52 +29,26 @@ const desktopNavItems = [
 
 const adminNavItem = { name: 'Admin', icon: Shield, href: '/admin' };
 
-const NavLink = ({ item, isExpanded }: { item: typeof navItems[0], isExpanded: boolean }) => {
+const NavLink = ({ item, onClick }: { item: typeof desktopNavItems[0], onClick?: () => void }) => {
     const pathname = usePathname();
     const isActive = pathname === item.href;
 
     return (
         <Link href={item.href} className={cn(
-            "flex items-center gap-3 rounded-md transition-all duration-200",
+            "flex items-center gap-3 rounded-md transition-all duration-200 px-3 py-2",
             "text-muted-foreground hover:text-foreground hover:bg-muted",
-            isActive && "text-primary bg-primary/10 font-semibold",
-            isExpanded ? "px-3 py-2" : "h-10 w-10 justify-center"
-        )}>
+            isActive && "text-primary bg-primary/10 font-semibold"
+        )} onClick={onClick}>
             <item.icon className="w-5 h-5 shrink-0" />
-            {isExpanded && <span className="truncate">{item.name}</span>}
+            <span className="truncate">{item.name}</span>
         </Link>
     );
 }
 
-const MobileBottomNav = () => {
-    const pathname = usePathname();
-
-    return (
-        <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 lg:hidden">
-            <div className="grid grid-cols-4 items-center justify-around h-full">
-                {navItems.map(item => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link key={item.href} href={item.href} className={cn(
-                            "flex flex-col items-center justify-center gap-1 text-xs w-full h-full transition-colors",
-                            isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
-                        )}>
-                            <item.icon className="w-5 h-5" />
-                            <span className="truncate">{item.name}</span>
-                        </Link>
-                    )
-                })}
-            </div>
-        </nav>
-    );
-};
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const isExpanded = true; // For now, sidebar is always expanded
+const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const { user, userProfile } = useUser();
     const router = useRouter();
     const isAdmin = userProfile?.role === 'admin';
-
 
     const handleSignOut = async () => {
       try {
@@ -88,58 +61,87 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     };
 
+    return (
+        <>
+            <div className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3 overflow-hidden">
+                    <Avatar className="w-9 h-9">
+                        <AvatarImage src={userProfile?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
+                        <AvatarFallback>{userProfile?.displayName?.charAt(0) || 'G'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col overflow-hidden">
+                        <p className="text-sm font-semibold truncate">{userProfile?.displayName || 'Guest'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{userProfile?.email || 'guest@projectx.com'}</p>
+                    </div>
+                </div>
+            </div>
+            <nav className="flex-1 overflow-y-auto px-4 space-y-2">
+                {desktopNavItems.map(item => (
+                    <NavLink key={item.href} item={item} onClick={onLinkClick} />
+                ))}
+                {isAdmin && (
+                  <>
+                    <div className="py-2">
+                      <div className="h-px bg-border"/>
+                    </div>
+                    <NavLink item={adminNavItem} onClick={onLinkClick} />
+                  </>
+                )}
+            </nav>
+            <div className="p-4 border-t border-border">
+                <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
+                    <LogOut className="w-5 h-5"/>
+                    <span>Logout</span>
+                </Button>
+            </div>
+        </>
+    );
+};
+
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
         <>
-            <Header />
+            <div className="hidden lg:block">
+              <Header />
+            </div>
+            <div className="block lg:hidden">
+              <DashboardHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
+            </div>
+            
             <div className="flex min-h-screen pt-16">
-                <aside className={cn(
-                    "hidden lg:flex flex-col border-r border-border transition-all duration-300 ease-in-out bg-background fixed top-16 h-[calc(100vh-4rem)]",
-                    isExpanded ? "w-64" : "w-16"
-                )}>
-                    <div className="p-4 flex items-center justify-between">
-                         {isExpanded && (
-                            <div className="flex items-center gap-3 overflow-hidden">
-                                <Avatar className="w-9 h-9">
-                                    <AvatarImage src={userProfile?.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user?.uid}`} />
-                                    <AvatarFallback>{userProfile?.displayName?.charAt(0) || 'G'}</AvatarFallback>
-                                </Avatar>
-                                <div className="flex flex-col overflow-hidden">
-                                    <p className="text-sm font-semibold truncate">{userProfile?.displayName || 'Guest'}</p>
-                                    <p className="text-xs text-muted-foreground truncate">{userProfile?.email || 'guest@projectx.com'}</p>
-                                </div>
-                            </div>
-                         )}
+                {/* Mobile Sidebar */}
+                 <div className={cn("fixed inset-0 z-50 flex lg:hidden", isMobileMenuOpen ? "pointer-events-auto" : "pointer-events-none")}>
+                    <div 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn("absolute inset-0 bg-black/60 transition-opacity", isMobileMenuOpen ? "opacity-100" : "opacity-0")}
+                    />
+                    <div className={cn(
+                        "relative z-10 w-64 bg-background border-r border-border h-full flex flex-col transition-transform duration-300 ease-in-out", 
+                        isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+                    )}>
+                        <div className="flex items-center justify-between p-4 border-b border-border">
+                          <SiteLogo />
+                          <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                            <X className="w-5 h-5"/>
+                          </Button>
+                        </div>
+                        <SidebarContent onLinkClick={() => setIsMobileMenuOpen(false)} />
                     </div>
-                    <nav className="flex-1 overflow-y-auto px-4 space-y-2">
-                        {desktopNavItems.map(item => (
-                            <NavLink key={item.href} item={item} isExpanded={isExpanded} />
-                        ))}
-                        {isAdmin && (
-                          <>
-                            <div className="py-2">
-                              <div className="h-px bg-border"/>
-                            </div>
-                            <NavLink item={adminNavItem} isExpanded={isExpanded} />
-                          </>
-                        )}
-                    </nav>
-                    <div className="p-4 border-t border-border">
-                        <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
-                            <LogOut className="w-5 h-5"/>
-                            {isExpanded && <span>Logout</span>}
-                        </Button>
-                    </div>
+                </div>
+
+                {/* Desktop Sidebar */}
+                <aside className="hidden lg:flex flex-col border-r border-border bg-background fixed top-16 h-[calc(100vh-4rem)] w-64">
+                    <SidebarContent />
                 </aside>
-                <main className={cn(
-                    "flex-1 transition-all duration-300 ease-in-out pb-20 lg:pb-0", // Added more padding bottom for mobile
-                    isExpanded ? "lg:ml-64" : "lg:ml-16"
-                )}>
+
+                <main className="flex-1 lg:ml-64">
                     <div className="container mx-auto p-4 sm:p-6 lg:p-8">
                        {children}
                     </div>
                 </main>
-                <MobileBottomNav />
             </div>
         </>
     );
