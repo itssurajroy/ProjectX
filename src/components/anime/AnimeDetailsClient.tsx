@@ -368,8 +368,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                   <div className="lg:col-span-6 space-y-12">
                       <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
 
-                      <EpisodesGrid episodes={episodes} animeId={id} />
-
                       <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
                       
                       {characters.length > 0 && (
