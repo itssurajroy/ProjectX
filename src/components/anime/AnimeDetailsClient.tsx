@@ -402,4 +402,3 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     </div>
   );
 }
-
