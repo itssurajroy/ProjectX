@@ -12,6 +12,7 @@ import { SearchResult } from '@/lib/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnimeService } from '@/lib/services/AnimeService';
+import { AnimeTooltip } from '@/components/AnimeTooltip';
 
 
 const AdvancedFilter = () => {
@@ -256,7 +257,11 @@ function AZListPageComponent({ params }: { params: { character: string } }) {
       <>
           <div className="grid-cards">
           {animes.map((anime: any) => (
-              <AnimeCard key={anime.id} anime={anime} />
+            <AnimeTooltip animeId={anime.id} key={anime.id}>
+                <div>
+                    <AnimeCard anime={anime} />
+                </div>
+            </AnimeTooltip>
           ))}
           </div>
           {data?.totalPages && data.totalPages > 1 && <Pagination currentPage={page} totalPages={data.totalPages} onPageChange={handlePageChange} />}

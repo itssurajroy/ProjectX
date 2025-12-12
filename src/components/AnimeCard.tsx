@@ -3,14 +3,71 @@
 import { AnimeBase } from "@/lib/types/anime"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
-import { Clapperboard, Mic, Play, Clock } from "lucide-react"
+import { Clapperboard, Mic, Play, Clock, BookmarkPlus, BookmarkCheck } from "lucide-react"
 import ProgressiveImage from "./ProgressiveImage"
+import { useUser } from "@/firebase/auth/use-user"
+import { useDoc } from "@/firebase/firestore/useDoc"
+import { WatchlistItem } from "@/lib/types/watchlist"
+import toast from "react-hot-toast"
+import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
+import { db } from "@/firebase/client"
+import { useRouter } from "next/navigation"
 
 type AnimeCardProps = {
   anime: AnimeBase;
   rank?: number;
   variant?: "portrait" | "landscape";
 }
+
+const WatchlistButton = ({ animeId }: { animeId: string }) => {
+  const { user } = useUser();
+  const router = useRouter();
+  const { data: watchlistItem, loading: loadingWatchlist } = useDoc<WatchlistItem>(`users/${user?.uid}/watchlist/${animeId}`);
+  const isInWatchlist = !!watchlistItem;
+
+  const handleWatchlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault(); 
+    e.stopPropagation();
+
+    if (!user) {
+        toast.error("Log in to add to your watchlist.");
+        router.push('/login');
+        return;
+    }
+    const toastId = toast.loading(isInWatchlist ? "Removing..." : "Adding...");
+    const docRef = doc(db, `users/${user.uid}/watchlist/${animeId}`);
+
+    try {
+        if (isInWatchlist) {
+            await deleteDoc(docRef);
+            toast.success("Removed from watchlist.", { id: toastId });
+        } else {
+            await setDoc(docRef, {
+                id: animeId,
+                status: 'Plan to Watch',
+                addedAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
+            toast.success("Added to watchlist!", { id: toastId });
+        }
+    } catch (err) {
+        toast.error("Failed to update watchlist.", { id: toastId });
+        console.error(err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleWatchlistToggle}
+      className="absolute top-2 right-2 z-20 p-1.5 bg-black/50 rounded-full text-white hover:bg-primary hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100"
+      aria-label={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+      disabled={loadingWatchlist}
+    >
+      {isInWatchlist ? <BookmarkCheck className="w-4 h-4" /> : <BookmarkPlus className="w-4 h-4" />}
+    </button>
+  );
+};
+
 
 export function AnimeCard({ anime, rank }: AnimeCardProps) {
   const isAdult = anime.rating === 'R' || anime.rating === 'R+' || anime.rating === 'Rx';
@@ -21,6 +78,8 @@ export function AnimeCard({ anime, rank }: AnimeCardProps) {
         
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-card shadow-md transition-all duration-300 group-hover:shadow-[0_0_20px_hsl(var(--primary)_/_0.3)] group-hover:-translate-y-1 border-2 border-transparent group-hover:border-primary/50">
           
+          <WatchlistButton animeId={anime.id} />
+
           {rank && (
             <div className="absolute top-0 left-0 z-20 bg-gradient-to-br from-primary to-accent px-3 py-1 rounded-br-lg text-white font-black text-lg shadow-lg">
               {rank < 10 ? `0${rank}` : rank}

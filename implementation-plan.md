@@ -69,7 +69,7 @@
 **Ongoing Tasks:**
 - Build 48-tab admin panel
 - Moderator tools
-- Crypto donations + merch
+- Crypto donations
 - Affiliate revenue
 
 ---

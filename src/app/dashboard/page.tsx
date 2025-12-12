@@ -38,11 +38,13 @@ const ContinueWatchingSection = () => {
 
     const animeIds = useMemo(() => {
         if (!history || history.length === 0) return [];
-        return [...new Set(history.map(item => item.animeId))];
+        // Get the most recent unique anime IDs
+        const uniqueIds = [...new Set(history.map(item => item.animeId))];
+        return uniqueIds.slice(0, 6); // Limit to 6 most recent series
     }, [history]);
     
     const { data: animeDetails, isLoading: isLoadingAnime } = useQuery<Map<string, AnimeBase>>({
-        queryKey: ['animeDetails', animeIds],
+        queryKey: ['animeDetailsForContinueWatching', animeIds],
         queryFn: async () => {
             const promises = animeIds.map(id => AnimeService.qtip(id).catch(() => null));
             const results = await Promise.all(promises);
@@ -61,8 +63,13 @@ const ContinueWatchingSection = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-48">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="grid-cards">
+                {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="space-y-2">
+                        <div className="aspect-[2/3] w-full bg-muted rounded-lg animate-pulse" />
+                        <div className="h-4 w-4/5 bg-muted rounded animate-pulse" />
+                    </div>
+                ))}
             </div>
         )
     }
@@ -75,13 +82,22 @@ const ContinueWatchingSection = () => {
             </div>
         )
     }
+
+    // Create a map of animeId to the latest history item for that anime
+    const latestHistoryByAnime = new Map<string, UserHistory>();
+    history.forEach(item => {
+        if (!latestHistoryByAnime.has(item.animeId) || item.watchedAt > latestHistoryByAnime.get(item.animeId)!.watchedAt) {
+            latestHistoryByAnime.set(item.animeId, item);
+        }
+    });
     
     return (
         <div className="grid-cards">
-            {history.slice(0, 6).map(item => {
-                const details = animeDetails?.get(item.animeId);
-                if (!details) return null;
-                return <ContinueWatchingCard key={item.id} historyItem={item} animeDetails={details} />
+            {animeIds.map(animeId => {
+                const details = animeDetails?.get(animeId);
+                const historyItem = latestHistoryByAnime.get(animeId);
+                if (!details || !historyItem) return null;
+                return <ContinueWatchingCard key={historyItem.id} historyItem={historyItem} animeDetails={details} />
             })}
         </div>
     )

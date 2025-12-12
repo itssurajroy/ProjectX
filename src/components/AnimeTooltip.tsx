@@ -34,7 +34,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
     queryKey: ['qtip', animeId],
     queryFn: () => AnimeService.qtip(animeId),
     enabled: isOpen, // Only fetch when the tooltip is opened
-    staleTime: Infinity, // Cache forever
+    staleTime: 5 * 60 * 1000, // 5 minutes stale time
     refetchOnWindowFocus: false,
   });
   
@@ -42,7 +42,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
 
   return (
     <TooltipProvider delayDuration={100}>
-      <Tooltip open={isOpen} onOpenChange={setIsOpen}>
+      <Tooltip onOpenChange={setIsOpen}>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
         <TooltipContent side="right" className="w-80 bg-card border-border shadow-lg p-0">
           {isLoading || !anime ? (
