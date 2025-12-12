@@ -34,6 +34,11 @@ const buildCommentTree = (comments: CommentWithUser[]): CommentWithUser[] => {
         }
     });
 
+    // Sort replies by timestamp
+    Object.values(commentMap).forEach(comment => {
+        comment.replies.sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0));
+    });
+
     return commentTree;
 }
 
@@ -56,6 +61,12 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
     );
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
+      if (snapshot.empty) {
+          setComments([]);
+          setIsLoading(false);
+          return;
+      }
+      
       const fetchedComments: Comment[] = [];
       snapshot.forEach((doc) => {
         fetchedComments.push({ id: doc.id, ...doc.data() } as Comment);
@@ -64,8 +75,8 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
       const userIds = [...new Set(fetchedComments.map(c => c.userId))];
       const userProfiles = new Map<string, UserProfile>();
       
-      for (let i = 0; i < userIds.length; i += 10) {
-        const batchIds = userIds.slice(i, i + 10);
+      for (let i = 0; i < userIds.length; i += 30) {
+        const batchIds = userIds.slice(i, i + 30);
         if(batchIds.length === 0) continue;
         const usersQuery = query(collection(db, 'users'), where('__name__', 'in', batchIds));
         const usersSnapshot = await getDocs(usersQuery);
@@ -135,7 +146,7 @@ export default function CommentSection({ animeId, episodeId }: { animeId: string
           throw "Document does not exist!";
         }
         
-        const currentLikes = commentDoc.data().likes || [];
+        const currentLikes: string[] = commentDoc.data().likes || [];
         let newLikes;
         if(currentLikes.includes(user.uid)) {
           newLikes = arrayRemove(user.uid);

@@ -60,6 +60,7 @@ const ReplyForm = ({ onReply, commentId, onCancel }: { onReply: (text: string, p
 
 export default function CommentItem ({ comment, onLike, onReply, currentUser, level = 0 }: { comment: CommentWithUser, onLike: (id: string) => void; onReply: (text: string, parentId: string) => void; currentUser: User | null; level?: number }) {
     const [isReplying, setIsReplying] = useState(false);
+    const [showReplies, setShowReplies] = useState(true);
     
     return (
         <div className="flex gap-3">

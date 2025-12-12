@@ -270,7 +270,6 @@ function WatchPageComponent() {
             <CommentsContainer
               animeId={animeId}
               episodeId={currentEpisode.episodeId}
-              availableEpisodes={episodes}
             />
           )}
         </div>

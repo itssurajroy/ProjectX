@@ -101,17 +101,6 @@ const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const pathname = usePathname();
-    const isDashboardPage = pathname.startsWith('/dashboard');
-
-    if (!isDashboardPage) {
-        return (
-            <>
-                <Header />
-                <main className="pt-16">{children}</main>
-            </>
-        )
-    }
 
     return (
         <>

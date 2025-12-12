@@ -5,7 +5,6 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { AnimeEpisode } from '@/lib/types/anime';
 import { ShieldCheck, ChevronsDown } from 'lucide-react';
 import { Button } from '../ui/button';
 import CommentSection from '../CommentSection';
@@ -13,7 +12,6 @@ import CommentSection from '../CommentSection';
 interface CommentsContainerProps {
   animeId: string;
   episodeId?: string | null;
-  availableEpisodes?: AnimeEpisode[];
 }
 
 const CommentRules = () => (

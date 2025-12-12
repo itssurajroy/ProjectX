@@ -19,8 +19,13 @@ export default function SiteLayout({
   const isW2GRoom = /^\/watch2gether\/[^/]+$/.test(pathname);
   const isDashboard = pathname.startsWith('/dashboard');
 
-  if (isW2GRoom || isDashboard) {
+  if (isW2GRoom) {
     return <main>{children}</main>;
+  }
+
+  // Only the dashboard layout should handle dashboard pages
+  if (isDashboard) {
+      return null;
   }
 
   return (
