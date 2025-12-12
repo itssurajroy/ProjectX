@@ -106,7 +106,7 @@ src/firebase/
 
 ---
 
-## Mission Board
+## 🎯 Mission Board
 
 | Backlog | In Progress | Completed |
 | --- | --- | --- |
