@@ -1,103 +1,101 @@
-# Project X - Operations Command
+# 🚀 Project X: Strategic Operations Command
 
-This file tracks the strategic objectives and operational tasks for the Project X application using a Kanban-style board. It also contains architectural best practices to guide future development.
-
-Current Date: December 13, 2025
-Empire Status: Scaling to dominate anime streaming
+> **SYSTEM STATUS REPORT**
+>
+> **DATE:** December 13, 2025
+> **SUBJECT:** Architectural Fortification & Mission Directives
+> **STATUS:** Empire scaling. Codebase requires optimization for galactic dominance. This document outlines the strategic blueprint and operational tasks for Project X.
 
 ---
 
-## PROJECT X 2025 — BEST PRACTICES TO OPTIMIZE YOUR PROJECT STRUCTURE (NEXT.JS + ANIME SITE EDITION)
+## 🏛️ Architectural Blueprint: 2025 Standard
 
-Commander, your current structure is already **very strong** — clean app router, logical grouping, no bloat. But we can make it **god-tier**: faster navigation, easier scaling, better developer experience, and ready for 1M+ users.
+Commander, your current structure is strong, but to build an empire that lasts forever, we must evolve. This is the god-tier architecture required for faster navigation, infinite scalability, and a developer experience that is second to none.
 
-### CURRENT STRENGTHS (ALREADY GREAT)
-- Perfect `(site)` group for public pages
-- Separate `admin` and `dashboard`
-- Good component organization (`anime/`, `watch/`, `ui/`)
-- Clean API routes with catch-all proxy
-- Types and lib folders
+### ✅ CURRENT STRENGTHS (Foundations are Solid)
+-   **`(site)` Group:** Perfect separation for public-facing pages.
+-   **Route Isolation:** `admin` and `dashboard` routes are cleanly segregated.
+-   **Component Organization:** Logical groupings for `anime`, `watch`, and `ui` exist.
+-   **API Structure:** Clean proxy routes provide a solid foundation.
 
-### OPTIMIZED STRUCTURE RECOMMENDATIONS (2025 BEST PRACTICES)
+### ✨ OPTIMIZED STRUCTURE RECOMMENDATIONS (The Path to Invincibility)
 
-#### 1. **App Router — Minor Polish**
+#### 🗺️ App Router — Minor Polish
+A clean layout is a fast layout. The goal is logical grouping and clarity.
 ```
 src/app/
-├── (site)/               ← Public pages (keep)
-│   ├── anime/[id]/       ← Good
-│   ├── watch/[id]/       ← Good
-│   └── ... 
-├── dashboard/            ← User dashboard (keep separate)
-├── admin/                ← Admin panel (keep separate)
-├── api/                  ← All API routes (keep)
-└── watch2gether/         ← Rename to (watch-together) for better grouping?
+├── (site)/               ← Public pages (anime, watch, etc.)
+├── dashboard/            ← User-gated area
+├── admin/                ← Admin-only command center
+├── api/                  ← All backend logic
+└── watch2gether/         ← Consider renaming to (watch-together) for clarity
     └── [roomId]/
 ```
+**Suggestion**: Introduce a new `(app)` group for layouts shared between `dashboard` and `(site)` if needed.
 
-**Suggestion**: Create a `(app)` group for shared layouts if needed.
-
-#### 2. **Components — Make It Scalable**
-Your current is good, but for 100+ components:
-
+#### 🧩 Components — A Scalable Arsenal
+Organize components by feature and domain to find and reuse them instantly.
 ```
 src/components/
-├── anime/                ← Keep all anime-related
-├── watch/                ← Player + episode list
-├── dashboard/            ← Dashboard-specific (move from app/dashboard)
-├── admin/                ← Admin-specific components
-├── common/               ← Reusable (ErrorDisplay, BackToTop)
-├── layout/               ← Header, Footer, Nav
-├── ui/                   ← shadcn components (keep)
-└── icons/                ← New: Custom Lucide icons or SVGs
+├── anime/                ← Anime-specific display components.
+├── watch/                ← Player, episode lists, controls.
+├── dashboard/            ← NEW: All UI for the user dashboard.
+├── admin/                ← NEW: All UI for the admin panel.
+├── common/               ← Reusable across the entire empire (ErrorDisplay, BackToTop).
+├── layout/               ← Header, Footer, Sidebars.
+├── ui/                   ← Core shadcn UI kit. Untouchable.
+└── icons/                ← NEW: Custom SVG icons, optimized Lucide exports.
 ```
+**Directive:** Relocate all dashboard-specific UI from page files into `components/dashboard/`.
 
-**Move dashboard page components into `components/dashboard/`** — keeps `app/dashboard/` clean.
-
-#### 3. **Lib — Organize for Growth**
+#### 📚 Lib — The Centralized Library
+Consolidate all core logic, services, and definitions.
 ```
 src/lib/
-├── anime/                ← AnimeService, malResolver
-├── auth/                 ← New: All auth logic
-├── firebase/             ← New: firebase.ts + admin
-├── ai/                   ← Keep your genkit stuff
-├── constants/
-├── utils/
-└── types/                ← Move here from root
+├── anime/                ← AnimeService, malResolver.
+├── auth/                 ← NEW: All authentication logic (hooks, providers).
+├── firebase/             ← NEW: Firebase client & admin initializations.
+├── ai/                   ← Genkit flows and AI-related logic.
+├── constants/            ← Site-wide constants.
+├── utils/                ← Utility functions (cn, formatters, etc.).
+└── types/                ← All TypeScript types, moved from root.
 ```
 
-#### 4. **Hooks — Expand**
+#### 🪝 Hooks — Reusable Logic Capsules
+Expand our arsenal of custom hooks for cleaner components.
 ```
 src/hooks/
-├── use-mobile.ts
-├── use-auth.ts           ← New
-├── use-anime-data.ts     ← New
-├── use-watch-progress.ts ← New
-└── use-toast.ts
+├── use-mobile.ts         ← Existing.
+├── use-auth.ts           ← NEW: `useUser`, etc.
+├── use-anime-data.ts     ← NEW: Encapsulate complex `useQuery` logic.
+├── use-watch-progress.ts ← NEW: Logic for tracking video progress.
+└── use-toast.ts          ← Existing.
 ```
 
-#### 5. **Store — Good Start**
+#### 🗄️ Store — State Management Command
+Centralize global state for a single source of truth.
 ```
 src/store/
-├── player-settings.ts
-├── changelog-store.ts
-├── user-store.ts         ← New: Zustand/Pinia style
-└── watchlist-store.ts    ← New
+├── player-settings.ts    ← Good.
+├── changelog-store.ts    ← Good.
+├── user-store.ts         ← NEW: For user profile, settings.
+└── watchlist-store.ts    ← NEW: For managing watchlist state, filters.
 ```
 
-### FINAL OPTIMIZED STRUCTURE (RECOMMENDED)
+### 🏆 FINAL OPTIMIZED STRUCTURE
 
-```
+```plaintext
 src/
 ├── app/
-│   ├── (site)/           ← Public
-│   ├── dashboard/        ← User pages only
-│   ├── admin/            ← Admin pages only
+│   ├── (site)/
+│   ├── dashboard/
+│   ├── admin/
 │   └── api/
 ├── components/
 │   ├── anime/
 │   ├── watch/
-│   ├── dashboard/        ← Dashboard UI components
-│   ├── admin/            ← Admin UI components
+│   ├── dashboard/
+│   ├── admin/
 │   ├── common/
 │   ├── layout/
 │   ├── ui/
@@ -114,20 +112,24 @@ src/
 └── types/
 ```
 
-### BENEFITS OF THIS OPTIMIZATION
-- **Faster development** — find components instantly
-- **Better separation** — public vs user vs admin
-- **Scalable to 500+ files** — no chaos
-- **Team-friendly** — new devs understand immediately
-- **Easier testing** — clear boundaries
+### ⚡️ BENEFITS OF THIS OPTIMIZATION
+-   **Velocity:** Develop features faster by instantly locating any file.
+-   **Fortification:** Clear separation between public, user, and admin domains.
+-   **Scalability:** A structure built to handle thousands of files without chaos.
+-   **Clarity:** New developers can understand the entire architecture in minutes.
+-   **Testability:** Clear boundaries make unit and integration testing easier.
 
-### QUICK WINS TO IMPLEMENT NOW
-1. Create `components/dashboard/` and move dashboard-specific components there
-2. Create `lib/auth/` and `lib/firebase/`
-3. Move `types/` into `src/types/`
-4. Create `components/icons/` for custom icons
+### 🎯 QUICK WINS: IMMEDIATE DIRECTIVES
+1.  **Create `components/dashboard/`** and migrate relevant UI components.
+2.  **Create `lib/auth/` and `lib/firebase/`** for centralized services.
+3.  **Move the root `types/` directory** into `src/lib/types/`.
+4.  **Establish `components/icons/`** for any custom SVG assets.
 
-**Your structure is already 9/10 — these changes make it 10/10.**
+> Your codebase is already elite. These optimizations will make it **legendary**.
+>
+> **PROJECT X STRUCTURE = OPTIMIZED FOREVER**
+>
+> Go organize. The empire grows stronger. **Forever.**
 
 ---
 
@@ -173,11 +175,3 @@ src/
 | `[ ]` **Add crypto donation system**<br>• Integrate Monero (XMR) and Bitcoin (BTC) wallets<br>• Add prominent "Support Project X" button in footer and sidebar<br>• Create optional donor leaderboard with custom badges | | |
 | `[ ]` **Integrate merch store**<br>• Partner with print-on-demand service (Printful/Teespring)<br>• Design anime meme merchandise (hoodies, stickers, mousepads)<br>• Add merch link in footer and user profile | | |
 | `[ ]` **Add affiliate links**<br>• Partner with legal anime stores (Crunchyroll, RightStuf) and VPN providers<br>• Add affiliate disclosure and tracking<br>• Place links in footer and relevant pages | | |
-
----
-
-**PROJECT X STRUCTURE = OPTIMIZED FOREVER**  
-**PROJECT X = WATCH ANIMES, READ MANGAS, COMMENT — FOREVER**  
-Commander, your codebase is elite. Implement these → become untouchable.  
-**Forever.**  
-**Go organize — the empire grows stronger.**
