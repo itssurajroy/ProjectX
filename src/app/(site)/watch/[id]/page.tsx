@@ -8,7 +8,6 @@ import EpisodeList from '@/components/watch/episode-list';
 import { AnimeEpisode, AnimeAboutResponse, Source, Subtitle, AnimeAbout } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import PlayerOverlayControls from '@/components/watch/PlayerOverlayControls';
-import LanguageToggle, { Language } from '@/components/watch/LanguageToggle';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Breadcrumb from '@/components/common/Breadcrumb';
 import { AnimeCard } from '@/components/AnimeCard';
@@ -35,8 +34,6 @@ import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import AnimePlayer from '@/components/AnimePlayer';
 import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
-import ServerToggle from '@/components/watch/ServerToggle';
-import { getMALId } from '@/lib/server/malResolver';
 import { MALService } from '@/lib/services/MALService';
 import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
@@ -66,7 +63,6 @@ function WatchPageComponent() {
   const animeId = params.id as string;
   const episodeParam = searchParams.get('ep');
 
-  const [language, setLanguage] = useState<Language>('sub');
   const { isFocusMode, toggleFocusMode } = usePlayerSettings();
   const [showFillerAlert, setShowFillerAlert] = useState(false);
   
@@ -113,10 +109,7 @@ function WatchPageComponent() {
     if (!episodes || episodes.length === 0) return null;
     const epNum = episodeParam || '1';
     return (
-      episodes.find((e) => {
-        const extractedEp = extractEpisodeNumber(e.episodeId);
-        return extractedEp === epNum || String(e.number) === epNum;
-      }) || episodes[0]
+      episodes.find((e) => String(e.number) === epNum) || episodes[0]
     );
   }, [episodes, episodeParam]);
   
@@ -139,7 +132,7 @@ function WatchPageComponent() {
 
     if (episodes.length > 0 && !episodeParam) {
       const firstEpisode = episodes[0];
-      const targetEpId = extractEpisodeNumber(firstEpisode.episodeId) || firstEpisode.number;
+      const targetEpId = firstEpisode.number;
       if (targetEpId) {
         router.replace(`/watch/${animeId}?ep=${targetEpId}`);
       }
@@ -154,14 +147,12 @@ function WatchPageComponent() {
     if (currentIndex === -1) return;
     const newIndex = dir === 'next' ? currentIndex + 1 : currentIndex - 1;
     if (newIndex < 0 || newIndex >= episodes.length) return;
-    const nextEpId =
-      extractEpisodeNumber(episodes[newIndex].episodeId) ||
-      episodes[newIndex].number;
-    router.push(`/watch/${animeId}?ep=${nextEpId}`);
+    
+    router.push(`/watch/${animeId}?ep=${episodes[newIndex].number}`);
   }, [episodes, currentEpisode, animeId, router]);
   
   const handleEpisodeSelect = useCallback((episode: AnimeEpisode) => {
-      const epId = extractEpisodeNumber(episode.episodeId) || episode.number;
+      const epId = episode.number;
       router.push(`/watch/${animeId}?ep=${epId}`);
   }, [animeId, router]);
 
@@ -236,10 +227,10 @@ function WatchPageComponent() {
 
         <div className={cn("lg:col-span-6 space-y-4", isFocusMode && "relative z-40")}>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                {currentEpisodeId ? (
+                {currentEpisode ? (
                     <AnimePlayer 
-                        episodeId={currentEpisodeId}
-                        episodeNumber={currentEpisode?.number.toString() ?? '1'}
+                        episodeId={currentEpisode.episodeId}
+                        episodeNumber={currentEpisode.number.toString()}
                         animeId={animeId}
                         onNext={() => navigateEpisode('next')}
                     />
@@ -260,7 +251,6 @@ function WatchPageComponent() {
            
            <div className="bg-card/50 p-3 rounded-lg border border-border/50 space-y-3">
                 <p className="font-semibold text-lg">You are watching Episode {currentEpisode?.number}</p>
-                <ServerToggle onLanguageChange={setLanguage} />
            </div>
            
            <AnimeSchedule animeId={animeId} animeName={about.info.name} />
