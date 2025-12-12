@@ -19,6 +19,11 @@ export interface SpotlightAnime extends AnimeBase {
     description: string;
     rank: number;
     otherInfo: string[];
+    nextAiringEpisode?: {
+        airingTime: number;
+        timeUntilAiring: number;
+        episode: number;
+    };
 }
 
 export interface TrendingAnime extends AnimeBase {

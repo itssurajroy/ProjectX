@@ -2,7 +2,7 @@
 'use client';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,10 @@ import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
 import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '@/components/ProgressiveImage';
+import { motion, AnimatePresence } from 'framer-motion';
+import Balancer from 'react-wrap-balancer';
+import { Button } from '@/components/ui/button';
+import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
 
 interface HomeDataWithQtips extends HomeData {
     qtips: Record<string, QtipAnime>;
@@ -49,59 +53,83 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[80vh] group -mt-16">
-        <div className="absolute inset-0 transition-all duration-1000">
-             <ProgressiveImage
-                key={spotlight.id}
-                src={spotlight.poster}
-                alt={spotlight.name || "Spotlight Banner"}
-                fill
-                className={'object-cover opacity-30'}
-                priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
-             <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
-        </div>
+    <div className="relative w-full h-[60vh] md:h-[85vh] group -mt-16 overflow-hidden">
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={spotlight.id}
+          className="absolute inset-0"
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1 }}
+          transition={{ duration: 1.5, ease: [0.43, 0.13, 0.23, 0.96] }}
+        >
+          <ProgressiveImage
+            src={spotlight.poster}
+            alt={spotlight.name || "Spotlight Banner"}
+            fill
+            className={'object-cover'}
+            priority
+          />
+        </motion.div>
+      </AnimatePresence>
+      
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
         
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
-           <div key={currentIndex} className="animate-banner-fade-in w-full">
-              <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-display my-3 text-glow max-w-2xl line-clamp-2">{spotlight.name}</h1>
-              <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4 flex-wrap">
-                  {spotlight.otherInfo.map((info, i) => (
-                    <span key={i} className="flex items-center gap-1.5">
-                       {info}
-                    </span>
-                  ))}
-              </div>
-              <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-sm md:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
-              
-              <div className="flex gap-3 items-center">
-                  <Link href={`/watch/${spotlight.id}`} className="bg-primary text-primary-foreground px-6 md:px-8 py-3 rounded-lg font-bold text-base md:text-lg flex items-center gap-2 hover:bg-primary/80 transition-all duration-300 transform hover:scale-105 shadow-lg shadow-primary/30">
-                      <Play className="w-6 h-6" /> Watch Now
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
+        <motion.div 
+          key={`${spotlight.id}-content`}
+          className="w-full max-w-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+        >
+          <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-display my-3 text-glow">
+            <Balancer>{spotlight.name}</Balancer>
+          </h1>
+          <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4 flex-wrap">
+              {spotlight.otherInfo.map((info, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                   {info}
+                </span>
+              ))}
+          </div>
+          <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-sm md:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <Button asChild size="lg" className="shadow-lg shadow-primary/30 transform hover:scale-105 transition-transform w-full sm:w-auto">
+                  <Link href={`/watch/${spotlight.id}`} className="flex items-center gap-2">
+                      <Play className="w-5 h-5" /> Watch Now
                   </Link>
-                  <Link href={`/anime/${spotlight.id}`} className="border border-white/50 text-white p-3.5 rounded-lg font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-colors">
-                      <Bookmark className="w-5 h-5"/>
+              </Button>
+              <Button asChild size="lg" variant="secondary" className="transform hover:scale-105 transition-transform bg-white/10 hover:bg-white/20 w-full sm:w-auto">
+                   <Link href={`/anime/${spotlight.id}`} className="flex items-center gap-2">
+                      <Info className="w-5 h-5" /> Details
                   </Link>
-              </div>
-            </div>
-        </div>
+              </Button>
+          </div>
+          <div className="mt-4">
+             <EpisodeCountdown airingTime={spotlight.nextAiringEpisode?.airingTime} />
+          </div>
+        </motion.div>
+      </div>
         
-         <div className="absolute right-4 md:right-8 bottom-8 z-20 flex items-center gap-3">
-            <button onClick={() => {
-                setCurrentIndex((prev) => (prev === 0 ? spotlights.length - 1 : prev - 1));
-                resetAutoplay();
-            }} className="p-2 bg-white/10 rounded-full transition-all hover:bg-white/20 hover:scale-110">
-                <ChevronLeft className="w-5 h-5 md:w-6 md:h-6"/>
-            </button>
-            <span className='font-semibold text-sm md:text-base'>{currentIndex + 1}/{spotlights.length}</span>
-            <button onClick={() => {
-                handleNext();
-                resetAutoplay();
-            }} className="p-2 bg-white/10 rounded-full transition-all hover:bg-white/20 hover:scale-110">
-                <ChevronRight className="w-5 h-5 md:w-6 md:h-6"/>
-            </button>
-        </div>
+      <div className="absolute right-4 md:right-8 bottom-8 z-20 flex items-center gap-3">
+          <button onClick={() => {
+              setCurrentIndex((prev) => (prev === 0 ? spotlights.length - 1 : prev - 1));
+              resetAutoplay();
+          }} className="p-2 bg-white/10 rounded-full transition-all hover:bg-white/20 hover:scale-110">
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6"/>
+          </button>
+          <span className='font-semibold text-sm md:text-base'>{currentIndex + 1}/{spotlights.length}</span>
+          <button onClick={() => {
+              handleNext();
+              resetAutoplay();
+          }} className="p-2 bg-white/10 rounded-full transition-all hover:bg-white/20 hover:scale-110">
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6"/>
+          </button>
+      </div>
     </div>
   );
 };
