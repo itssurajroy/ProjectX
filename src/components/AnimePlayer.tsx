@@ -6,7 +6,7 @@ import Hls from 'hls.js';
 import { Button } from './ui/button';
 import { Loader2, ServerCrash, Tv } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import { sanitizeFirestoreId } from '@/lib/utils';
 import { EpisodeServer, Source, Subtitle } from '@/types/anime';
 import Link from 'next/link';

@@ -2,7 +2,7 @@
 'use client';
 import { useEffect, useState } from "react";
 import ProgressiveImage from "@/components/ProgressiveImage";
-import { AnimeService } from "@/lib/AnimeService";
+import { AnimeService } from '@/lib/services/AnimeService';
 import { AnimeBase } from "@/types/anime";
 
 export default function AnimeManagement() {

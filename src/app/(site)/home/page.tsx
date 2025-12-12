@@ -10,7 +10,7 @@ import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { AnimeSection } from '@/components/home/AnimeSection';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '@/components/ProgressiveImage';
 
 interface HomeDataWithQtips extends HomeData {

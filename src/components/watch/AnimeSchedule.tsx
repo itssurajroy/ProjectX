@@ -4,7 +4,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Calendar, Loader2 } from 'lucide-react';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import { ScheduleResponse } from '@/types/anime';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 

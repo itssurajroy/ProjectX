@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Star, Tv, Clapperboard } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
-import { AnimeService } from "@/lib/AnimeService";
+import { AnimeService } from '@/lib/services/AnimeService';
 import { useState } from "react";
 
 const TooltipSkeleton = () => (

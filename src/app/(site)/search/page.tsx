@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import { useDebounce } from 'use-debounce';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -268,4 +268,3 @@ export default function SearchPage() {
         </Suspense>
     )
 }
-

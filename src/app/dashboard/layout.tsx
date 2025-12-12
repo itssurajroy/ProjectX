@@ -7,8 +7,8 @@ import { Home, Bookmark, History, BarChart3, Trophy, User, Users, Calendar, Spar
 import SiteLogo from '@/components/layout/SiteLogo';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
-import { useUser } from '@/firebase';
-import { auth } from '@/lib/firebase';
+import { useUser } from '@/firebase/client';
+import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 

@@ -4,11 +4,11 @@
 import { UserHistory, AnimeBase } from '@/lib/types/anime';
 import { History, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import Link from 'next/link';
 import { format, isToday, isYesterday } from 'date-fns';
 import { useMemo } from 'react';
-import { useUser, useCollection } from '@/firebase';
+import { useUser, useCollection } from '@/firebase/client';
 import HistoryGroup from '@/components/dashboard/HistoryGroup';
 
 export default function HistoryPage() {

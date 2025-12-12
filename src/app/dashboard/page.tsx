@@ -5,10 +5,10 @@ import { AnimeBase, UserHistory, HomeData } from '@/types/anime';
 import { Flame, Activity, TrendingUp, Sparkles, Users, Loader2 } from 'lucide-react';
 import { AnimeCard } from '@/components/AnimeCard';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useUser, useCollection } from '@/firebase';
+import { useUser, useCollection } from '@/firebase/client';
 import { useMemo } from 'react';
 
 const Section = ({ title, icon: Icon, children, href }: { title: string, icon: React.ElementType, children: React.ReactNode, href?: string }) => (

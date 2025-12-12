@@ -1,7 +1,8 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { Clapperboard, Users, Film } from 'lucide-react';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 
 const StatCard = ({ title, value, icon: Icon, color }: { title: string, value: number, icon: React.ElementType, color: string }) => (
   <div className={`p-8 rounded-3xl border ${color} bg-gray-900/50`}>

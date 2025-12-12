@@ -3,16 +3,16 @@
 
 import { AnimeBase } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import { useMemo } from 'react';
 import { Award, BookOpen, Calendar, Clapperboard, Film, Flame, Loader2, Star, TrendingUp, Trophy } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/firebase';
+import { useUser } from '@/firebase/client';
 import { UserHistory } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
-import { useCollection } from '@/firebase';
+import { useCollection } from '@/firebase/client';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 
 const achievementsList = [

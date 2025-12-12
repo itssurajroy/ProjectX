@@ -9,7 +9,7 @@ import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { Suspense } from "react";
 import Loading from "./loading";
 import { Analytics } from "@vercel/analytics/react";
-import { FirebaseProvider } from "@/firebase/client-provider";
+import { FirebaseProvider } from "@/firebase/client";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 
 const fontSans = Inter({

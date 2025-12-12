@@ -1,7 +1,8 @@
+
 'use client';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import { ScheduleResponse } from '@/types/anime';
 import { useState } from 'react';
 import { format, add, sub, startOfWeek, endOfWeek } from 'date-fns';

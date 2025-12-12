@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for curating personalized anime recommendations.
@@ -5,7 +6,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import { SearchResult } from '@/types/anime';
 
 // Define the schema for a single watched anime

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import Synopsis from './Synopsis';
 import { Badge } from '../ui/badge';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';

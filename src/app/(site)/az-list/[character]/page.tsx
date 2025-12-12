@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
@@ -10,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { SearchResult } from '@/types/anime';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 
 
 const AdvancedFilter = () => {

@@ -10,7 +10,7 @@ import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import SiteLogo from './SiteLogo';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';

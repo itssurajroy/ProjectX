@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Suspense, useEffect, useMemo, useState, useCallback } from 'react';
@@ -29,14 +30,14 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { AnimeService } from '@/lib/AnimeService';
+import { AnimeService } from '@/lib/services/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import AnimePlayer from '@/components/AnimePlayer';
 import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
 import ServerToggle from '@/components/watch/ServerToggle';
-import { getMALId } from '@/lib/anime/malResolver';
-import { MALService } from '@/lib/MALService';
+import { getMALId } from '@/lib/server/malResolver';
+import { MALService } from '@/lib/services/MALService';
 import { cn } from '@/lib/utils';
 import { usePlayerSettings } from '@/store/player-settings';
 import CommentsContainer from '@/components/comments/CommentsContainer';
