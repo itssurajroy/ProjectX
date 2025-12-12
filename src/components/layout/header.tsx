@@ -18,56 +18,6 @@ import { useUser } from '@/firebase/auth/use-user';
 import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 
-
-const MobileMenu = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-    const navItems = [
-      { href: "/home", label: "Home" },
-      { href: "/movies", label: "Movies" },
-      { href: "/tv", label: "TV Shows" },
-    ];
-    
-    return (
-        <div className={cn("fixed inset-0 z-50 flex lg:hidden", isOpen ? "pointer-events-auto" : "pointer-events-none")}>
-            {/* Overlay */}
-            <div 
-                onClick={onClose}
-                className={cn(
-                    "absolute inset-0 bg-black/80 transition-opacity",
-                    isOpen ? "opacity-100" : "opacity-0"
-                )}
-            />
-            {/* Menu Panel */}
-            <div className={cn("relative z-10 w-full max-w-xs bg-background border-r border-border h-full flex flex-col transition-transform duration-300 ease-in-out", isOpen ? "translate-x-0" : "-translate-x-full")}>
-                <div className="p-4 border-b border-border flex items-center justify-between">
-                    <SiteLogo />
-                    <Button variant="ghost" size="icon" onClick={onClose}>
-                        <X className="w-5 h-5" />
-                    </Button>
-                </div>
-                <nav className="flex-1 flex flex-col p-4 overflow-y-hidden">
-                    <div className="flex flex-col gap-2">
-                        {navItems.map(item => (
-                            <Link key={item.href} href={item.href} className="text-lg font-medium p-2 rounded-md hover:bg-muted" onClick={onClose}>
-                                {item.label}
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-border flex flex-col flex-1 overflow-y-hidden">
-                      <h3 className="px-2 text-sm font-semibold text-muted-foreground">Genres</h3>
-                      <div className="flex-1 overflow-y-auto mt-2 space-y-1">
-                          {genres.map(genre => (
-                              <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} onClick={onClose} className="block p-2 text-base font-medium rounded-md hover:bg-muted">
-                                  {genre}
-                              </Link>
-                          ))}
-                      </div>
-                    </div>
-                </nav>
-            </div>
-        </div>
-    )
-}
-
 function UserAuth() {
   const { user, userProfile, loading } = useUser();
   const router = useRouter();
@@ -128,7 +78,6 @@ export default function Header() {
   const router = useRouter();
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -192,11 +141,6 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-4">
-            {mounted && (
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden">
-                <Menu className="w-5 h-5" />
-              </Button>
-            )}
             <SiteLogo />
             <nav className="hidden lg:flex items-center gap-4">
                 {navItems.map(item => (
@@ -272,7 +216,6 @@ export default function Header() {
           
         </div>
       </div>
-      {mounted && <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />}
     </header>
   );
 }
