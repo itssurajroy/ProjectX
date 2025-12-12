@@ -4,7 +4,7 @@ import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, Promotio
 import { useQuery } from '@tanstack/react-query';
 import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star, BookmarkCheck, BookmarkPlus, Download, TvIcon } from 'lucide-react';
 import Link from 'next/link';
-import ErrorDisplay from '@/components/common/ErrorDisplay';
+import ErrorDisplay from '../common/ErrorDisplay';
 import Synopsis from './Synopsis';
 import { Badge } from '../ui/badge';
 import { AnimeService } from '@/lib/services/AnimeService';
@@ -247,18 +247,14 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                             </Link>
                         </Button>
                     )}
-                    <Button size="lg" variant="secondary" className="h-12 text-base">
-                        <Download className="mr-2 w-5 h-5"/> Download
+                    <Button onClick={handleWatchlistToggle} size="lg" variant="secondary" className="h-12 text-base" disabled={isLoading}>
+                        {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} {isInWatchlist ? 'In Watchlist' : 'Add to List'}
                     </Button>
                 </div>
                 
                  <div className="pt-2">
                     <Synopsis description={animeInfo.description} />
                 </div>
-            </div>
-
-            <div className="container mt-8">
-              <EpisodesGrid episodes={episodes} animeId={id} />
             </div>
 
              <div className="container mt-8">
