@@ -23,18 +23,20 @@ export async function GET(request: NextRequest) {
   }
 
   const advancedParams = new URLSearchParams();
-  let hasQuery = false;
+  let hasFilter = false;
   searchParams.forEach((value, key) => {
       advancedParams.append(key, value);
-      if (key === 'q' && value) {
-          hasQuery = true;
+      if (['type', 'genres', 'year', 'sort'].includes(key) && value) {
+          hasFilter = true;
       }
   });
 
-  if (!hasQuery && advancedParams.toString() === 'page=1') {
+  const hasQuery = q && q.trim() !== '';
+
+  if (!hasQuery && !hasFilter) {
     return NextResponse.json({
       success: false,
-      message: "Search query 'q' must be provided for a general search.",
+      message: "Search query 'q' or at least one filter must be provided.",
     }, { status: 400 });
   }
 
@@ -63,4 +65,5 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
+
 
