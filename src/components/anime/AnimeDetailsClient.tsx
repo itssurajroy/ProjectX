@@ -257,6 +257,10 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                 </div>
             </div>
 
+            <div className="container mt-8">
+                <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
+            </div>
+
              <div className="container mt-8">
                  {recommendedAnimes && recommendedAnimes.length > 0 && (
                     <RankedAnimeSidebar title="More Like This" animes={recommendedAnimes} icon={<TvIcon className="w-5 h-5"/>} />
