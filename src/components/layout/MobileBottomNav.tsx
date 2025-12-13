@@ -2,13 +2,13 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, Clapperboard, Bookmark, History, Tv } from "lucide-react";
+import { Home, Bookmark, LayoutGrid, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
     const pathname = usePathname();
-    const isActive = pathname === href;
+    const isActive = pathname === href || (href === '/dashboard' && pathname.startsWith('/dashboard'));
 
     return (
         <Link href={href} className={cn(
@@ -24,12 +24,13 @@ const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.Elemen
 export default function MobileBottomNav() {
     const navItems = [
         { href: "/home", icon: Home, label: "Home" },
-        { href: "/movies", icon: Clapperboard, label: "Movies" },
-        { href: "/tv", icon: Tv, label: "TV" },
+        { href: "/dashboard/watchlist", icon: Bookmark, label: "My Lists" },
+        { href: "/search", icon: LayoutGrid, label: "Browse" },
+        { href: "/dashboard", icon: User, label: "Account" },
     ];
     return (
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden hide-in-landscape">
-            <div className="grid grid-cols-3 items-center justify-around h-full">
+            <div className="grid grid-cols-4 items-center justify-around h-full">
                 {navItems.map(item => (
                     <NavLink key={item.href} {...item} />
                 ))}
