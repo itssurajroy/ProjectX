@@ -255,9 +255,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                  <div className="pt-2">
                     <Synopsis description={animeInfo.description} />
                 </div>
-                 <div className="container mt-8">
-                  <EpisodesGrid episodes={episodes} animeId={id} />
-                </div>
             </div>
 
             <div className="container mt-8">
