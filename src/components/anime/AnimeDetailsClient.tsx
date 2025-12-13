@@ -2,7 +2,7 @@
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
-import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star, BookmarkCheck, BookmarkPlus, Download, TvIcon } from 'lucide-react';
+import { Play, Clapperboard, Users, ShieldAlert, GitBranch, Star, BookmarkCheck, BookmarkPlus, Download, TvIcon, LayoutGrid } from 'lucide-react';
 import Link from 'next/link';
 import ErrorDisplay from '../common/ErrorDisplay';
 import Synopsis from './Synopsis';
@@ -369,7 +369,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
 
                   <div className="lg:col-span-6 space-y-12">
-                      <EpisodesGrid episodes={episodes} animeId={id} />
                       <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
 
                       <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
