@@ -204,7 +204,7 @@ export default function Header() {
                 </Link>
               </Button>
               <Button variant="ghost" size="icon" title="Notifications"><Link href="/dashboard/notifications"><Bell className="w-5 h-5" /></Link></Button>
-              <Button asChild variant="ghost" size="icon">
+              <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
                 <Link href="/random" title="Random Anime">
                   <Shuffle className="w-5 h-5 text-primary" />
                 </Link>
