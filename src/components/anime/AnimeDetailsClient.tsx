@@ -202,7 +202,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
         {/* Mobile View */}
         <div className="lg:hidden">
-            <div className="relative h-96">
+            <div className="relative h-[60vh]">
                  <ProgressiveImage
                     src={animeInfo.poster}
                     alt={animeInfo.name || "Anime Banner"}
@@ -210,20 +210,22 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     className="object-cover opacity-30"
                     priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                 <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
+                    <div className="flex justify-center">
+                        <ProgressiveImage
+                            src={animeInfo.poster}
+                            alt={animeInfo.name || "Anime Poster"}
+                            width={180}
+                            height={270}
+                            className="rounded-xl shadow-2xl shadow-black/50 object-cover border-2 border-border"
+                            priority
+                        />
+                    </div>
+                 </div>
             </div>
 
-            <div className="container -mt-40 relative z-10 space-y-4">
-                <div className="flex justify-center">
-                    <ProgressiveImage
-                        src={animeInfo.poster}
-                        alt={animeInfo.name || "Anime Poster"}
-                        width={180}
-                        height={270}
-                        className="rounded-xl shadow-2xl shadow-black/50 object-cover border-2 border-border"
-                        priority
-                    />
-                </div>
+            <div className="container -mt-4 relative z-10 space-y-4">
                  <div className="text-center space-y-2">
                     <h1 className="text-3xl font-display font-bold text-glow">{animeInfo.name}</h1>
                     <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -232,10 +234,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                         {moreInfo.malscore && <span className="flex items-center gap-1"><Star className="w-4 h-4 text-amber-400" /> {moreInfo.malscore}</span>}
                     </div>
                      <div className="flex items-center justify-center flex-wrap gap-2 text-sm text-muted-foreground pt-1">
-                        {moreInfo.rating && moreInfo.rating !== 'N/A' && <Badge variant={moreInfo.rating === 'R' ? 'destructive' : 'secondary'} className="px-2 py-1">{moreInfo.rating}</Badge>}
-                        {moreInfo.country && <Badge variant="outline">{moreInfo.country}</Badge>}
                         {stats.episodes.sub && <Badge variant="outline">SUB</Badge>}
-                        {stats.episodes.dub && <Badge variant="outline">DUB</Badge>}
                     </div>
                  </div>
 
@@ -248,7 +247,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                         </Button>
                     )}
                     <Button onClick={handleWatchlistToggle} size="lg" variant="secondary" className="h-12 text-base" disabled={isLoading}>
-                        {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} {isInWatchlist ? 'In Watchlist' : 'Add to List'}
+                        {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} Add to List
                     </Button>
                 </div>
                 
@@ -256,7 +255,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     <Synopsis description={animeInfo.description} />
                 </div>
             </div>
-
+            
             <div className="container mt-8">
                 <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
             </div>

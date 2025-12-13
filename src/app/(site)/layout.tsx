@@ -15,7 +15,7 @@ export default function SiteLayout({
 }>) {
   const pathname = usePathname();
 
-  // Don't render header/footer for watch2gether rooms or dashboard pages
+  const isAnimeDetailsPage = /^\/anime\/[^/]+$/.test(pathname);
   const isW2GRoom = /^\/watch2gether\/[^/]+$/.test(pathname);
   const isDashboard = pathname.startsWith('/dashboard');
 
@@ -23,15 +23,14 @@ export default function SiteLayout({
     return <main>{children}</main>;
   }
 
-  // Only the dashboard layout should handle dashboard pages
   if (isDashboard) {
       return null;
   }
 
   return (
     <div className="flex flex-col min-h-screen w-full">
-      <Header />
-      <main className="flex-grow pt-16">{children}</main>
+      {!isAnimeDetailsPage && <Header />}
+      <main className={`flex-grow ${!isAnimeDetailsPage && 'pt-16'}`}>{children}</main>
       <Footer />
       <MobileBottomNav />
       <BackToTopButton />

@@ -2,20 +2,20 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, Bookmark, LayoutGrid, User, Search, Flame, Tv } from "lucide-react";
+import { Home, Bookmark, LayoutGrid, User, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
     const pathname = usePathname();
-    const isActive = pathname === href || (href.startsWith('/dashboard') && pathname.startsWith('/dashboard'));
+    const isActive = pathname === href || (pathname.startsWith(href) && href !== '/home');
 
     return (
         <Link href={href} className={cn(
             "flex flex-col items-center justify-center gap-1 text-xs w-full h-full transition-colors",
             isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
         )}>
-            <Icon className="w-5 h-5" />
+            <Icon className="w-6 h-6" />
             <span className="truncate">{label}</span>
         </Link>
     );
@@ -28,7 +28,6 @@ export default function MobileBottomNav() {
         { href: "/az-list/all", icon: LayoutGrid, label: "Browse" },
         { href: "/search", icon: Search, label: "Search" },
         { href: "/dashboard", icon: User, label: "Account" },
-
     ];
     
     return (
