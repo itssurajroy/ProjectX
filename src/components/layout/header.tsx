@@ -162,9 +162,6 @@ export default function Header() {
                       placeholder="Search anime..."
                       className="bg-card w-full rounded-full h-11 px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all hidden md:block"
                   />
-                  <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 bg-transparent rounded-full flex items-center justify-center text-muted-foreground hover:text-primary md:hidden">
-                      <Search className="w-5 h-5" />
-                  </button>
               </form>
                {showSuggestions && searchQuery.length > 0 && (
                  <div className="absolute top-full mt-2 w-full bg-card rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto border border-border">
