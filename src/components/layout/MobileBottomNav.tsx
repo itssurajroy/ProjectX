@@ -2,7 +2,7 @@
 'use client';
 
 import { cn } from "@/lib/utils";
-import { Home, Bookmark, LayoutGrid, User } from "lucide-react";
+import { Home, Bookmark, LayoutGrid, User, Search, Flame, Tv } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -26,12 +26,14 @@ export default function MobileBottomNav() {
         { href: "/home", icon: Home, label: "Home" },
         { href: "/dashboard/watchlist", icon: Bookmark, label: "My Lists" },
         { href: "/az-list/all", icon: LayoutGrid, label: "Browse" },
+        { href: "/search", icon: Search, label: "Search" },
         { href: "/dashboard", icon: User, label: "Account" },
+
     ];
     
     return (
         <nav className="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm border-t border-border z-40 md:hidden hide-in-landscape">
-            <div className="grid grid-cols-4 items-center h-full">
+            <div className="grid grid-cols-5 items-center h-full">
                 {navItems.map(item => (
                     <NavLink key={item.href} {...item} />
                 ))}

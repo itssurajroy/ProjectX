@@ -53,7 +53,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[85vh] group overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
+    <div className="relative w-full h-[60vh] md:h-[85vh] group overflow-hidden">
       <AnimatePresence initial={false}>
         <motion.div
           key={spotlight.id}
@@ -329,19 +329,23 @@ export default function MainDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <SpotlightSection spotlights={spotlightAnimes} />
+      <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+        <SpotlightSection spotlights={spotlightAnimes} />
+      </div>
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-        <PollSection />
+        <div className="mt-[-4rem] relative z-10">
+          <PollSection />
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
                 <AnimeSection title="Trending" animes={trendingAnimes} category="trending" isSpecial="trending" />
                 <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} category="latest-episodes" />
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <AnimeSection title="Top Upcoming" animes={topUpcomingAnimes} category="top-upcoming" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <SmallListSection title="Top Airing" animes={topAiringAnimes} />
-                    <SmallListSection title="Top Upcoming" animes={topUpcomingAnimes} />
-                    <SmallListSection title="Completed" animes={latestCompletedAnimes} />
+                    <SmallListSection title="Completed Series" animes={latestCompletedAnimes} />
                 </div>
                 <AnimeSection title="Most Popular" animes={mostPopularAnimes} category="most-popular" />
                 <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} category="most-favorite" />

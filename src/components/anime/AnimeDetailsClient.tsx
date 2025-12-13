@@ -255,6 +255,9 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                  <div className="pt-2">
                     <Synopsis description={animeInfo.description} />
                 </div>
+                 <div className="container mt-8">
+                  <EpisodesGrid episodes={episodes} animeId={id} />
+                </div>
             </div>
 
             <div className="container mt-8">
@@ -370,6 +373,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     </div>
 
                   <div className="lg:col-span-6 space-y-12">
+                      <EpisodesGrid episodes={episodes} animeId={id} />
                       <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
 
                       <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
