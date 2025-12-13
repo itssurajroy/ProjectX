@@ -53,7 +53,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   if (!spotlight) return null;
 
   return (
-    <div className="relative w-full h-[60vh] md:h-[85vh] group overflow-hidden">
+    <div className="relative w-full h-[60vh] md:h-[85vh] group overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8">
       <AnimatePresence initial={false}>
         <motion.div
           key={spotlight.id}
