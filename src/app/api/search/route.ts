@@ -22,10 +22,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: "This endpoint is deprecated. Use /api/search/suggestion instead." }, { status: 410 });
   }
 
-  const advancedParams = new URLSearchParams();
+  const advancedParams = new URLSearchParams(searchParams.toString());
   let hasFilter = false;
   searchParams.forEach((value, key) => {
-      advancedParams.append(key, value);
       if (['type', 'genres', 'year', 'sort'].includes(key) && value) {
           hasFilter = true;
       }
@@ -33,7 +32,10 @@ export async function GET(request: NextRequest) {
 
   const hasQuery = q && q.trim() !== '';
 
-  if (!hasQuery && !hasFilter) {
+  // If sorting by popularity without a query, the API fails. Add a default query.
+  if (advancedParams.get('sort') && !hasQuery) {
+      advancedParams.set('q', 'a');
+  } else if (!hasQuery && !hasFilter) {
     return NextResponse.json({
       success: false,
       message: "Search query 'q' or at least one filter must be provided.",
@@ -65,5 +67,6 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
+
 
 
