@@ -2,7 +2,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack, Sun, Lightbulb } from "lucide-react";
+import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack, Sun, Lightbulb, Cast } from "lucide-react";
 import { usePlayerSettings } from "@/store/player-settings";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -50,6 +50,7 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
   
   const handleBookmark = () => toast.success("Added to your watchlist!");
   const handleReport = () => toast.error("Report form is coming soon!");
+  const handleCast = () => toast.error("Casting is controlled via the native browser/device menu.");
   
   const leftControls = [
     { icon: Sun, label: "Focus", onClick: toggleFocusMode, isActive: isFocusMode },
@@ -59,6 +60,7 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
   ];
   
   const rightControls = [
+      { icon: Cast, label: "Cast", onClick: handleCast, isStatic: true },
       { icon: Bookmark, label: "Bookmark", onClick: handleBookmark, isStatic: true},
       { icon: Users, label: "W2G", onClick: onW2G, isStatic: true },
       { icon: Flag, label: "Report", onClick: handleReport, isStatic: true },

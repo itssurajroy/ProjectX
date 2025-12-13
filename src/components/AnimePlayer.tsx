@@ -120,6 +120,7 @@ export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext 
         {showConfetti && windowSize.width && windowSize.height && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={400} />}
         <iframe
             src={iframeUrl}
+            allow="picture-in-picture; fullscreen; autoplay; encrypted-media"
             allowFullScreen
             className="w-full h-full border-0"
             scrolling="no"
