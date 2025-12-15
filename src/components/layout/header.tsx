@@ -152,7 +152,7 @@ export default function Header() {
         </div>
 
         <div className="flex-1 flex justify-center items-center gap-2 lg:ml-8">
-            <div ref={searchContainerRef} className="w-full max-w-lg relative">
+            <div ref={searchContainerRef} className="w-full max-w-lg relative hidden md:block">
               <form onSubmit={handleSearch} className="relative">
                   <Input 
                       type="text"
@@ -160,7 +160,7 @@ export default function Header() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={() => searchQuery.trim() && setShowSuggestions(true)}
                       placeholder="Search anime..."
-                      className="bg-card w-full rounded-full h-11 px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all hidden md:block"
+                      className="bg-card w-full rounded-full h-11 px-5 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/50 text-base transition-all"
                   />
               </form>
                {showSuggestions && searchQuery.length > 0 && (

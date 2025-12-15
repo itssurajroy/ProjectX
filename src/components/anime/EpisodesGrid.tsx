@@ -2,7 +2,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { AnimeEpisode } from '@/lib/types/anime';
+import { AnimeEpisode, AnimeInfo } from '@/lib/types/anime';
 import ProgressiveImage from '../ProgressiveImage';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
@@ -10,18 +10,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 interface EpisodesGridProps {
   episodes: AnimeEpisode[];
   animeId: string;
+  animePoster: string;
 }
 
-const EpisodeCard = ({ episode, animeId }: { episode: AnimeEpisode, animeId: string }) => {
-  // A placeholder for episode thumbnails. In a real app, you'd get this from the API.
-  const thumbnailUrl = `https://picsum.photos/seed/${animeId}-${episode.number}/400/225`;
+const EpisodeCard = ({ episode, animeId, animePoster }: { episode: AnimeEpisode, animeId: string, animePoster: string }) => {
   const watchUrl = `/watch/${animeId}?ep=${episode.number}`;
 
   return (
     <Link href={watchUrl} className="space-y-2 group">
       <div className="aspect-video w-full rounded-lg overflow-hidden relative">
         <ProgressiveImage
-          src={thumbnailUrl}
+          src={animePoster}
           alt={`Episode ${episode.number}`}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -37,7 +36,7 @@ const EpisodeCard = ({ episode, animeId }: { episode: AnimeEpisode, animeId: str
 };
 
 
-export default function EpisodesGrid({ episodes, animeId }: EpisodesGridProps) {
+export default function EpisodesGrid({ episodes, animeId, animePoster }: EpisodesGridProps) {
   if (!episodes || episodes.length === 0) {
     return null;
   }
@@ -59,7 +58,7 @@ export default function EpisodesGrid({ episodes, animeId }: EpisodesGridProps) {
                  <AccordionContent>
                     <div className="grid grid-cols-2 gap-4 pt-4">
                         {chunk.map(ep => (
-                            <EpisodeCard key={ep.episodeId} episode={ep} animeId={animeId} />
+                            <EpisodeCard key={ep.episodeId} episode={ep} animeId={animeId} animePoster={animePoster} />
                         ))}
                     </div>
                 </AccordionContent>
