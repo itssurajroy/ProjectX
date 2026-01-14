@@ -139,7 +139,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
 };
 
 const PollSection = () => (
-    <div className="bg-card p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border">
+    <div className="bg-card/50 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border/50">
         <div className="flex items-center gap-3">
             <Heart className="w-8 h-8 text-primary" />
             <div>
@@ -373,3 +373,5 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
