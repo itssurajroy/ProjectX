@@ -14,6 +14,7 @@ import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
 import { AnimeService } from '@/lib/services/AnimeService';
 import { useState } from "react";
+import { useTitleLanguageStore } from "@/store/title-language-store";
 
 const TooltipSkeleton = () => (
     <div className="p-2 space-y-3">
@@ -29,6 +30,7 @@ const TooltipSkeleton = () => (
 
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const { language } = useTitleLanguageStore();
 
   const { data: qtipResult, isLoading } = useQuery<{anime: QtipAnime}>({
     queryKey: ['qtip', animeId],
@@ -39,6 +41,8 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
   });
   
   const anime = qtipResult?.anime;
+  const title = anime ? (language === 'romaji' && anime.jname ? anime.jname : anime.name) : 'Loading...';
+
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -49,7 +53,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
             <TooltipSkeleton />
           ) : (
             <div className="p-3 space-y-3">
-                <h3 className="font-bold text-base text-primary">{anime.name}</h3>
+                <h3 className="font-bold text-base text-primary">{title}</h3>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     {anime.malscore && <div className="flex items-center gap-1"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {anime.malscore}</div>}
                     <div className="flex items-center gap-1"><Tv className="w-3 h-3"/> {anime.type}</div>

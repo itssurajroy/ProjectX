@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, Users, Bell, Loader2 } from 'lucide-react';
+import { Search, Menu, Shuffle, X, Users, Bell, Loader2, Languages } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { SearchSuggestion } from '@/lib/types/anime';
@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useUser } from '@/firebase/auth/use-user';
 import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
+import { useTitleLanguageStore } from '@/store/title-language-store';
 
 function UserAuth() {
   const { user, userProfile, loading } = useUser();
@@ -69,6 +70,16 @@ function UserAuth() {
         <Link href="/login">Login</Link>
     </Button>
   )
+}
+
+function LanguageToggleButton() {
+    const { language, toggleLanguage } = useTitleLanguageStore();
+    return (
+        <Button onClick={toggleLanguage} variant="ghost" size="icon" title="Toggle Title Language">
+            <Languages className="w-5 h-5" />
+            <span className="absolute -bottom-1 right-0 text-xs font-bold text-primary">{language === 'english' ? 'EN' : 'JP'}</span>
+        </Button>
+    )
 }
 
 export default function Header() {
@@ -195,6 +206,7 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {mounted && (
             <>
+              <LanguageToggleButton />
               <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
                 <Link href="/watch2gether" title="Watch Together">
                   <Users className="w-5 h-5 text-primary" />

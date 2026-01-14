@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Balancer from 'react-wrap-balancer';
 import { Button } from '@/components/ui/button';
 import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
+import { useTitleLanguageStore } from '@/store/title-language-store';
 
 interface HomeDataWithQtips extends HomeData {
     qtips: Record<string, QtipAnime>;
@@ -24,6 +25,7 @@ interface HomeDataWithQtips extends HomeData {
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const autoplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { language } = useTitleLanguageStore();
 
   const handleNext = useCallback(() => {
     if (!spotlights || spotlights.length === 0) return;
@@ -51,6 +53,8 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   const spotlight = spotlights[currentIndex];
   
   if (!spotlight) return null;
+
+  const title = language === 'romaji' && spotlight.jname ? spotlight.jname : spotlight.name;
 
   return (
     <div className="relative w-full h-[60vh] md:h-[85vh] group overflow-hidden">
@@ -86,7 +90,7 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
         >
           <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-display my-3 text-glow">
-            <Balancer>{spotlight.name}</Balancer>
+            <Balancer>{title}</Balancer>
           </h1>
           <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4 flex-wrap">
               {spotlight.otherInfo.map((info, i) => (
@@ -154,6 +158,7 @@ const PollSection = () => (
 )
 
 const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[] | undefined }) => {
+    const { language } = useTitleLanguageStore();
     if (!animes || animes.length === 0) return null;
 
     return (
@@ -163,25 +168,28 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
             </div>
             <div className="bg-card p-2 rounded-lg border border-border">
                 <div className="space-y-2">
-                    {animes.slice(0, 7).map((anime, index) => (
-                        <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
-                            <div className="relative w-12 h-[72px] flex-shrink-0">
-                                <ProgressiveImage 
-                                  src={anime.poster}
-                                  alt={anime.name || "Anime Poster"} 
-                                  fill 
-                                  className="object-cover rounded-md" 
-                                />
-                            </div>
-                            <div className='overflow-hidden flex-1'>
-                                <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{anime.name}</p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                    {anime.type && <span>{anime.type}</span>}
-                                    {anime.duration && <span>&bull; {anime.duration}</span>}
+                    {animes.slice(0, 7).map((anime, index) => {
+                        const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
+                        return (
+                            <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
+                                <div className="relative w-12 h-[72px] flex-shrink-0">
+                                    <ProgressiveImage 
+                                      src={anime.poster}
+                                      alt={anime.name || "Anime Poster"} 
+                                      fill 
+                                      className="object-cover rounded-md" 
+                                    />
                                 </div>
-                            </div>
-                        </Link>
-                    ))}
+                                <div className='overflow-hidden flex-1'>
+                                    <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{animeTitle}</p>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                        {anime.type && <span>{anime.type}</span>}
+                                        {anime.duration && <span>&bull; {anime.duration}</span>}
+                                    </div>
+                                </div>
+                            </Link>
+                        )
+                    })}
                 </div>
             </div>
         </div>
@@ -191,6 +199,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
 
 const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const { language } = useTitleLanguageStore();
 
     const { data: scheduleData, isLoading, error, refetch } = useQuery<ScheduleResponse>({
         queryKey: ['schedule', selectedDate.toISOString().split('T')[0]],
@@ -233,6 +242,7 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
                      <ErrorDisplay description='Could not load schedule.' onRetry={refetch} isCompact/>
                 ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
                     const isTopAiring = topAiringIds.has(anime.id);
+                    const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
                     return (
                         <Link key={anime.id} href={`/anime/${anime.id}`} className={cn(
                             "flex justify-between items-center group p-2 rounded-md hover:bg-muted/50 border-b border-border/50 last:border-b-0",
@@ -246,7 +256,7 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
                                 <p className={cn(
                                     "truncate font-semibold text-sm group-hover:text-primary transition-colors",
                                      isTopAiring && "text-primary"
-                                )}>{anime.name}</p>
+                                )}>{animeTitle}</p>
                             </div>
                             <span className='text-xs text-muted-foreground'>EP {anime.episode || '?'}</span>
                         </Link>
@@ -262,6 +272,7 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
 
 const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes'] | undefined }) => {
     const [trendingPeriod, setTrendingPeriod] = useState<'today' | 'week' | 'month'>('today');
+    const { language } = useTitleLanguageStore();
     if (!top10Animes) return null;
 
     const animesToDisplay = top10Animes[trendingPeriod] || [];
@@ -277,36 +288,39 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
                 </div>
             </div>
             <div className="space-y-2">
-            {animesToDisplay.map((anime, index) => (
-                <Link
-                    key={anime.id}
-                    href={`/anime/${anime.id}`}
-                    className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
-                >
-                    <ProgressiveImage
-                        src={anime.poster}
-                        alt={anime.name || "Anime Poster"}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-20"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
-                    
-                    <div className="relative flex items-center gap-3">
-                         <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-lg"
-                            style={{ borderColor: index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--border))'}}>
-                            {anime.rank || index + 1}
-                        </div>
-                        <div className="flex-1 overflow-hidden">
-                            <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{anime.name}</p>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/20 text-primary"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
-                                {anime.episodes?.dub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
-                                <span className='hidden sm:inline'>{anime.type}</span>
+            {animesToDisplay.map((anime, index) => {
+                const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
+                return (
+                    <Link
+                        key={anime.id}
+                        href={`/anime/${anime.id}`}
+                        className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
+                    >
+                        <ProgressiveImage
+                            src={anime.poster}
+                            alt={anime.name || "Anime Poster"}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-20"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
+                        
+                        <div className="relative flex items-center gap-3">
+                             <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-lg"
+                                style={{ borderColor: index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--border))'}}>
+                                {anime.rank || index + 1}
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{animeTitle}</p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                    {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/20 text-primary"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
+                                    {anime.episodes?.dub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
+                                    <span className='hidden sm:inline'>{anime.type}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Link>
-            ))}
+                    </Link>
+                )
+            })}
             </div>
         </div>
     );

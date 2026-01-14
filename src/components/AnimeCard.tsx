@@ -12,6 +12,7 @@ import toast from "react-hot-toast"
 import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/firebase/client"
 import { useRouter } from "next/navigation"
+import { useTitleLanguageStore } from "@/store/title-language-store"
 
 type AnimeCardProps = {
   anime: AnimeBase;
@@ -70,8 +71,11 @@ const WatchlistButton = ({ animeId }: { animeId: string }) => {
 
 
 export function AnimeCard({ anime, rank }: AnimeCardProps) {
+  const { language } = useTitleLanguageStore();
   const isAdult = anime.rating === 'R' || anime.rating === 'R+' || anime.rating === 'Rx';
   
+  const title = language === 'romaji' && anime.jname ? anime.jname : anime.name;
+
   return (
     <AnimeTooltip animeId={anime.id}>
       <Link href={`/anime/${anime.id}`} className="group relative block w-full h-full">
@@ -112,7 +116,7 @@ export function AnimeCard({ anime, rank }: AnimeCardProps) {
 
         <div className="mt-2 px-1 space-y-1">
           <h3 className="font-bold text-sm leading-tight text-foreground truncate group-hover:text-primary transition-colors duration-300">
-            {anime.name}
+            {title}
           </h3>
 
           <div className="flex flex-wrap items-center justify-between gap-2">

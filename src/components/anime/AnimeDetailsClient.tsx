@@ -33,7 +33,8 @@ import toast from 'react-hot-toast';
 import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/firebase/client';
 import { cn } from '@/lib/utils';
-import EpisodesGrid from './EpisodesGrid';
+import { useTitleLanguageStore } from '@/store/title-language-store';
+
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
   loading: () => <Skeleton className="h-48 w-full" />,
@@ -89,6 +90,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
 export default function AnimeDetailsClient({ id }: { id: string }) {
   const router = useRouter();
   const { user } = useUser();
+  const { language } = useTitleLanguageStore();
   const [showAgeGate, setShowAgeGate] = useState(false);
   
   const {
@@ -179,6 +181,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const firstEpisodeWatchId = firstEpisode ? (extractEpisodeNumber(firstEpisode.episodeId) || firstEpisode.number) : null;
 
   const stats = animeInfo.stats;
+  const title = language === 'romaji' && moreInfo.japanese ? moreInfo.japanese : animeInfo.name;
   
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -227,7 +230,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
             <div className="container -mt-4 relative z-10 space-y-4">
                  <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-display font-bold text-glow">{animeInfo.name}</h1>
+                    <h1 className="text-3xl font-display font-bold text-glow">{title}</h1>
                     <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
                         <span>{moreInfo.premiered}</span>
                         {seasons.length > 0 && <span>&bull; Season {seasons.findIndex(s => s.id === id) + 1}</span>}
@@ -300,7 +303,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                 
                 <div className="lg:col-span-9 flex flex-col justify-center h-full text-center lg:text-left">
                   <div className="text-sm text-muted-foreground hidden sm:block">Home &gt; {stats.type} &gt; {animeInfo.name}</div>
-                  <h1 className="text-4xl lg:text-5xl font-display font-bold mt-2 text-glow">{animeInfo.name}</h1>
+                  <h1 className="text-4xl lg:text-5xl font-display font-bold mt-2 text-glow">{title}</h1>
                   
                   <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
                       {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'secondary'} className="px-2 py-1">{stats.rating}</Badge>}
