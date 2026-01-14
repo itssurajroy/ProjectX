@@ -19,7 +19,7 @@ interface SeasonsSwiperProps {
 }
 
 export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiperProps) {
-    if (!seasons || seasons.length <= 1) {
+    if (!seasons || !Array.isArray(seasons) || seasons.length <= 1) {
         return null;
     }
 

@@ -57,7 +57,7 @@ export default function LandingPage() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const trendingAnimes = homeData?.trendingAnimes.slice(0, 5) || [];
+    const trendingAnimes = (homeData?.trendingAnimes || []).slice(0, 5);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

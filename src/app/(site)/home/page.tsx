@@ -197,7 +197,7 @@ const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[
 }
 
 
-const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) => {
+const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] | undefined }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const { language } = useTitleLanguageStore();
 
@@ -214,7 +214,7 @@ const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] }) 
         });
     }
 
-    const topAiringIds = new Set(topAiringAnimes.map(a => a.id));
+    const topAiringIds = new Set((topAiringAnimes || []).map(a => a.id));
     const scheduledAnimes = scheduleData?.scheduledAnimes || [];
     
     return (
@@ -366,7 +366,7 @@ export default function MainDashboardPage() {
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar top10Animes={top10Animes} />
-                {topAiringAnimes && <ScheduleSidebar topAiringAnimes={topAiringAnimes} />}
+                <ScheduleSidebar topAiringAnimes={topAiringAnimes} />
             </div>
         </div>
       </div>

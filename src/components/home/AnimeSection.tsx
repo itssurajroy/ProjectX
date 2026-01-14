@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeBase } from "@/types/anime";
+import { AnimeBase } from "@/lib/types/anime";
 import { AnimeCard } from "@/components/AnimeCard";
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from "lucide-react";
