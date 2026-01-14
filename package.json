@@ -10,7 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "seed": "tsx src/lib/seed.ts"
+    "seed": "tsx --env-file .env src/lib/seed.ts"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.20.0",
