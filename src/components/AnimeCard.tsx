@@ -1,18 +1,19 @@
 
-
 import { AnimeBase } from "@/lib/types/anime"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
-import { Clapperboard, Mic, Play, Clock, BookmarkPlus, BookmarkCheck } from "lucide-react"
+import { Clapperboard, Mic, Play, Clock, BookmarkPlus, BookmarkCheck, MoreHorizontal, Check } from "lucide-react"
 import ProgressiveImage from "./ProgressiveImage"
 import { useUser } from "@/firebase/auth/use-user"
 import { useDoc } from "@/firebase/firestore/useDoc"
-import { WatchlistItem } from "@/lib/types/watchlist"
+import { WatchlistItem, WatchlistStatus } from "@/lib/types/watchlist"
 import toast from "react-hot-toast"
-import { doc, setDoc, deleteDoc, serverTimestamp } from "firebase/firestore"
+import { doc, setDoc, deleteDoc, serverTimestamp, updateDoc } from "firebase/firestore"
 import { db } from "@/firebase/client"
 import { useRouter } from "next/navigation"
 import { useTitleLanguageStore } from "@/store/title-language-store"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
 type AnimeCardProps = {
   anime: AnimeBase;
@@ -26,23 +27,24 @@ const WatchlistButton = ({ animeId }: { animeId: string }) => {
   const { data: watchlistItem, loading: loadingWatchlist } = useDoc<WatchlistItem>(`users/${user?.uid}/watchlist/${animeId}`);
   const isInWatchlist = !!watchlistItem;
 
-  const handleWatchlistToggle = async (e: React.MouseEvent) => {
+  const statuses: WatchlistStatus[] = ['Watching', 'Completed', 'On-Hold', 'Dropped', 'Plan to Watch'];
+
+  const handleWatchlistAction = async (e: React.MouseEvent, action: 'add' | 'remove' | 'update', status?: WatchlistStatus) => {
     e.preventDefault(); 
     e.stopPropagation();
 
     if (!user) {
-        toast.error("Log in to add to your watchlist.");
+        toast.error("Log in to manage your watchlist.");
         router.push('/login');
         return;
     }
-    const toastId = toast.loading(isInWatchlist ? "Removing..." : "Adding...");
+    
     const docRef = doc(db, `users/${user.uid}/watchlist/${animeId}`);
+    let toastId;
 
     try {
-        if (isInWatchlist) {
-            await deleteDoc(docRef);
-            toast.success("Removed from watchlist.", { id: toastId });
-        } else {
+        if (action === 'add') {
+            toastId = toast.loading("Adding to watchlist...");
             await setDoc(docRef, {
                 id: animeId,
                 status: 'Plan to Watch',
@@ -50,6 +52,17 @@ const WatchlistButton = ({ animeId }: { animeId: string }) => {
                 updatedAt: serverTimestamp(),
             });
             toast.success("Added to watchlist!", { id: toastId });
+        } else if (action === 'remove') {
+            toastId = toast.loading("Removing from watchlist...");
+            await deleteDoc(docRef);
+            toast.success("Removed from watchlist.", { id: toastId });
+        } else if (action === 'update' && status) {
+            toastId = toast.loading(`Updating status to "${status}"...`);
+            await updateDoc(docRef, {
+                status: status,
+                updatedAt: serverTimestamp(),
+            });
+            toast.success(`Status updated to "${status}"!`, { id: toastId });
         }
     } catch (err) {
         toast.error("Failed to update watchlist.", { id: toastId });
@@ -57,14 +70,41 @@ const WatchlistButton = ({ animeId }: { animeId: string }) => {
     }
   };
 
+  if (isInWatchlist) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                className="absolute top-2 right-2 z-20 p-1.5 bg-primary rounded-full text-primary-foreground hover:bg-primary/80 transition-all duration-200"
+                aria-label="Manage watchlist item"
+            >
+                <MoreHorizontal className="w-4 h-4" />
+            </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+            {statuses.map((status) => (
+                <DropdownMenuItem key={status} onSelect={(e) => handleWatchlistAction(e as any, 'update', status)}>
+                    <Check className={cn("w-4 h-4 mr-2", watchlistItem?.status === status ? "opacity-100" : "opacity-0")} />
+                    {status}
+                </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem onSelect={(e) => handleWatchlistAction(e as any, 'remove')} className="text-destructive">
+                 Remove from list
+            </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
     <button
-      onClick={handleWatchlistToggle}
+      onClick={(e) => handleWatchlistAction(e, 'add')}
       className="absolute top-2 right-2 z-20 p-1.5 bg-black/50 rounded-full text-white hover:bg-primary hover:text-white transition-all duration-200 opacity-0 group-hover:opacity-100"
-      aria-label={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+      aria-label="Add to watchlist"
       disabled={loadingWatchlist}
     >
-      {isInWatchlist ? <BookmarkCheck className="w-4 h-4" /> : <BookmarkPlus className="w-4 h-4" />}
+      <BookmarkPlus className="w-4 h-4" />
     </button>
   );
 };
