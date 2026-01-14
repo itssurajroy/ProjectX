@@ -1,4 +1,5 @@
 // src/lib/firebaseAdmin.ts
+import 'dotenv/config';
 import * as admin from 'firebase-admin';
 
 // IMPORTANT: Set these environment variables in your Vercel/deployment environment.
@@ -12,7 +13,7 @@ const serviceAccount = {
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+      credential: admin.credential.cert(serviceAccount as any),
     });
     console.log('Firebase Admin SDK initialized.');
   } catch (error: any) {
