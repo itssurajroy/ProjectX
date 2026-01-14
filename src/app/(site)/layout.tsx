@@ -17,14 +17,14 @@ export default function SiteLayout({
 
   const isAnimeDetailsPage = /^\/anime\/[^/]+$/.test(pathname);
   const isW2GRoom = /^\/watch2gether\/[^/]+$/.test(pathname);
-  const isDashboard = pathname.startsWith('/dashboard');
+
+  // Hide header and footer for admin routes
+  if (pathname.startsWith('/admin')) {
+      return <main>{children}</main>;
+  }
 
   if (isW2GRoom) {
     return <main>{children}</main>;
-  }
-
-  if (isDashboard) {
-      return null;
   }
 
   return (

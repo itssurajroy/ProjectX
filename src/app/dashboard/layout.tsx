@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper } from 'lucide-react';
+import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
 import { useUser } from '@/firebase/auth/use-user';
@@ -76,6 +76,15 @@ const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
                 {desktopNavItems.map(item => (
                     <NavLink key={item.href} item={item} onClick={onLinkClick} />
                 ))}
+                 {userProfile?.role === 'admin' && (
+                    <Link href="/admin" className={cn(
+                        "flex items-center gap-3 rounded-md transition-all duration-200 px-3 py-2 mt-4",
+                        "text-amber-400 bg-amber-500/10 hover:bg-amber-500/20"
+                    )} onClick={onLinkClick}>
+                        <Shield className="w-5 h-5 shrink-0" />
+                        <span className="truncate font-semibold">Admin Panel</span>
+                    </Link>
+                 )}
             </nav>
             <div className="p-4 border-t border-border">
                 <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
