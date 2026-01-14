@@ -43,9 +43,10 @@ import toast from 'react-hot-toast';
 
 const WatchSidebar = dynamic(() => import('@/components/watch/WatchSidebar'), { ssr: false });
 
-const extractEpisodeNumber = (id: string | null): string | null => {
+const extractHianimeEpId = (id: string | null): string | null => {
   if (!id) return null;
-  return id.split('?ep=')[1] || null;
+  const parts = id.split('?ep=');
+  return parts.length > 1 ? parts[1] : null;
 }
 interface SourcesData {
     sources: Source[];
@@ -113,9 +114,9 @@ function WatchPageComponent() {
     );
   }, [episodes, episodeParam]);
   
-  const currentEpisodeId = useMemo(() => {
+  const hianimeEpId = useMemo(() => {
       if (!currentEpisode) return null;
-      return currentEpisode.episodeId;
+      return extractHianimeEpId(currentEpisode.episodeId);
   }, [currentEpisode]);
 
   useEffect(() => {
@@ -227,8 +228,9 @@ function WatchPageComponent() {
 
         <div className={cn("lg:col-span-6 space-y-4", isFocusMode && "relative z-40")}>
             <div className="aspect-video w-full overflow-hidden rounded-lg bg-black">
-                {currentEpisode ? (
+                {currentEpisode && hianimeEpId ? (
                     <AnimePlayer 
+                        hianimeEpisodeId={hianimeEpId}
                         episodeId={currentEpisode.episodeId}
                         episodeNumber={currentEpisode.number.toString()}
                         animeId={animeId}

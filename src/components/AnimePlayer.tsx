@@ -13,7 +13,7 @@ import { db } from '@/firebase/client';
 import { sanitizeFirestoreId } from '@/lib/utils';
 import Link from 'next/link';
 
-export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext }: { episodeId: string; episodeNumber: string; animeId: string; onNext: () => void }) {
+export default function AnimePlayer({ hianimeEpisodeId, episodeId, episodeNumber, animeId, onNext }: { hianimeEpisodeId: string; episodeId: string; episodeNumber: string; animeId: string; onNext: () => void }) {
   const { user } = useUser();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -101,7 +101,7 @@ export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext 
   }, [handleEpisodeEnd]);
 
 
-  if (!episodeNumber) {
+  if (!hianimeEpisodeId) {
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-center p-4 z-10">
         <ServerCrash className="w-16 h-16 text-destructive mb-4" />
@@ -113,7 +113,7 @@ export default function AnimePlayer({ episodeId, episodeNumber, animeId, onNext 
 
   // Simplified to always use the iframe.
   // The category (sub/dub) could be a prop in the future.
-  const iframeUrl = `https://megaplay.buzz/stream/s-2/${episodeNumber}/sub`;
+  const iframeUrl = `https://megaplay.buzz/stream/s-2/${hianimeEpisodeId}/sub`;
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
