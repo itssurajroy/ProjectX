@@ -27,8 +27,6 @@ const desktopNavItems = [
   { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
 ];
 
-const adminNavItem = { name: 'Admin', icon: Shield, href: '/admin' };
-
 const NavLink = ({ item, onClick }: { item: typeof desktopNavItems[0], onClick?: () => void }) => {
     const pathname = usePathname();
     const isActive = pathname === item.href;
@@ -48,7 +46,6 @@ const NavLink = ({ item, onClick }: { item: typeof desktopNavItems[0], onClick?:
 const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const { user, userProfile } = useUser();
     const router = useRouter();
-    const isAdmin = userProfile?.role === 'admin';
 
     const handleSignOut = async () => {
       try {
@@ -79,14 +76,6 @@ const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
                 {desktopNavItems.map(item => (
                     <NavLink key={item.href} item={item} onClick={onLinkClick} />
                 ))}
-                {isAdmin && (
-                  <>
-                    <div className="py-2">
-                      <div className="h-px bg-border"/>
-                    </div>
-                    <NavLink item={adminNavItem} onClick={onLinkClick} />
-                  </>
-                )}
             </nav>
             <div className="p-4 border-t border-border">
                 <Button variant="ghost" className="w-full justify-start gap-3" onClick={handleSignOut}>
