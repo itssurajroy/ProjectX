@@ -1,5 +1,6 @@
 
 // src/lib/seed.ts
+import 'dotenv/config';
 import { adminAuth, adminDb } from './firebaseAdmin';
 
 const ADMIN_EMAIL = 'admin@projectx.com';
