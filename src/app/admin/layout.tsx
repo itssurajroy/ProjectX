@@ -3,13 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper, Tv, Settings, Flag } from 'lucide-react';
+import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper, Tv, Settings, Flag, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUser } from '@/firebase/auth/use-user';
 import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import SiteLogo from '@/components/layout/SiteLogo';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -19,13 +19,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { user, loading } = useUser();
     const router = useRouter();
 
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
+
     if (loading) {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="w-16 h-16 animate-spin text-primary" /></div>;
     }
     
     // Basic role check - in a real app, this would be more robust
     if (!user) {
-        router.push('/login');
         return null;
     }
 

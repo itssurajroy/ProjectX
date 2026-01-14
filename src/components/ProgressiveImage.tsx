@@ -67,7 +67,7 @@ export default function ProgressiveImage({
           className
         )}
         unoptimized={true} // ← Since we're using external anime posters
-        onLoadingComplete={() => setLoading(false)}
+        onLoad={() => setLoading(false)}
         onError={() => {
           setLoading(false);
           setError(true);
