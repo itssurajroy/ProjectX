@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 // IMPORTANT: Set these environment variables in your Vercel/deployment environment.
 // Do not hardcode them here.
 const serviceAccount = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
+  projectId: process.env.FIREBASE_PROJECT_ID || 'studio-8183683078-60ab0',
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
   privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
 };
