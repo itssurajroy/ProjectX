@@ -8,7 +8,9 @@ import { Loader2, Send } from 'lucide-react';
 import { ChatMessage } from '@/lib/types/watch2gether';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
-import { useCollection, useUser, db } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/client/useCollection';
+import { db } from '@/firebase/client';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 

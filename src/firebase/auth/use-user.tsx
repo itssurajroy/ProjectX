@@ -1,10 +1,9 @@
-
 // src/firebase/auth/use-user.tsx
 'use client';
 import { useContext } from 'react';
 import type { User } from 'firebase/auth';
 import type { UserProfile } from '@/lib/types/user';
-import { FirebaseContext } from '@/firebase/client';
+import { FirebaseContext } from '@/firebase/client/provider';
 
 export interface UseUserResult {
   user: User | null;

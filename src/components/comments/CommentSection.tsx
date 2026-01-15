@@ -8,14 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Comment, CommentWithUser } from '@/lib/types/comment';
 import { Textarea } from '../ui/textarea';
-import { Badge } from './ui/badge';
+import { Badge } from '../ui/badge';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
-import { useUser, useCollection, db } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/client/useCollection';
+import { db } from '@/firebase/client';
 import { collection, query, where, orderBy, onSnapshot, addDoc, updateDoc, arrayUnion, arrayRemove, doc, serverTimestamp, getDocs, limit, runTransaction } from 'firebase/firestore';
 import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 import { UserProfile } from '@/lib/types/user';
-import CommentItem from './comments/CommentItem';
+import CommentItem from './CommentItem';
 
 const buildCommentTree = (comments: CommentWithUser[]): CommentWithUser[] => {
     const commentMap: { [id: string]: CommentWithUser } = {};

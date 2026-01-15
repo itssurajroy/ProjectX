@@ -9,7 +9,7 @@ import {
   serverTimestamp,
   Firestore,
 } from 'firebase/firestore';
-import { auth, db } from '.';
+import { auth, db } from '@/firebase/client';
 import { UserProfile } from '@/lib/types/user';
 
 export interface FirebaseContextValue {

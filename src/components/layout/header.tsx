@@ -15,7 +15,8 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { useUser, auth } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 

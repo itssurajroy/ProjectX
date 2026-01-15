@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot, DocumentData } from 'firebase/firestore';
-import { db } from '.';
+import { db } from '@/firebase/client';
 import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 
 

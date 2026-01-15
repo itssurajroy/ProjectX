@@ -9,7 +9,7 @@ import {
   Query,
   DocumentData,
 } from 'firebase/firestore';
-import { db } from '.';
+import { db } from '@/firebase/client';
 import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 
 class FirestorePermissionError extends Error {

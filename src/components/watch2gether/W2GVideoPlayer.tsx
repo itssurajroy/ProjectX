@@ -5,7 +5,8 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import AnimePlayer from '../AnimePlayer';
 import { WatchTogetherRoom } from '@/lib/types/watch2gether';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { db, useUser } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { db } from '@/firebase/client';
 import toast from 'react-hot-toast';
 
 interface W2GVideoPlayerProps {
