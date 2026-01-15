@@ -1,5 +1,4 @@
 
-
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -35,6 +34,7 @@ import toast from 'react-hot-toast';
 import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useTitleLanguageStore } from '@/store/title-language-store';
+import CharacterCard from './CharacterCard';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -48,45 +48,6 @@ const PVCarousel = dynamic(() => import('@/components/anime/PVCarousel'), {
 
 
 const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
-
-const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
-    <div className="bg-card rounded-lg overflow-hidden flex border border-border">
-        {/* Character */}
-        <Link href={`/character/${cv.character.id}`} className="w-1/2 flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors">
-            <div className="relative aspect-[2/3] w-12 flex-shrink-0">
-                <ProgressiveImage 
-                  src={cv.character.poster}
-                  alt={cv.character.name || "Character"} 
-                  fill
-                  className="object-cover rounded-md"
-                />
-            </div>
-            <div className="overflow-hidden">
-                <h4 className="font-bold text-sm text-primary truncate">{cv.character.name}</h4>
-                <p className="text-xs text-muted-foreground">{cv.character.cast}</p>
-            </div>
-        </Link>
-
-        {/* Voice Actor */}
-        {cv.voiceActor && (
-            <Link href={`/staff/${cv.voiceActor.id}`} className="w-1/2 flex items-center gap-3 p-3 bg-muted/30 justify-end text-right hover:bg-muted/50 transition-colors">
-                <div className="overflow-hidden">
-                    <p className="font-bold text-sm truncate">{cv.voiceActor.name}</p>
-                    <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
-                </div>
-                <div className="relative aspect-square w-12 flex-shrink-0">
-                    <ProgressiveImage 
-                      src={cv.voiceActor.poster}
-                      alt={cv.voiceActor.name || "Voice Actor"} 
-                      fill 
-                      className="rounded-full object-cover"
-                    />
-                </div>
-            </Link>
-        )}
-    </div>
-);
-
 
 export default function AnimeDetailsClient({ id }: { id: string }) {
   const router = useRouter();
