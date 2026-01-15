@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchRes = await fetch(
-      `${BASE_URL}/${q}?${advancedParams.toString()}`,
+      `${BASE_URL}/advanced-search?${advancedParams.toString()}`,
       { next: { revalidate: 300 } } // Cache for 5 minutes
     );
     
@@ -67,6 +67,3 @@ export async function GET(request: NextRequest) {
 }
 
 export const dynamic = "force-dynamic";
-
-
-
