@@ -14,10 +14,12 @@ export default function SiteLayout({
 }>) {
   const pathname = usePathname();
 
+  // The watch page should be immersive, so we hide some UI elements.
   const isWatchPage = /^\/watch\/[^/]+$/.test(pathname);
   const isW2GRoom = /^\/watch2gether\/[^/]+$/.test(pathname);
   
-  const showHeader = !isWatchPage && !isW2GRoom;
+  // Header is now always shown.
+  const showHeader = true;
   const showFooter = !isWatchPage && !isW2GRoom;
   const showMobileNav = !isWatchPage && !isW2GRoom;
 
