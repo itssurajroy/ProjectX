@@ -4,6 +4,8 @@ export interface UserProfile {
   photoURL?: string;
   email: string;
   role: 'user' | 'admin' | 'moderator';
+  bio?: string;
+  favoriteAnimeId?: string;
   level?: number;
   xp?: number;
   premiumUntil?: any; // Could be Date or a server timestamp object

@@ -1,7 +1,7 @@
 
 
 'use client';
-import { User, Loader2, Save, Shield } from 'lucide-react';
+import { User, Loader2, Save, Shield, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,11 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useUser, db } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { db } from '@/firebase/client';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 const RoleBadge = ({ role }: { role: 'user' | 'moderator' | 'admin' }) => {
     const roleStyles = {
@@ -34,12 +37,14 @@ export default function ProfilePage() {
     const { user, userProfile, loading } = useUser();
     const [displayName, setDisplayName] = useState('');
     const [photoURL, setPhotoURL] = useState('');
+    const [bio, setBio] = useState('');
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (userProfile) {
             setDisplayName(userProfile.displayName || '');
             setPhotoURL(userProfile.photoURL || '');
+            setBio(userProfile.bio || '');
         }
     }, [userProfile]);
     
@@ -54,7 +59,8 @@ export default function ProfilePage() {
             const userRef = doc(db, 'users', user.uid);
             await updateDoc(userRef, {
                 displayName,
-                photoURL
+                photoURL,
+                bio
             });
             await updateProfile(user, {
                 displayName,
@@ -104,7 +110,7 @@ export default function ProfilePage() {
                     <CardDescription>View and edit your public profile details.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-start gap-6">
                         <Avatar className="w-24 h-24 border-4 border-primary/50">
                             <AvatarImage src={photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`} />
                             <AvatarFallback>{displayName?.charAt(0) || userProfile.email.charAt(0)}</AvatarFallback>
@@ -112,9 +118,17 @@ export default function ProfilePage() {
                         <div className='flex-1'>
                              <h2 className="text-2xl font-bold">{displayName}</h2>
                              <p className="text-muted-foreground">{userProfile.email}</p>
-                             <div className="mt-2">
+                             <div className="mt-2 flex items-center gap-2">
                                 <RoleBadge role={userProfile.role} />
+                                {userProfile.favoriteAnimeId && (
+                                     <Link href={`/anime/${userProfile.favoriteAnimeId}`} className="group">
+                                        <Badge className="bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20 cursor-pointer gap-1">
+                                            <Star className="w-3 h-3 text-amber-500 group-hover:fill-amber-500 transition-all" /> Favorite
+                                        </Badge>
+                                    </Link>
+                                )}
                             </div>
+                            <p className="text-sm text-muted-foreground mt-4 italic">{bio || 'No bio yet.'}</p>
                         </div>
                     </div>
                     
@@ -139,6 +153,18 @@ export default function ProfilePage() {
                                 placeholder="https://example.com/avatar.png"
                             />
                              <p className="text-xs text-muted-foreground">Note: Changing this won't update your social login avatar.</p>
+                        </div>
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Label htmlFor="bio">Bio</Label>
+                            <Textarea
+                                id="bio"
+                                value={bio}
+                                onChange={(e) => setBio(e.target.value)}
+                                placeholder="Tell us about yourself..."
+                                maxLength={150}
+                                className="resize-none"
+                            />
+                            <p className="text-xs text-muted-foreground text-right">{bio.length} / 150</p>
                         </div>
                     </div>
                     
