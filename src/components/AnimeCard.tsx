@@ -136,6 +136,7 @@ export function AnimeCard({ anime, rank }: AnimeCardProps) {
             alt={anime.name || "Anime Poster"}
             fill
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16.6vw"
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-opacity duration-300 opacity-80 group-hover:opacity-90" />

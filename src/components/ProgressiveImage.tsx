@@ -13,6 +13,7 @@ interface ProgressiveImageProps {
   placeholder?: "blur" | "empty";
   fill?: boolean;
   priority?: boolean;
+  sizes?: string;
 }
 
 const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
@@ -26,6 +27,7 @@ export default function ProgressiveImage({
   placeholder = "blur",
   fill,
   priority,
+  sizes
 }: ProgressiveImageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -61,12 +63,12 @@ export default function ProgressiveImage({
         height={fill ? undefined : height}
         fill={fill}
         priority={priority}
+        sizes={sizes}
         className={cn(
           "transition-opacity duration-700 object-cover",
           loading ? "opacity-0" : "opacity-100",
           className
         )}
-        unoptimized={true} // ← Since we're using external anime posters
         onLoad={() => setLoading(false)}
         onError={() => {
           setLoading(false);
