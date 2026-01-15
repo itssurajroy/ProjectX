@@ -4,6 +4,7 @@ import { AnimeAbout } from "@/lib/types/anime";
 import { Star } from "lucide-react";
 import { Badge } from "../ui/badge";
 import ProgressiveImage from "../ProgressiveImage";
+import { MALService } from "@/lib/services/MALService";
 
 interface WatchSidebarProps {
     anime: AnimeAbout;

@@ -1,5 +1,6 @@
-import { AnimeService } from '../AnimeService';
-import { MALService } from '../MALService';
+
+import { AnimeService } from './AnimeService';
+import { MALService } from './MALService';
 
 // This function is now disconnected from any user database. It only uses the Anime and MAL services.
 
