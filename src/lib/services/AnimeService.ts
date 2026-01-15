@@ -1,6 +1,6 @@
 
 
-const API_BASE = "/api/v2/hianime";
+const API_BASE = "/api";
 
 async function api<T>(endpoint: string): Promise<any> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -25,7 +25,7 @@ export class AnimeService {
   static request = (endpoint: string) => api(endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
   static home = () => api("/home");
   static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
-  static getSearchSuggestions = (query: string) => api(`/search/suggestion?q=${encodeURIComponent(query)}`);
+  static getSearchSuggestions = (query: string) => api(`/search/suggestion?limit=10&q=${encodeURIComponent(query)}`);
   static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);
   static episodes = (id: string) => api(`/anime/${id}/episodes`);
@@ -37,3 +37,5 @@ export class AnimeService {
   static getGenres = () => api("/genres");
   static tv = (page: number) => api(`/tv-shows?page=${page}`);
 }
+
+    
