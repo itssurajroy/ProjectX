@@ -36,6 +36,7 @@ import { cn } from '@/lib/utils';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 import CharacterCard from './CharacterCard';
 import InfoSidebar from './InfoSidebar';
+import { AnimeCard } from '../AnimeCard';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -281,3 +282,5 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     </div>
   );
 }
+
+    
