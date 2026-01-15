@@ -23,19 +23,17 @@ async function api<T>(endpoint: string): Promise<any> {
 
 export class AnimeService {
   static request = (endpoint: string) => api(endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
-  static home = () => api("/home");
-  static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
-  static getSearchSuggestions = (query: string) => api(`/search/suggestion?limit=10&q=${encodeURIComponent(query)}`);
-  static anime = (id: string) => api(`/anime/${id}`);
-  static qtip = (id: string) => api(`/qtip/${id}`);
-  static episodes = (id: string) => api(`/anime/${id}/episodes`);
-  static getEpisodeServers = (epId: string) => api(`/episode/servers?animeEpisodeId=${encodeURIComponent(epId)}`);
-  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/episode/sources?animeEpisodeId=${encodeURIComponent(epId)}&server=${server}&category=${category}`);
-  static getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
-  static getSchedule = (date: string) => api(`/schedule?date=${date}`);
-  static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
-  static getGenres = () => api("/genres");
-  static tv = (page: number) => api(`/tv-shows?page=${page}`);
+  static home = () => api("/meta/anilist/home");
+  static search = (params: URLSearchParams) => api(`/meta/anilist/advanced-search?${params.toString()}`);
+  static getSearchSuggestions = (query: string) => api(`/meta/anilist/search/suggest?limit=10&q=${encodeURIComponent(query)}`);
+  static anime = (id: string) => api(`/meta/anilist/info/${id}`);
+  static qtip = (id: string) => api(`/meta/anilist/qtip/${id}`);
+  static episodes = (id: string) => api(`/meta/anilist/episodes/${id}`);
+  static getEpisodeServers = (epId: string) => api(`/meta/anilist/servers?episodeId=${encodeURIComponent(epId)}`);
+  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/meta/anilist/sources?episodeId=${encodeURIComponent(epId)}&server=${server}&category=${category}`);
+  static getAZList = (character: string, page = 1) => api(`/meta/anilist/az-list/${character}?page=${page}`);
+  static getSchedule = (date: string) => api(`/meta/anilist/schedule?date=${date}`);
+  static getCategory = (category: string, page: number) => api(`/meta/anilist/${category}?page=${page}`);
+  static getGenres = () => api("/meta/anilist/genres");
+  static tv = (page: number) => api(`/meta/anilist/tv?page=${page}`);
 }
-
-    
