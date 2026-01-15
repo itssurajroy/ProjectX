@@ -125,7 +125,7 @@ function WatchPageComponent() {
     }
   }, [currentEpisode]);
   
-  const nextAiringTime = aboutResponse?.anime.moreInfo.nextAiringEpisode?.airingTime;
+  const nextAiringTime = about?.moreInfo.nextAiringEpisode?.airingTime;
 
 
   useEffect(() => {
@@ -169,7 +169,7 @@ function WatchPageComponent() {
     );
   }
 
-  if (aboutError || episodesError || !about || episodes.length === 0) {
+  if (aboutError || episodesError || !about || !about.info || episodes.length === 0) {
     const refetch = () => {
       if (aboutError) refetchAbout();
       if (episodesError) refetchEpisodes();

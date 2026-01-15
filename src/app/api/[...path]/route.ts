@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE;
+const API_BASE_URL = 'https://api-consumet-org-hianime-zeta.vercel.app';
 
 export async function GET(
   req: NextRequest,
@@ -17,8 +17,8 @@ export async function GET(
   const path = params.path.join('/');
   const { search } = req.nextUrl;
   
-  const url = `${API_BASE_URL}/${path}${search}`;
-
+  const url = `${API_BASE_URL}/meta/anilist/${path}${search}`;
+  
   try {
     const apiRes = await fetch(url, {
       headers: {
@@ -38,7 +38,6 @@ export async function GET(
     const data = await apiRes.json();
     
     const res = NextResponse.json(data);
-    // Allow requests from anywhere in the browser
     res.headers.set('Access-Control-Allow-Origin', '*');
 
     return res;

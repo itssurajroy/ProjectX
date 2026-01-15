@@ -1,5 +1,6 @@
 
-const API_BASE = "/api";
+
+const API_BASE = "/api/v2/hianime";
 
 async function api<T>(endpoint: string): Promise<any> {
   const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -24,10 +25,12 @@ export class AnimeService {
   static request = (endpoint: string) => api(endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
   static home = () => api("/home");
   static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
-  static getSearchSuggestions = (query: string) => api(`/search/suggestion?limit=10&q=${encodeURIComponent(query)}`);
+  static getSearchSuggestions = (query: string) => api(`/search/suggestion?q=${encodeURIComponent(query)}`);
   static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);
   static episodes = (id: string) => api(`/anime/${id}/episodes`);
+  static getEpisodeServers = (epId: string) => api(`/episode/servers?animeEpisodeId=${encodeURIComponent(epId)}`);
+  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/episode/sources?animeEpisodeId=${encodeURIComponent(epId)}&server=${server}&category=${category}`);
   static getAZList = (character: string, page = 1) => api(`/azlist/${character}?page=${page}`);
   static getSchedule = (date: string) => api(`/schedule?date=${date}`);
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
