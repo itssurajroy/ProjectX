@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = 'https://api-consumet-org-hianime-zeta.vercel.app';
+const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/meta/anilist';
 
 export async function GET(
   req: NextRequest,
@@ -17,7 +17,7 @@ export async function GET(
   const path = params.path.join('/');
   const { search } = req.nextUrl;
   
-  const url = `${API_BASE_URL}/meta/anilist/${path}${search}`;
+  const url = `${API_BASE_URL}/${path}${search}`;
   
   try {
     const apiRes = await fetch(url, {
