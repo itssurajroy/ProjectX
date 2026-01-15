@@ -17,14 +17,6 @@ export async function GET(
   const path = params.path.join('/');
   const { search } = req.nextUrl;
   
-  // Exclude search from this generic proxy
-  if (path.startsWith('search')) {
-      return new NextResponse(
-        JSON.stringify({ success: false, message: 'This endpoint is deprecated. Use /api/search instead.' }),
-        { status: 404 }
-      );
-  }
-
   const url = `${API_BASE_URL}/${path}${search}`;
 
   try {
