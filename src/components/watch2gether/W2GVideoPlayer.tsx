@@ -33,6 +33,7 @@ export default function W2GVideoPlayer({ room, isHost }: W2GVideoPlayerProps) {
     return (
         <div className="w-full aspect-video bg-black relative">
             <AnimePlayer 
+                hianimeEpisodeId={room.episodeId} 
                 animeId={room.animeId} 
                 episodeId={room.episodeId}
                 episodeNumber={String(room.episodeNumber)}

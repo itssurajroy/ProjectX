@@ -126,7 +126,6 @@ export default function AnimePlayer({ hianimeEpisodeId, episodeId, episodeNumber
             className="w-full h-full border-0"
             scrolling="no"
             title="Anime Player"
-            ref={videoRef as any} // The ref is for history tracking, might not work perfectly with iframe
         ></iframe>
         <div className="absolute top-2 right-2 z-10 bg-black/50 text-white text-xs px-2 py-1 rounded-md pointer-events-none">
             Powered by <Link href="/" className="font-bold text-primary hover:underline">{SITE_NAME}</Link>
