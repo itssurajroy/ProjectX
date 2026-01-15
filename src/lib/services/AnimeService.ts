@@ -25,15 +25,17 @@ export class AnimeService {
   static request = (endpoint: string) => api(endpoint.startsWith('/') ? endpoint : `/${endpoint}`);
   static home = () => api("/home");
   static search = (params: URLSearchParams) => api(`/search?${params.toString()}`);
-  static getSearchSuggestions = (query: string) => api(`/search/suggestion?limit=10&q=${encodeURIComponent(query)}`);
-  static anime = (id: string) => api(`/info/${id}`);
+  static getSearchSuggestions = (query: string) => api(`/search/suggestion?q=${encodeURIComponent(query)}`);
+  static anime = (id: string) => api(`/anime/${id}`);
   static qtip = (id: string) => api(`/qtip/${id}`);
-  static episodes = (id: string) => api(`/episodes/${id}`);
-  static getEpisodeServers = (epId: string) => api(`/servers?episodeId=${encodeURIComponent(epId)}`);
-  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/sources?episodeId=${encodeURIComponent(epId)}&server=${server}&category=${category}`);
+  static episodes = (id: string) => api(`/anime/${id}/episodes`);
+  static getEpisodeServers = (epId: string) => api(`/episode/servers?animeEpisodeId=${encodeURIComponent(epId)}`);
+  static getEpisodeSources = (epId: string, server: string, category: "sub" | "dub" = "sub") => api(`/episode/sources?animeEpisodeId=${encodeURIComponent(epId)}&server=${server}&category=${category}`);
   static getAZList = (character: string, page = 1) => api(`/az-list/${character}?page=${page}`);
   static getSchedule = (date: string) => api(`/schedule?date=${date}`);
-  static getCategory = (category: string, page: number) => api(`/${category}?page=${page}`);
+  static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   static getGenres = () => api("/genres");
   static tv = (page: number) => api(`/tv?page=${page}`);
 }
+
+    

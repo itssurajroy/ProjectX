@@ -2,7 +2,7 @@
 // src/app/api/search/suggestion/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/meta/anilist';
+const API_BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `${API_BASE_URL}/search/suggest?q=${encodeURIComponent(q)}`;
+    const url = `${API_BASE_URL}/api/v2/hianime/search/suggestion?q=${encodeURIComponent(q)}`;
     const apiRes = await fetch(url, {
       headers: {
         'User-Agent': 'ProjectX/1.0 (Server-Side Proxy)',

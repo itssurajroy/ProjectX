@@ -2,7 +2,7 @@
 // src/app/api/search/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
-const BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app/meta/anilist';
+const BASE_URL = 'https://aniwatch-api-five-dusky.vercel.app';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const searchRes = await fetch(
-      `${BASE_URL}/advanced-search?${advancedParams.toString()}`,
+      `${BASE_URL}/api/v2/hianime/search?${advancedParams.toString()}`,
       { next: { revalidate: 300 } } // Cache for 5 minutes
     );
     
