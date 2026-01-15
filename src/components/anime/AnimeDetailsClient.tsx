@@ -201,6 +201,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     <AlertDialogAction onClick={handleAgeGateAgree}>Enter</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
+        </AlertDialog>
 
         {/* Mobile View */}
         <div className="lg:hidden">
