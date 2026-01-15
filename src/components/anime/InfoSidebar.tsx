@@ -3,44 +3,37 @@
 
 import { AnimeAbout } from '@/lib/types/anime';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 interface InfoSidebarProps {
   moreInfo: AnimeAbout['moreInfo'];
 }
 
 export default function InfoSidebar({ moreInfo }: InfoSidebarProps) {
-  const infoItems = [
-    { label: 'Japanese', value: moreInfo.japanese },
-    { label: 'Aired', value: moreInfo.aired },
-    { label: 'Status', value: moreInfo.status },
-    { label: 'MAL Score', value: moreInfo.malscore },
-    { label: 'Studios', value: moreInfo.studios },
-    { label: 'Country', value: moreInfo.country },
-  ];
 
   return (
-    <div className="bg-card/50 p-4 rounded-lg border border-border/50 space-y-3 sticky top-20">
-      <h3 className="text-lg font-bold font-display">Details</h3>
-      <div className="space-y-2 text-sm">
-        {infoItems.map(item => item.value ? (
-          <div key={item.label}>
-            <span className="font-semibold text-foreground/90">{item.label}: </span>
-            <span className="text-muted-foreground">{item.value}</span>
-          </div>
-        ) : null)}
-      </div>
-      {moreInfo.genres && moreInfo.genres.length > 0 && (
-        <div>
-          <h4 className="font-semibold text-foreground/90 mb-2">Genres</h4>
-          <div className="flex flex-wrap gap-2">
-            {moreInfo.genres.map((genre: string) => (
-              <Badge key={genre} variant="secondary" className="bg-primary/10 text-primary/90 border border-primary/20 hover:bg-primary/20">
-                {genre}
-              </Badge>
-            ))}
-          </div>
+    <div className="bg-card p-4 rounded-xl border border-border self-start sticky top-20">
+        <div className="space-y-3 text-sm">
+            {Object.entries(moreInfo).map(([key, value]) => {
+                if (!value || (Array.isArray(value) && value.length === 0)) return null;
+                const label = key.charAt(0).toUpperCase() + key.slice(1);
+                
+                return (
+                    <div key={key} className="flex justify-between border-b border-border/50 pb-2 last:border-b-0">
+                    <span className="font-bold text-foreground/80">{label}:</span>
+                    {key === 'genres' && Array.isArray(value) ? (
+                        <div className="flex flex-wrap items-center justify-end gap-1 max-w-[60%]">
+                            {value.map((genre: string) => (
+                                <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted/50">{genre}</Link>
+                            ))}
+                        </div>
+                    ) : (
+                        <span className="text-muted-foreground text-right">{Array.isArray(value) ? value.join(', ') : value}</span>
+                    )}
+                    </div>
+                )
+            })}
         </div>
-      )}
     </div>
   );
 }

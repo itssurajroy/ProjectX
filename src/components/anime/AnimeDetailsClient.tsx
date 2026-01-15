@@ -35,6 +35,7 @@ import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 import CharacterCard from './CharacterCard';
+import InfoSidebar from './InfoSidebar';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -309,29 +310,9 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
 
             <div className="container mx-auto -mt-10 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  <div className="lg:col-span-3 bg-card p-4 rounded-xl border border-border self-start">
-                        <div className="space-y-3 text-sm">
-                            {Object.entries(moreInfo).map(([key, value]) => {
-                               if (!value || (Array.isArray(value) && value.length === 0)) return null;
-                               const label = key.charAt(0).toUpperCase() + key.slice(1);
-                               
-                               return (
-                                 <div key={key} className="flex justify-between border-b border-border/50 pb-2 last:border-b-0">
-                                    <span className="font-bold text-foreground/80">{label}:</span>
-                                    {key === 'genres' && Array.isArray(value) ? (
-                                        <div className="flex flex-wrap items-center justify-end gap-1 max-w-[60%]">
-                                            {value.map((genre: string) => (
-                                                <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-muted/50">{genre}</Link>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <span className="text-muted-foreground text-right">{Array.isArray(value) ? value.join(', ') : value}</span>
-                                    )}
-                                 </div>
-                               )
-                            })}
-                        </div>
-                    </div>
+                  <div className="lg:col-span-3">
+                      <InfoSidebar moreInfo={moreInfo} />
+                  </div>
 
                   <div className="lg:col-span-6 space-y-12">
                       <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
