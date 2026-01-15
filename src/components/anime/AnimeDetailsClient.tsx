@@ -11,7 +11,7 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
-import CommentSection from '@/components/comments/CommentSection';
+import CommentsContainer from '@/components/comments/CommentsContainer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -269,7 +269,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                  )}
             </div>
             <div className="container mt-8">
-                <CommentSection animeId={id} />
+                {animeInfo.id && <CommentsContainer animeId={animeInfo.id} />}
             </div>
 
         </div>
@@ -386,7 +386,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                             </div>
                         </section>
                       )}
-                     <CommentSection animeId={id} />
+                     {animeInfo.id && <CommentsContainer animeId={animeInfo.id} />}
                   </div>
                   <div className="lg:col-span-3 space-y-6">
                      {relatedAnimes && relatedAnimes.length > 0 && (

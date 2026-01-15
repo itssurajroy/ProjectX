@@ -258,12 +258,7 @@ function WatchPageComponent() {
            <AnimeSchedule animeId={animeId} animeName={about.info.name} />
            <EpisodeCountdown airingTime={nextAiringTime} />
             
-          {currentEpisode && (
-            <CommentsContainer
-              animeId={animeId}
-              episodeId={currentEpisode.episodeId}
-            />
-          )}
+          {about.info.id && <CommentsContainer animeId={about.info.id} episodeId={currentEpisode?.episodeId} />}
         </div>
 
         <div className="lg:col-span-3">
