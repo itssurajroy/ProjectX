@@ -11,12 +11,7 @@ service cloud.firestore {
     // Users can read their own profile, admins can read any
     match /users/{userId} {
       // Anyone can read public profile info
-      allow read: if request.auth != null && (
-        'displayName' in resource.data &&
-        'photoURL' in resource.data &&
-        'bio' in resource.data &&
-        'favoriteAnimeId' in resource.data
-      ); 
+      allow read: if request.auth != null && ('displayName' in resource.data);
       allow create: if request.auth != null; // Anyone can create their user doc
       allow update: if request.auth != null && request.auth.uid == userId;
     }
