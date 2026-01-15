@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useUser } from '@/firebase/auth/use-user';
+import { useUser, useCollection } from '@/firebase/client';
 import { db } from '@/firebase/client';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
