@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, FormEvent, useEffect } from "react";
@@ -10,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/firebase/auth/use-user";
 import { useCollection } from "@/firebase/client/useCollection";
-import { db } from "@/firebase/client";
+import { db } from '@/firebase/client';
 import { WatchTogetherRoom } from "@/lib/types/watch2gether";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
