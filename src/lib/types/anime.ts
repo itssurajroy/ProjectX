@@ -113,6 +113,7 @@ export interface AnimeAbout {
     info: AnimeInfo;
     moreInfo: Record<string, any> & { 
         malId?: number;
+        japanese?: string;
         nextAiringEpisode?: {
             airingTime: number;
             timeUntilAiring: number;
