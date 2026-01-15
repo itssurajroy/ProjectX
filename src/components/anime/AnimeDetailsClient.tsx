@@ -1,4 +1,5 @@
 
+
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';

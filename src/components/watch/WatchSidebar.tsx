@@ -1,4 +1,5 @@
 
+
 'use client';
 import { AnimeAbout } from "@/lib/types/anime";
 import { Star } from "lucide-react";
