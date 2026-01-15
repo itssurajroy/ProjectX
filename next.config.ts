@@ -25,7 +25,7 @@ const nextConfig = {
           { key: 'X-DNS-Prefetch-Control', value: 'on' },
           { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
           { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), clipboard-write=*' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), clipboard-write=(self)' },
         ],
       },
     ]

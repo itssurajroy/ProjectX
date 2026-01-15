@@ -1,11 +1,10 @@
 
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ShieldCheck, ChevronsDown, Loader2, MessageCircle, Send } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useUser } from '@/firebase/auth/use-user';
