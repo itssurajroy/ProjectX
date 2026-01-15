@@ -1,12 +1,12 @@
 
+
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper, Tv, Settings, Flag, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { useUser } from '@/firebase/auth/use-user';
-import { auth } from '@/firebase/client';
+import { useUser, auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';

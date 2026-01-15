@@ -8,20 +8,18 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { W2GRoomCard } from "@/components/watch2gether/W2GRoomCard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useCollection } from "@/firebase/firestore/useCollection";
+import { useCollection, useUser, db } from "@/firebase/client";
 import { WatchTogetherRoom } from "@/lib/types/watch2gether";
-import { useUser } from "@/firebase/auth/use-user";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { AnimeService } from "@/lib/services/AnimeService";
+import { AnimeService } from '@/lib/services/AnimeService';
 import { SearchResult, AnimeBase } from "@/lib/types/anime";
 import { Input } from "@/components/ui/input";
 import { AnimeCard } from "@/components/AnimeCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDebounce } from "use-debounce";
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from "@/firebase/client";
 
 const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const { user, userProfile } = useUser();
@@ -38,7 +36,7 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             return AnimeService.search(params);
         },
         initialPageParam: 1,
-        getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
+        getNextPageParam: (lastPage: any) => lastPage.data.hasNextPage ? lastPage.data.currentPage + 1 : undefined,
         enabled: !!debouncedQuery && !selectedAnime,
     });
     
@@ -48,7 +46,7 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         enabled: !!selectedAnime,
     });
     
-    const animes = searchResults?.pages.flatMap(page => page.animes) ?? [];
+    const animes = searchResults?.pages.flatMap(page => page.data.animes) ?? [];
 
     const handleCreateRoom = async () => {
         if (!user || !userProfile || !selectedAnime || !episodesData?.episodes?.[0]) {

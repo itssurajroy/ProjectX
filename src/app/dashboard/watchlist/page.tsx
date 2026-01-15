@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -8,8 +9,7 @@ import Link from 'next/link';
 import { AnimeBase } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase/firestore/useCollection';
+import { useUser, useCollection } from '@/firebase/client';
 import WatchlistGrid from '@/components/dashboard/WatchlistGrid';
 import WatchlistControls from '@/components/dashboard/WatchlistControls';
 

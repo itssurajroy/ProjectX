@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -7,9 +8,8 @@ import { Loader2, ServerCrash } from 'lucide-react';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
-import { useUser } from '@/firebase/auth/use-user';
+import { useUser, db } from '@/firebase/client';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase/client';
 import { sanitizeFirestoreId } from '@/lib/utils';
 import Link from 'next/link';
 

@@ -185,7 +185,7 @@ export interface SearchSuggestion {
     id: string;
     name: string;
     poster: string;
-jname: string;
+    jname: string;
     moreInfo: string[];
 }
 

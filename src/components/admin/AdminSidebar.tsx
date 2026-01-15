@@ -5,8 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Home, Tv, Users, Flag, Settings, LogOut } from 'lucide-react';
-import { useUser } from '@/firebase/auth/use-user';
-import { auth } from '@/firebase/client';
+import { useUser, auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 

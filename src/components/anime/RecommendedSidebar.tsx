@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeBase } from "@/types/anime";
+import { AnimeBase } from "@/lib/types/anime";
 import Link from "next/link";
 import { Clapperboard } from "lucide-react";
 import ProgressiveImage from "../ProgressiveImage";

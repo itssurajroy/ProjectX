@@ -1,15 +1,14 @@
 
+
 import { AnimeBase } from "@/lib/types/anime"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
 import { Clapperboard, Mic, Play, Clock, BookmarkPlus, BookmarkCheck, MoreHorizontal, Check } from "lucide-react"
 import ProgressiveImage from "./ProgressiveImage"
-import { useUser } from "@/firebase/auth/use-user"
-import { useDoc } from "@/firebase/firestore/useDoc"
+import { useUser, useDoc, db } from "@/firebase/client"
 import { WatchlistItem, WatchlistStatus } from "@/lib/types/watchlist"
 import toast from "react-hot-toast"
 import { doc, setDoc, deleteDoc, serverTimestamp, updateDoc } from "firebase/firestore"
-import { db } from "@/firebase/client"
 import { useRouter } from "next/navigation"
 import { useTitleLanguageStore } from "@/store/title-language-store"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"

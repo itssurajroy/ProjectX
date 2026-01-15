@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -9,8 +10,7 @@ import toast from 'react-hot-toast';
 import { AnimeService } from '@/lib/services/AnimeService';
 import { WatchlistItem } from '@/lib/types/watchlist';
 import { curateAnime, CuratedAnime } from '@/ai/flows/curate-anime-flow';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase/firestore/useCollection';
+import { useUser, useCollection } from '@/firebase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AnimeCard } from '@/components/AnimeCard';

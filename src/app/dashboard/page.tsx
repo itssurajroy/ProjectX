@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
@@ -10,8 +11,7 @@ import { AnimeBase, UserHistory, HomeData } from '@/lib/types/anime';
 import { AnimeService } from '@/lib/services/AnimeService';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase/firestore/useCollection';
+import { useUser, useCollection } from '@/firebase/client';
 import ContinueWatchingCard from '@/components/dashboard/ContinueWatchingCard';
 
 

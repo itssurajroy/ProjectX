@@ -1,4 +1,5 @@
 
+
 'use client';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';

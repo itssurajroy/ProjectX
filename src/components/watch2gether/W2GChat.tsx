@@ -8,10 +8,8 @@ import { Loader2, Send } from 'lucide-react';
 import { ChatMessage } from '@/lib/types/watch2gether';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
-import { useCollection } from '@/firebase/firestore/useCollection';
+import { useCollection, useUser, db } from '@/firebase/client';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase/client';
-import { useUser } from '@/firebase/auth/use-user';
 import toast from 'react-hot-toast';
 
 export default function W2GChat({ roomId }: { roomId: string }) {

@@ -1,8 +1,10 @@
+
 // src/firebase/client/index.ts
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getAnalytics, isSupported } from 'firebase/analytics';
+import { useUser } from '../auth/use-user';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBQSy1kHNRYvp2b-l0jnsUd44P-cXkJZDY",
@@ -19,8 +21,8 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const analytics = isSupported().then(yes => (yes ? getAnalytics(app) : null));
 
+export { useUser };
 export * from './provider';
-export * from './use-user';
 export * from './useCollection';
 export * from './useDoc';
 export * from './auth';

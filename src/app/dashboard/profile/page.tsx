@@ -1,4 +1,5 @@
 
+
 'use client';
 import { User, Loader2, Save, Shield } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,9 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useUser } from '@/firebase/auth/use-user';
+import { useUser, db } from '@/firebase/client';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '@/firebase/client';
 import { updateProfile } from 'firebase/auth';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

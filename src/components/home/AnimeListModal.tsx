@@ -61,7 +61,7 @@ export default function AnimeListModal({ isOpen, onClose, title, category }: Ani
     }, [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
 
-    const allAnimes = data?.pages.flatMap(page => page.animes) ?? [];
+    const allAnimes = data?.pages.flatMap(page => page.data?.animes) ?? [];
 
     const renderContent = () => {
         if (isLoading) return <LoadingSkeleton />;

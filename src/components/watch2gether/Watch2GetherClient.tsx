@@ -15,10 +15,8 @@ import { AnimeAboutResponse } from '@/lib/types/anime';
 import { WatchTogetherRoom } from '@/lib/types/watch2gether';
 import SiteLogo from '../layout/SiteLogo';
 import W2GAnimeDetails from './W2GAnimeDetails';
-import { useDoc } from '@/firebase/firestore/useDoc';
-import { useUser } from '@/firebase/auth/use-user';
+import { useDoc, useUser, db } from '@/firebase/client';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { db } from '@/firebase/client';
 
 export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     const router = useRouter();

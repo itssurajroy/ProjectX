@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
@@ -9,8 +10,7 @@ import Link from 'next/link';
 
 import { UserHistory, AnimeBase } from '@/lib/types/anime';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase/firestore/useCollection';
+import { useUser, useCollection } from '@/firebase/client';
 import HistoryGroup from '@/components/dashboard/HistoryGroup';
 
 export default function HistoryPage() {

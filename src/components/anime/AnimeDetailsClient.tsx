@@ -11,7 +11,7 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 import { Button } from '../ui/button';
-import CommentSection from '@/components/CommentSection';
+import CommentSection from '@/components/comments/CommentSection';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,12 +26,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
 import ProgressiveImage from '../ProgressiveImage';
-import { useUser } from '@/firebase/auth/use-user';
-import { useDoc } from '@/firebase/firestore/useDoc';
+import { useUser, useDoc, db } from '@/firebase/client';
 import { WatchlistItem } from '@/lib/types/watchlist';
 import toast from 'react-hot-toast';
 import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/firebase/client';
 import { cn } from '@/lib/utils';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 
@@ -201,7 +199,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     <AlertDialogAction onClick={handleAgeGateAgree}>Enter</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
-        </AlertDialog>
 
         {/* Mobile View */}
         <div className="lg:hidden">

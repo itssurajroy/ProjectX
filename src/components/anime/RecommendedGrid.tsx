@@ -1,7 +1,7 @@
 
 'use client';
 
-import { AnimeBase } from "@/types/anime";
+import { AnimeBase } from "@/lib/types/anime";
 import { AnimeCard } from "@/components/AnimeCard";
 
 interface RecommendedGridProps {

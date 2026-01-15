@@ -10,7 +10,7 @@ import {
   Firestore,
 } from 'firebase/firestore';
 import { auth, db } from '.';
-import { UserProfile } from '@/types/user';
+import { UserProfile } from '@/lib/types/user';
 
 export interface FirebaseContextValue {
   auth: Auth;
