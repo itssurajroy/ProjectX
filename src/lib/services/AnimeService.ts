@@ -36,6 +36,10 @@ export class AnimeService {
   static getCategory = (category: string, page: number) => api(`/category/${category}?page=${page}`);
   static getGenres = () => api("/genres");
   static tv = (page: number) => api(`/tv?page=${page}`);
+
+  // New methods for character and staff
+  static getCharacterDetails = (id: string) => api(`/character/${id}`);
+  static getStaffDetails = (id: string) => api(`/staff/${id}`);
 }
 
     

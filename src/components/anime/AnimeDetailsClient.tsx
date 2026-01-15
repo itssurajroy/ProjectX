@@ -52,7 +52,7 @@ const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
     <div className="bg-card rounded-lg overflow-hidden flex border border-border">
         {/* Character */}
-        <div className="w-1/2 flex items-center gap-3 p-3">
+        <Link href={`/character/${cv.character.id}`} className="w-1/2 flex items-center gap-3 p-3 hover:bg-muted/30 transition-colors">
             <div className="relative aspect-[2/3] w-12 flex-shrink-0">
                 <ProgressiveImage 
                   src={cv.character.poster}
@@ -65,11 +65,11 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
                 <h4 className="font-bold text-sm text-primary truncate">{cv.character.name}</h4>
                 <p className="text-xs text-muted-foreground">{cv.character.cast}</p>
             </div>
-        </div>
+        </Link>
 
         {/* Voice Actor */}
         {cv.voiceActor && (
-            <div className="w-1/2 flex items-center gap-3 p-3 bg-muted/30 justify-end text-right">
+            <Link href={`/staff/${cv.voiceActor.id}`} className="w-1/2 flex items-center gap-3 p-3 bg-muted/30 justify-end text-right hover:bg-muted/50 transition-colors">
                 <div className="overflow-hidden">
                     <p className="font-bold text-sm truncate">{cv.voiceActor.name}</p>
                     <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
@@ -82,7 +82,7 @@ const CharacterCard = ({ cv }: { cv: CharacterVoiceActor }) => (
                       className="rounded-full object-cover"
                     />
                 </div>
-            </div>
+            </Link>
         )}
     </div>
 );
