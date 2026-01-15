@@ -25,38 +25,19 @@ export default function SeasonsSwiper({ seasons, currentAnimeId }: SeasonsSwiper
 
     return (
         <section>
-            <h2 className="text-title mb-4 border-l-4 border-primary pl-3">Seasons</h2>
-            <Carousel opts={{ align: "start" }} className="w-full">
-                <CarouselContent>
-                    {seasons.map(season => (
-                        <CarouselItem key={season.id} className="basis-1/3 sm:basis-1/4 md:basis-1/5">
-                             <Link href={`/anime/${season.id}`}>
-                                <div className={cn(
-                                    "relative aspect-[2/3] rounded-lg overflow-hidden group border-2 transition-all", 
-                                    season.id === currentAnimeId ? "border-primary shadow-lg shadow-primary/30" : "border-transparent hover:border-primary/50"
-                                )}>
-                                    <ProgressiveImage 
-                                        src={season.poster}
-                                        alt={season.title || "Season Poster"} 
-                                        fill 
-                                        className="object-cover transition-transform group-hover:scale-105" 
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-2">
-                                        <p className="text-white font-semibold text-xs line-clamp-2 group-hover:text-primary transition-colors">{season.title}</p>
-                                    </div>
-                                    {season.isCurrent && (
-                                        <div className="absolute top-1 right-1 px-1.5 py-0.5 text-xs font-semibold bg-primary text-primary-foreground rounded-md">
-                                            Current
-                                        </div>
-                                    )}
-                                </div>
-                            </Link>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-2 bg-card/80 hover:bg-card" />
-                <CarouselNext className="right-2 bg-card/80 hover:bg-card" />
-            </Carousel>
+            <h2 className="text-title mb-4 border-l-4 border-primary pl-3">More Seasons</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {seasons.map(season => (
+                    <Link href={`/anime/${season.id}`} key={season.id}>
+                        <div className={cn(
+                            "p-3 text-center font-semibold text-sm rounded-md transition-colors",
+                            season.id === currentAnimeId ? "bg-primary text-primary-foreground" : "bg-card hover:bg-accent"
+                        )}>
+                            {season.title}
+                        </div>
+                    </Link>
+                ))}
+            </div>
         </section>
     )
 }

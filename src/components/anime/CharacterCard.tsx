@@ -7,31 +7,31 @@ import ProgressiveImage from "../ProgressiveImage";
 
 export default function CharacterCard({ cv }: { cv: CharacterVoiceActor }) {
     return (
-        <div className="bg-card/50 rounded-lg overflow-hidden flex border border-border/50 hover:border-primary/50 transition-colors duration-300">
+        <div className="bg-card rounded-lg flex items-center justify-between p-2 border border-transparent hover:border-primary/50 transition-colors duration-300">
             {/* Character */}
-            <Link href={`/character/${cv.character.id}`} className="w-1/2 flex items-center gap-3 p-3 hover:bg-muted/30">
-                <div className="relative aspect-[2/3] w-12 flex-shrink-0">
+            <Link href={`/character/${cv.character.id}`} className="flex items-center gap-3 basis-1/2">
+                <div className="relative w-10 h-10 flex-shrink-0">
                     <ProgressiveImage 
                       src={cv.character.poster}
                       alt={cv.character.name || "Character"} 
                       fill
-                      className="object-cover rounded-md"
+                      className="object-cover rounded-full"
                     />
                 </div>
                 <div className="overflow-hidden">
-                    <h4 className="font-bold text-sm text-primary truncate">{cv.character.name}</h4>
+                    <h4 className="font-semibold text-sm text-foreground truncate">{cv.character.name}</h4>
                     <p className="text-xs text-muted-foreground">{cv.character.cast}</p>
                 </div>
             </Link>
     
             {/* Voice Actor */}
             {cv.voiceActor && (
-                <Link href={`/staff/${cv.voiceActor.id}`} className="w-1/2 flex items-center gap-3 p-3 bg-muted/20 justify-end text-right hover:bg-muted/50">
+                <Link href={`/staff/${cv.voiceActor.id}`} className="flex items-center gap-3 basis-1/2 justify-end text-right">
                     <div className="overflow-hidden">
-                        <p className="font-bold text-sm truncate">{cv.voiceActor.name}</p>
+                        <p className="font-semibold text-sm text-foreground truncate">{cv.voiceActor.name}</p>
                         <p className="text-xs text-muted-foreground">{cv.voiceActor.cast}</p>
                     </div>
-                    <div className="relative aspect-square w-12 flex-shrink-0">
+                     <div className="relative w-10 h-10 flex-shrink-0">
                         <ProgressiveImage 
                           src={cv.voiceActor.poster}
                           alt={cv.voiceActor.name || "Voice Actor"} 

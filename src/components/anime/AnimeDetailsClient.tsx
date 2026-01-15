@@ -147,7 +147,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const title = language === 'romaji' && moreInfo.japanese ? moreInfo.japanese : animeInfo.name;
   
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground">
         <AlertDialog open={showAgeGate} onOpenChange={setShowAgeGate}>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -166,180 +166,116 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
             </AlertDialogContent>
         </AlertDialog>
 
-        {/* Mobile View */}
-        <div className="lg:hidden">
-            <div className="relative h-[60vh]">
-                 <ProgressiveImage
-                    src={animeInfo.poster}
-                    alt={animeInfo.name || "Anime Banner"}
-                    fill
-                    className="object-cover opacity-30"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                 <div className="absolute bottom-0 left-0 right-0 p-4 space-y-4">
-                    <div className="flex justify-center">
-                        <ProgressiveImage
-                            src={animeInfo.poster}
-                            alt={animeInfo.name || "Anime Poster"}
-                            width={180}
-                            height={270}
-                            className="rounded-xl shadow-2xl shadow-black/50 object-cover border-2 border-border"
-                            priority
-                        />
-                    </div>
-                 </div>
-            </div>
+        {/* Hero Section */}
+        <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
+          <div className="absolute inset-0 z-0">
+            <ProgressiveImage
+              src={animeInfo.poster}
+              alt={animeInfo.name || "Anime Banner"}
+              fill
+              className="object-cover opacity-10 blur-xl scale-110"
+              priority
+            />
+             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
+             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+          </div>
 
-            <div className="container -mt-4 relative z-10 space-y-4">
-                 <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-display font-bold text-glow">{title}</h1>
-                    <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground">
-                        <span>{moreInfo.premiered}</span>
-                        {seasons.length > 0 && <span>&bull; Season {seasons.findIndex(s => s.id === id) + 1}</span>}
-                        {moreInfo.malscore && <span className="flex items-center gap-1"><Star className="w-4 h-4 text-amber-400" /> {moreInfo.malscore}</span>}
-                    </div>
-                     <div className="flex items-center justify-center flex-wrap gap-2 text-sm text-muted-foreground pt-1">
-                        {stats.episodes.sub && <Badge variant="outline">SUB</Badge>}
-                    </div>
-                 </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                    {firstEpisodeWatchId && (
-                        <Button asChild size="lg" className="shadow-lg shadow-primary/30 bg-primary text-primary-foreground hover:bg-primary/90 text-base h-12">
-                            <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2">
-                                <Play /> Watch
-                            </Link>
-                        </Button>
-                    )}
-                    <Button onClick={handleWatchlistToggle} size="lg" variant="secondary" className="h-12 text-base" disabled={isLoading}>
-                        {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} Add to List
-                    </Button>
-                </div>
-                
-                 <div className="pt-2">
-                    <Synopsis description={animeInfo.description} />
-                </div>
+          <div className="container mx-auto relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-start py-20 md:py-28">
+            <div className="md:col-span-3 flex justify-center md:justify-start">
+              <ProgressiveImage
+                src={animeInfo.poster}
+                alt={animeInfo.name || "Anime Poster"}
+                width={250}
+                height={380}
+                className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
+                priority
+              />
             </div>
             
-            <div className="container mt-8">
-                <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
-            </div>
+            <div className="md:col-span-9 flex flex-col justify-center h-full text-center md:text-left">
+              <div className="text-sm text-muted-foreground hidden sm:block">Home &gt; {stats.type} &gt; {animeInfo.name}</div>
+              <h1 className="text-4xl lg:text-5xl font-display font-bold mt-2 text-glow">{title}</h1>
+              
+              <div className="flex items-center justify-center md:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
+                  {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'secondary'} className="px-2 py-1">{stats.rating}</Badge>}
+                  <span className="px-2 py-1 bg-card rounded-md border border-border">{stats.quality}</span>
+                  {stats.episodes.sub && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-card rounded-md border border-border">
+                          <Clapperboard className="w-3 h-3" /> SUB {stats.episodes.sub}
+                      </span>
+                  )}
+                  {stats.episodes.dub && (
+                      <span className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 text-blue-300 rounded-md border border-blue-500/30">
+                         DUB {stats.episodes.dub}
+                      </span>
+                  )}
+                  <span className="text-sm text-muted-foreground">&bull; {stats.type} &bull; {stats.duration}</span>
+              </div>
 
-             <div className="container mt-8">
-                 {recommendedAnimes && recommendedAnimes.length > 0 && (
-                    <RankedAnimeSidebar title="More Like This" animes={recommendedAnimes} icon={<TvIcon className="w-5 h-5"/>} />
-                 )}
-            </div>
-            <div className="container mt-8">
-                {animeInfo.id && <CommentsContainer animeId={animeInfo.id} />}
-            </div>
+              <div className="mt-6 max-w-3xl mx-auto md:mx-0">
+                <Synopsis description={animeInfo.description} />
+              </div>
 
+              <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center md:justify-start">
+                {firstEpisodeWatchId && (
+                  <Button asChild size="lg" className="shadow-lg shadow-primary/30 bg-primary text-primary-foreground hover:bg-primary/90 text-lg h-12 px-8">
+                    <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2">
+                        <Play /> Watch Now
+                    </Link>
+                  </Button>
+                )}
+                 <Button onClick={handleWatchlistToggle} size="lg" variant="secondary" className="h-12 px-8 text-lg" disabled={isLoading}>
+                    {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
+                </Button>
+              </div>
+              
+              <p className="text-muted-foreground text-xs mt-4 max-w-3xl mx-auto md:mx-0">
+                <Link href="/" className="text-primary hover:underline">ProjectX</Link> is the best site to watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> SUB online, or you can even watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> DUB in HD quality. You can also find various anime on <Link href="/" className="text-primary hover:underline">ProjectX</Link> website.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Desktop View */}
-        <div className="hidden lg:block">
-            <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
-              <div className="absolute inset-0 z-0">
-                <ProgressiveImage
-                  src={animeInfo.poster}
-                  alt={animeInfo.name || "Anime Banner"}
-                  fill
-                  className="object-cover opacity-10 blur-xl scale-110"
-                  priority
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
-                 <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+        <div className="container mx-auto -mt-10 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-9 order-2 lg:order-1 space-y-12">
+                  <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
+
+                  <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
+                  
+                  {characters.length > 0 && (
+                    <section>
+                       <h2 className="text-title mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {characters.slice(0, 10).map(cv => (
+                                <CharacterCard key={cv.character.id} cv={cv} />
+                            ))}
+                        </div>
+                    </section>
+                  )}
+                 {animeInfo.id && <CommentsContainer animeId={animeInfo.id} />}
+
+                 {recommendedAnimes && recommendedAnimes.length > 0 && (
+                    <section className="pt-8">
+                       <h2 className="text-title mb-4 border-l-4 border-primary pl-3">Recommended for you</h2>
+                       <div className="grid-cards">
+                           {recommendedAnimes.map(anime => (
+                               <AnimeCard key={anime.id} anime={anime} />
+                           ))}
+                       </div>
+                    </section>
+                 )}
               </div>
 
-              <div className="container mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start py-20 md:py-28">
-                <div className="lg:col-span-3 flex justify-center lg:justify-start">
-                  <ProgressiveImage
-                    src={animeInfo.poster}
-                    alt={animeInfo.name || "Anime Poster"}
-                    width={250}
-                    height={380}
-                    className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
-                    priority
-                  />
-                </div>
-                
-                <div className="lg:col-span-9 flex flex-col justify-center h-full text-center lg:text-left">
-                  <div className="text-sm text-muted-foreground hidden sm:block">Home &gt; {stats.type} &gt; {animeInfo.name}</div>
-                  <h1 className="text-4xl lg:text-5xl font-display font-bold mt-2 text-glow">{title}</h1>
-                  
-                  <div className="flex items-center justify-center lg:justify-start flex-wrap gap-2 text-sm text-muted-foreground mt-4">
-                      {stats.rating && stats.rating !== 'N/A' && <Badge variant={stats.rating === 'R' ? 'destructive' : 'secondary'} className="px-2 py-1">{stats.rating}</Badge>}
-                      <span className="px-2 py-1 bg-card rounded-md border border-border">{stats.quality}</span>
-                      {stats.episodes.sub && (
-                          <span className="flex items-center gap-1 px-2 py-1 bg-card rounded-md border border-border">
-                              <Clapperboard className="w-3 h-3" /> SUB {stats.episodes.sub}
-                          </span>
-                      )}
-                      {stats.episodes.dub && (
-                          <span className="flex items-center gap-1 px-2 py-1 bg-blue-500/20 text-blue-300 rounded-md border border-blue-500/30">
-                             DUB {stats.episodes.dub}
-                          </span>
-                      )}
-                      <span className="text-sm text-muted-foreground">&bull; {stats.type} &bull; {stats.duration}</span>
-                  </div>
-
-                  <div className="mt-6 max-w-3xl mx-auto lg:mx-0">
-                    <Synopsis description={animeInfo.description} />
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4 mt-6 justify-center lg:justify-start">
-                    {firstEpisodeWatchId && (
-                      <Button asChild size="lg" className="shadow-lg shadow-primary/30 bg-primary text-primary-foreground hover:bg-primary/90 text-lg h-12 px-8">
-                        <Link href={`/watch/${animeInfo.id}?ep=${firstEpisodeWatchId}`} className="flex items-center justify-center gap-2">
-                            <Play /> Watch Now
-                        </Link>
-                      </Button>
-                    )}
-                     <Button onClick={handleWatchlistToggle} size="lg" variant="secondary" className="h-12 px-8 text-lg" disabled={isLoading}>
-                        {isInWatchlist ? <BookmarkCheck className="mr-2"/> : <BookmarkPlus className="mr-2"/>} {isInWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
-                    </Button>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-xs mt-4 max-w-3xl mx-auto lg:mx-0">
-                    <Link href="/" className="text-primary hover:underline">ProjectX</Link> is the best site to watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> SUB online, or you can even watch <Link href={`/anime/${animeInfo.id}`} className="text-primary hover:underline">{animeInfo.name}</Link> DUB in HD quality. You can also find various anime on <Link href="/" className="text-primary hover:underline">ProjectX</Link> website.
-                  </p>
-                </div>
+              <div className="lg:col-span-3 order-1 lg:order-2 space-y-6">
+                  <InfoSidebar moreInfo={moreInfo} />
+                 {relatedAnimes && relatedAnimes.length > 0 && (
+                    <RankedAnimeSidebar title="Related Anime" animes={relatedAnimes} icon={<GitBranch className="w-5 h-5"/>} />
+                 )}
+                 {animeResult?.mostPopularAnimes && animeResult.mostPopularAnimes.length > 0 && (
+                    <RankedAnimeSidebar title="Most Popular" animes={animeResult.mostPopularAnimes} icon={<Star className="w-5 h-5"/>} />
+                 )}
               </div>
-            </div>
-
-            <div className="container mx-auto -mt-10 relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  <div className="lg:col-span-3">
-                      <InfoSidebar moreInfo={moreInfo} />
-                  </div>
-
-                  <div className="lg:col-span-6 space-y-12">
-                      <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
-
-                      <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
-                      
-                      {characters.length > 0 && (
-                        <section>
-                           <h2 className="text-title mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
-                            <div className="grid grid-cols-1 gap-2">
-                                {characters.slice(0, 10).map(cv => (
-                                    <CharacterCard key={cv.character.id} cv={cv} />
-                                ))}
-                            </div>
-                        </section>
-                      )}
-                     {animeInfo.id && <CommentsContainer animeId={animeInfo.id} />}
-                  </div>
-                  <div className="lg:col-span-3 space-y-6">
-                     {relatedAnimes && relatedAnimes.length > 0 && (
-                        <RankedAnimeSidebar title="Related Anime" animes={relatedAnimes} icon={<GitBranch className="w-5 h-5"/>} />
-                     )}
-                     {recommendedAnimes && recommendedAnimes.length > 0 && (
-                        <RankedAnimeSidebar title="Recommended" animes={recommendedAnimes} icon={<Star className="w-5 h-5"/>} />
-                     )}
-                  </div>
-                </div>
             </div>
         </div>
     </div>
