@@ -53,6 +53,7 @@ export default function RootLayout({
       </head>
 
       <body
+        suppressHydrationWarning={true}
         className={cn(
           "min-h-screen w-full bg-background text-foreground antialiased overflow-x-hidden",
           "font-sans", // default font
