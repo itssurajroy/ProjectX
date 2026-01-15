@@ -152,7 +152,7 @@ function TVShowsPageContent() {
     isError,
     error,
     refetch,
-  } = useQuery<SearchResult>({
+  } = useQuery<{data: SearchResult}>({
     queryKey: ['tv', { page, genres, year, sort }],
     queryFn: () => {
         const params = new URLSearchParams({ 
@@ -174,8 +174,9 @@ function TVShowsPageContent() {
     router.push(`${pathname}?${params.toString()}`);
   }, [searchParams, router, pathname]);
 
-  const shows = data?.animes || [];
-  const totalAnimes = data?.totalAnimes || 0;
+  const shows = data?.data?.animes || [];
+  const totalAnimes = data?.data?.totalAnimes || 0;
+  const totalPages = data?.data?.totalPages;
 
   return (
     <>
@@ -252,8 +253,8 @@ function TVShowsPageContent() {
               ))}
             </motion.div>
 
-            {data?.totalPages && data.totalPages > 1 && (
-                <Pagination currentPage={page} totalPages={data.totalPages} onPageChange={handlePageChange} />
+            {totalPages && totalPages > 1 && (
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
             )}
           </>
         )}

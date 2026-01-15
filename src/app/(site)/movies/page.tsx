@@ -151,7 +151,7 @@ function MoviesPageContent() {
     isError,
     error,
     refetch,
-  } = useQuery<SearchResult>({
+  } = useQuery<{data: SearchResult}>({
     queryKey: ['movies', { page, genres, year, sort }],
     queryFn: () => {
         const params = new URLSearchParams({ 
@@ -173,8 +173,9 @@ function MoviesPageContent() {
     router.push(`${pathname}?${params.toString()}`);
   }, [searchParams, router, pathname]);
   
-  const movies = data?.animes || [];
-  const totalAnimes = data?.totalAnimes || 0;
+  const movies = data?.data?.animes || [];
+  const totalAnimes = data?.data?.totalAnimes || 0;
+  const totalPages = data?.data?.totalPages;
 
   return (
     <>
@@ -251,8 +252,8 @@ function MoviesPageContent() {
               ))}
             </motion.div>
 
-            {data?.totalPages && data.totalPages > 1 && (
-              <Pagination currentPage={page} totalPages={data.totalPages} onPageChange={handlePageChange} />
+            {totalPages && totalPages > 1 && (
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={handlePageChange} />
             )}
           </>
         )}
