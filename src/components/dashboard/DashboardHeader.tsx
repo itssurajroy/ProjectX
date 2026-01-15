@@ -1,10 +1,11 @@
 
+
 'use client';
 import { Button } from '@/components/ui/button';
 import SiteLogo from '@/components/layout/SiteLogo';
 import { Menu, Bell, Shuffle, Users } from 'lucide-react';
 import Link from 'next/link';
-import { useUser } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 interface DashboardHeaderProps {

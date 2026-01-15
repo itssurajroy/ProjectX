@@ -9,7 +9,8 @@ import { Award, BookOpen, Calendar, Clapperboard, Film, Flame, Loader2, Star, Tr
 import { AnimeService } from '@/lib/services/AnimeService';
 import { UserHistory } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
-import { useUser, useCollection } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/client/useCollection';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 
 const achievementsList = [

@@ -10,7 +10,8 @@ import Link from 'next/link';
 
 import { UserHistory, AnimeBase } from '@/lib/types/anime';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { useUser, useCollection } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/client/useCollection';
 import HistoryGroup from '@/components/dashboard/HistoryGroup';
 
 export default function HistoryPage() {

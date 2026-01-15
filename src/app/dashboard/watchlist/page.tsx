@@ -9,7 +9,8 @@ import Link from 'next/link';
 import { AnimeBase } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
 import { AnimeService } from '@/lib/services/AnimeService';
-import { useUser, useCollection } from '@/firebase/client';
+import { useUser } from '@/firebase/auth/use-user';
+import { useCollection } from '@/firebase/client/useCollection';
 import WatchlistGrid from '@/components/dashboard/WatchlistGrid';
 import WatchlistControls from '@/components/dashboard/WatchlistControls';
 
