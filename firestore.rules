@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 /**
@@ -64,6 +65,20 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    /**
+     * Checks if a user has the 'admin' role.
+     */
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role == 'admin';
+    }
+    
+    /**
+     * Checks if a user has 'admin' or 'moderator' role.
+     */
+    function isModerator() {
+      return isSignedIn() && (request.auth.token.role == 'admin' || request.auth.token.role == 'moderator');
+    }
 
     /**
      * Checks for ownership on an *existing* document. Used for update and delete
@@ -85,7 +100,8 @@ service cloud.firestore {
      * Ensures a user's ID field remains unchanged during an update.
      */
     function isProfileIdImmutable() {
-      return request.resource.data.id == resource.data.id;
+      // Allow updates if 'id' field is not present in the request or if it matches the existing one.
+      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
     }
     
     /**
@@ -113,10 +129,11 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree and prevents user enumeration.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
       allow create: if isCreatingOwnProfile(userId);
-      allow update: if isOwner(userId) && isProfileIdImmutable();
+      // Allow owner to update their own profile, or admin to update any profile
+      allow update: if (isOwner(userId) && isProfileIdImmutable()) || isAdmin();
       allow delete: if false;
 
       /**
@@ -157,9 +174,7 @@ service cloud.firestore {
      */
     match /videos/{videoId} {
       allow get, list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Video' entity is missing an 'ownerId' or 'creatorId' field.
-      // This prevents client-side writes, assuming a trusted backend manages video content.
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow create, update, delete: if isAdmin();
 
       /**
        * @description Rules for public comments on a video.
@@ -171,8 +186,8 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow get, list: if true;
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isExistingOwner(resource.data.userId);
+        allow update: if isOwner(resource.data.userId) || isModerator();
+        allow delete: if isOwner(resource.data.userId) || isModerator();
       }
       
       /**
@@ -185,9 +200,16 @@ service cloud.firestore {
       match /skipSegments/{skipSegmentId} {
         allow get, list: if true;
         allow create: if isSignedIn() && request.resource.data.submitterId == request.auth.uid;
-        allow update: if isExistingOwner(resource.data.submitterId) && request.resource.data.submitterId == resource.data.submitterId;
-        allow delete: if isExistingOwner(resource.data.submitterId);
+        allow update: if isOwner(resource.data.submitterId) || isModerator();
+        allow delete: if isOwner(resource.data.submitterId) || isModerator();
       }
+    }
+
+    match /comments/{commentId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId) || isModerator();
+      allow delete: if isOwner(resource.data.userId) || isModerator();
     }
   }
 }

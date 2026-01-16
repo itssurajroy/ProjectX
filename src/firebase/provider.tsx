@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -6,6 +7,9 @@ import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firest
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { UserProfile } from '@/lib/types/user';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { FirestorePermissionError } from './errors';
+import { errorEmitter } from './error-emitter';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -91,11 +95,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             if (userSnap.exists()) {
               const profile = userSnap.data() as UserProfile;
               setUserState({ user: firebaseUser, userProfile: profile, loading: false, error: null });
-              // Non-blocking update
-              setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+              // Non-blocking update for last login
+              setDocumentNonBlocking(userRef, { lastLogin: serverTimestamp() }, { merge: true });
             } else {
               // New user, create profile
               const newUserProfile: UserProfile = {
+                id: firebaseUser.uid,
                 displayName: firebaseUser.displayName || 'Anonymous',
                 email: firebaseUser.email || '',
                 photoURL: firebaseUser.photoURL || '',
@@ -104,12 +109,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
               };
-              await setDoc(userRef, newUserProfile);
+              // Create profile, non-blocking
+              setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
               setUserState({ user: firebaseUser, userProfile: newUserProfile, loading: false, error: null });
             }
           } catch (e: any) {
-             console.error("FirebaseProvider: Error fetching/creating user profile:", e);
-             setUserState({ user: firebaseUser, userProfile: null, loading: false, error: e });
+             console.error("FirebaseProvider: Error fetching user profile:", e);
+             const contextualError = new FirestorePermissionError({ operation: 'get', path: userRef.path });
+             errorEmitter.emit('permission-error', contextualError);
+             setUserState({ user: firebaseUser, userProfile: null, loading: false, error: contextualError });
           }
         } else {
           // User is signed out
