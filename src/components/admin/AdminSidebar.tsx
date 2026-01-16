@@ -13,7 +13,7 @@ const navItems = [
   { name: 'Dashboard', icon: Home, href: '/admin' },
   { name: 'Anime', icon: Tv, href: '/admin/anime' },
   { name: 'Users', icon: Users, href: '/admin/users' },
-  { name: 'Reports', icon: Flag, href: '/admin/reports' },
+  { name: 'Reviews', icon: Flag, href: '/admin/reviews' },
   { name: 'Activity Log', icon: Activity, href: '/admin/activity-log' },
   { name: 'Seasonal', icon: Calendar, href: '/admin/seasonal' },
   { name: 'Import/Export', icon: FileUp, href: '/admin/import-export' },
