@@ -1,9 +1,8 @@
 
-
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Shuffle, X, Users, Bell, Loader2, Languages } from 'lucide-react';
+import { Search, Menu, Shuffle, X, Users, Bell, Loader2, Globe } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { SearchSuggestion } from '@/lib/types/anime';
@@ -77,7 +76,7 @@ function LanguageToggleButton() {
     const { language, toggleLanguage } = useTitleLanguageStore();
     return (
         <Button onClick={toggleLanguage} variant="ghost" size="icon" title="Toggle Title Language">
-            <Languages className="w-5 h-5" />
+            <Globe className="w-5 h-5" />
         </Button>
     )
 }
