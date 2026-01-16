@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Suspense, useState, useRef, useEffect, useCallback } from 'react';
+import { Suspense, useState, useRef, useEffect, useCallback, use } from 'react';
 import { AnimeCard } from '@/components/AnimeCard';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -349,11 +350,10 @@ function AZListPageComponent({ params: routeParams }: { params: { character: str
 }
 
 export default function AZListPage({ params }: { params: { character: string } }) {
+    const resolvedParams = use(params as any);
     return (
         <Suspense fallback={<div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div></div>}>
-            <AZListPageComponent params={params} />
+            <AZListPageComponent params={resolvedParams} />
         </Suspense>
     )
 }
-
-    
