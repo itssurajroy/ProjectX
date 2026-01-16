@@ -4,13 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCollection } from "@/firebase/client/useCollection";
 import { UserProfile } from "@/lib/types/user";
 import { Activity, Users, Film, BarChart, Loader2 } from "lucide-react";
+import { collection, query, where } from 'firebase/firestore';
+import { db } from '@/firebase/client';
 
 export default function AdminDashboardPage() {
     const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
+    
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const newUsersQuery = query(collection(db, 'users'), where('createdAt', '>=', twentyFourHoursAgo));
+    const { data: newUsers, loading: loadingNewUsers } = useCollection<UserProfile>('users', newUsersQuery);
 
     const kpiData = [
         { title: "Total Users", value: loadingUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : users?.length.toLocaleString() || '0', icon: Users },
-        { title: "Daily Active Users", value: "1,830", icon: Activity },
+        { title: "New Users (24h)", value: loadingNewUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : newUsers?.length.toLocaleString() || '0', icon: Activity },
         { title: "Total Anime", value: "2,150", icon: Film },
         { title: "Total Views (24h)", value: "150,923", icon: BarChart },
     ];
@@ -38,15 +44,15 @@ export default function AdminDashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card>
-                    <CardHeader><CardTitle>Content KPIs</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Top Anime</CardTitle></CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">Top 10 anime, broken embed alerts, and more will be shown here.</p>
+                        <p className="text-muted-foreground">Most added, highest rated, and most reviewed anime will be displayed here.</p>
                     </CardContent>
                 </Card>
                  <Card>
-                    <CardHeader><CardTitle>System Health</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>Genre Distribution</CardTitle></CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">API status, MegaPlay ping results, and scraper job statuses will appear here.</p>
+                        <p className="text-muted-foreground">A chart showing the distribution of genres across all content will appear here.</p>
                     </CardContent>
                 </Card>
             </div>
