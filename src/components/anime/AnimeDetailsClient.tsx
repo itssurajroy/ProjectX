@@ -181,13 +181,13 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
           </div>
 
           <div className="container mx-auto relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-start py-20 md:py-28">
-            <div className="md:col-span-3 flex justify-center md:justify-start">
+            <div className="md:col-span-3">
               <ProgressiveImage
                 src={animeInfo.poster}
                 alt={animeInfo.name || "Anime Poster"}
                 width={250}
                 height={380}
-                className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105"
+                className="rounded-xl shadow-2xl shadow-black/50 w-48 md:w-[250px] object-cover transition-all duration-300 hover:scale-105 mx-auto md:mx-0"
                 priority
               />
             </div>
