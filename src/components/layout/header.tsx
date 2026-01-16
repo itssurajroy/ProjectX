@@ -78,7 +78,7 @@ function LanguageToggleButton() {
     return (
         <Button onClick={toggleLanguage} variant="ghost" size="icon" title="Toggle Title Language">
             <Languages className="w-5 h-5" />
-            <span className="absolute -bottom-1 right-0 text-xs font-bold text-primary">{language === 'english' ? 'EN' : 'JP'}</span>
+            <span className="absolute top-1 right-1 text-xs font-bold text-primary">{language === 'english' ? 'EN' : 'JP'}</span>
         </Button>
     )
 }
