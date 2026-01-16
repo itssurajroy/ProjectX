@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useMemo } from 'react';
@@ -7,8 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Clock, Tv, Loader2, Star, BarChart3, TrendingUp } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import dynamic from 'next/dynamic';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase';
+import { useUser, useCollection } from '@/firebase';
 import { UserHistory } from '@/lib/types/anime';
 import { AnimeService } from '@/lib/services/AnimeService';
 import Link from 'next/link';

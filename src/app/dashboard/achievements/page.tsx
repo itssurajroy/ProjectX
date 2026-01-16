@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useMemo } from 'react';
@@ -9,8 +7,7 @@ import { Award, BookOpen, Calendar, Clapperboard, Film, Flame, Loader2, Star, Tr
 import { AnimeService } from '@/lib/services/AnimeService';
 import { UserHistory } from '@/lib/types/anime';
 import { WatchlistItem } from '@/lib/types/watchlist';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase';
+import { useUser, useCollection } from '@/firebase';
 import AchievementCard from '@/components/dashboard/AchievementCard';
 
 const achievementsList = [
