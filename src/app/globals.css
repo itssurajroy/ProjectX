@@ -1,5 +1,5 @@
 /* src/app/globals.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -18,8 +18,8 @@ html {
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: #000;
-  color: white;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   min-height: 100vh;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -33,68 +33,68 @@ img {
 
 @layer base {
   :root {
-    --background: 247 38% 11%;
-    --foreground: 0 0% 100%;
+    --background: 222 67% 7%;
+    --foreground: 210 40% 98%;
  
-    --card: 246 35% 15%;
-    --card-foreground: 0 0% 100%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
  
-    --popover: 246 35% 15%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
  
-    --primary: 262 80% 58%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 175 100% 50%;
+    --primary-foreground: 222 67% 7%;
  
-    --secondary: 240 5% 25%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
  
-    --muted: 240 5% 20%;
-    --muted-foreground: 240 4% 65%;
+    --muted: 217 28% 13%;
+    --muted-foreground: 215 20% 65%;
  
-    --accent: 246 35% 20%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
  
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 345 100% 59%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 4% 26%;
-    --input: 240 4% 26%;
-    --ring: 262 80% 58%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 175 100% 50%;
  
     --radius: 0.5rem;
 
     --font-primary: 'Inter', system-ui, sans-serif;
-    --font-display: 'Poppins', sans-serif;
+    --font-display: 'Inter', sans-serif;
   }
  
   .dark {
-    --background: 247 38% 11%;
-    --foreground: 0 0% 100%;
+    --background: 222 67% 7%;
+    --foreground: 210 40% 98%;
  
-    --card: 246 35% 15%;
-    --card-foreground: 0 0% 100%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
  
-    --popover: 246 35% 15%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
  
-    --primary: 262 80% 58%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 175 100% 50%;
+    --primary-foreground: 222 67% 7%;
  
-    --secondary: 240 5% 25%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
  
-    --muted: 240 5% 20%;
-    --muted-foreground: 240 4% 65%;
+    --muted: 217 28% 13%;
+    --muted-foreground: 215 20% 65%;
  
-    --accent: 246 35% 20%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
  
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 345 100% 59%;
+    --destructive-foreground: 210 40% 98%;
  
-    --border: 240 4% 26%;
-    --input: 240 4% 26%;
-    --ring: 262 80% 58%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 175 100% 50%;
   }
 }
 
