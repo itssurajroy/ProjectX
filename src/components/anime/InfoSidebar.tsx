@@ -27,8 +27,20 @@ export default function InfoSidebar({ moreInfo }: InfoSidebarProps) {
                                     <Link key={genre} href={`/search?genres=${genre.toLowerCase().replace(/ /g, '-')}`} className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-accent">{genre}</Link>
                                 ))}
                             </div>
+                        ) : Array.isArray(value) ? (
+                             <div className="flex flex-wrap items-center gap-1 mt-1">
+                                {value.map((item: string) => (
+                                    <Link 
+                                        key={item} 
+                                        href={`/search?q=${encodeURIComponent(item)}`} 
+                                        className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-accent"
+                                    >
+                                        {item}
+                                    </Link>
+                                ))}
+                            </div>
                         ) : (
-                            <p className="text-muted-foreground text-xs mt-0.5">{Array.isArray(value) ? value.join(', ') : value}</p>
+                            <p className="text-muted-foreground text-xs mt-0.5">{value}</p>
                         )}
                     </div>
                 )
