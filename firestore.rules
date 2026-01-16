@@ -144,10 +144,11 @@ service cloud.firestore {
        * @principle Enforces strict data ownership within a user's private data tree.
        */
       match /watchlists/{watchListId} {
-        allow get, list: if isOwner(userId) || isAdmin();
+        allow get, list: if isOwner(userId);
+        allow get, list: if isAdmin();
         allow create: if isCreatingOwnedContent(userId);
-        allow update: if isExistingOwner(userId) && isContentOwnershipImmutable();
-        allow delete: if isExistingOwner(userId);
+        allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
+        allow delete: if isExistingOwner(userId) || isAdmin();
       }
       
       /**
@@ -158,10 +159,11 @@ service cloud.firestore {
        * @principle Enforces strict data ownership within a user's private data tree.
        */
       match /history/{historyId} {
-        allow get, list: if isOwner(userId) || isAdmin();
+        allow get, list: if isOwner(userId);
+        allow get, list: if isAdmin();
         allow create: if isCreatingOwnedContent(userId);
-        allow update: if isExistingOwner(userId) && isContentOwnershipImmutable();
-        allow delete: if isExistingOwner(userId);
+        allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
+        allow delete: if isExistingOwner(userId) || isAdmin();
       }
     }
     
