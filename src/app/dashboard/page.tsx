@@ -32,7 +32,7 @@ const Section = ({ title, icon: Icon, children, href }: { title: string, icon: R
 
 const ContinueWatchingSection = () => {
     const { user } = useUser();
-    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
+    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(user ? `users/${user.uid}/history` : null);
 
     const animeIds = useMemo(() => {
         if (!history || history.length === 0) return [];
@@ -84,7 +84,8 @@ const ContinueWatchingSection = () => {
     // Create a map of animeId to the latest history item for that anime
     const latestHistoryByAnime = new Map<string, UserHistory>();
     history.forEach(item => {
-        if (!latestHistoryByAnime.has(item.animeId) || item.watchedAt > latestHistoryByAnime.get(item.animeId)!.watchedAt) {
+        const existingItem = latestHistoryByAnime.get(item.animeId);
+        if (!existingItem || (item.watchedAt && existingItem.watchedAt && item.watchedAt > existingItem.watchedAt)) {
             latestHistoryByAnime.set(item.animeId, item);
         }
     });
