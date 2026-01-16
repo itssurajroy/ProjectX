@@ -1,5 +1,3 @@
-
-
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -13,7 +11,6 @@ import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import SiteLogo from '@/components/layout/SiteLogo';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
 
 const desktopNavItems = [
   { name: 'Home', icon: Home, href: '/dashboard' },
@@ -103,7 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     return (
         <>
-            <DashboardHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
+            <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
             
             <div className="flex min-h-screen pt-16">
                 {/* Mobile Sidebar */}

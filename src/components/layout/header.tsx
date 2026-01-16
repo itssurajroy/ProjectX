@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
@@ -81,7 +80,11 @@ function LanguageToggleButton() {
     )
 }
 
-export default function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export default function Header({ onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -151,6 +154,11 @@ export default function Header() {
       <div className="container mx-auto flex items-center justify-between gap-4">
         
         <div className="flex items-center gap-4">
+            {onMenuClick && (
+              <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
+                  <Menu className="w-5 h-5" />
+              </Button>
+            )}
             <SiteLogo />
             <nav className="hidden lg:flex items-center gap-4">
                 {navItems.map(item => (
