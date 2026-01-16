@@ -1,0 +1,347 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ProjectX application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "username": {
+          "type": "string",
+          "description": "User's username or display name."
+        },
+        "joinDate": {
+          "type": "string",
+          "description": "Date and time the user joined the application.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "username",
+        "joinDate"
+      ]
+    },
+    "Video": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Video",
+      "type": "object",
+      "description": "Represents a video available on the ProjectX platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the video entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the video."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the video."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "Date and time the video was uploaded.",
+          "format": "date-time"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Duration of the video in seconds."
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre of the video (e.g., Action, Comedy, Drama)."
+        },
+        "sources": {
+          "type": "array",
+          "description": "List of video sources (URLs).",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "description",
+        "uploadDate",
+        "duration",
+        "genre",
+        "sources"
+      ]
+    },
+    "Watchlist": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Watchlist",
+      "type": "object",
+      "description": "Represents a user's watchlist of videos.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the watchlist entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Watchlist)"
+        },
+        "videoIds": {
+          "type": "array",
+          "description": "References to Videos. (Relationship: Watchlist 1:N Video)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "videoIds"
+      ]
+    },
+    "History": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "History",
+      "type": "object",
+      "description": "Represents a user's viewing history.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the history entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N History)"
+        },
+        "videoId": {
+          "type": "string",
+          "description": "Reference to Video. (Relationship: History 1:N Video)"
+        },
+        "viewDate": {
+          "type": "string",
+          "description": "Date and time the video was viewed.",
+          "format": "date-time"
+        },
+        "watchPosition": {
+          "type": "number",
+          "description": "The position in seconds where the user stopped watching the video."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "videoId",
+        "viewDate",
+        "watchPosition"
+      ]
+    },
+    "Comment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Comment",
+      "type": "object",
+      "description": "Represents a comment on a video.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the comment entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Comment)"
+        },
+        "videoId": {
+          "type": "string",
+          "description": "Reference to Video. (Relationship: Video 1:N Comment)"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content of the comment."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Date and time the comment was posted.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "videoId",
+        "text",
+        "timestamp"
+      ]
+    },
+    "SkipSegment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SkipSegment",
+      "type": "object",
+      "description": "Represents a skip segment (intro, outro) for a video.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the skip segment entity."
+        },
+        "videoId": {
+          "type": "string",
+          "description": "Reference to Video. (Relationship: Video 1:N SkipSegment)"
+        },
+        "startTime": {
+          "type": "number",
+          "description": "Start time of the skip segment in seconds."
+        },
+        "endTime": {
+          "type": "number",
+          "description": "End time of the skip segment in seconds."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the skip segment (e.g., intro, outro)."
+        },
+        "submitterId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N SkipSegment)"
+        }
+      },
+      "required": [
+        "id",
+        "videoId",
+        "startTime",
+        "endTime",
+        "type"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection of user profiles.  Each document contains user information.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/videos/{videoId}",
+        "definition": {
+          "entityName": "Video",
+          "schema": {
+            "$ref": "#/backend/entities/Video"
+          },
+          "description": "Collection of video entities. Each document represents a single video.",
+          "params": [
+            {
+              "name": "videoId",
+              "description": "The unique identifier for the video."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/watchlists/{watchListId}",
+        "definition": {
+          "entityName": "Watchlist",
+          "schema": {
+            "$ref": "#/backend/entities/Watchlist"
+          },
+          "description": "Subcollection of user-specific watchlists. Supports path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "watchListId",
+              "description": "The unique identifier for the watchlist."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/history/{historyId}",
+        "definition": {
+          "entityName": "History",
+          "schema": {
+            "$ref": "#/backend/entities/History"
+          },
+          "description": "Subcollection of user-specific viewing history. Supports path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "historyId",
+              "description": "The unique identifier for the history entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/videos/{videoId}/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": {
+            "$ref": "#/backend/entities/Comment"
+          },
+          "description": "Subcollection of video comments. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "videoId",
+              "description": "The unique identifier for the video."
+            },
+            {
+              "name": "commentId",
+              "description": "The unique identifier for the comment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/videos/{videoId}/skipSegments/{skipSegmentId}",
+        "definition": {
+          "entityName": "SkipSegment",
+          "schema": {
+            "$ref": "#/backend/entities/SkipSegment"
+          },
+          "description": "Subcollection of video skip segments.  Supports association of skip segments to a particular video.",
+          "params": [
+            {
+              "name": "videoId",
+              "description": "The unique identifier for the video."
+            },
+            {
+              "name": "skipSegmentId",
+              "description": "The unique identifier for the skip segment."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable database for ProjectX. It prioritizes authorization independence using denormalization, structural segregation for simplified security rules, and consistent access modeling. Path-based ownership is used for private user data, while membership maps handle collaborative scenarios.\n\n*   **Authorization Independence:** Denormalization is used to eliminate `get()` calls in security rules. For example, the `Comment` subcollection includes the `userId` to allow direct validation of ownership without needing to retrieve the parent video document. This ensures atomic operations and simplifies debugging.\n*   **Structural Segregation:** Data with different access requirements are stored in separate collections, ensuring that all documents within a collection share the same security posture. User-specific data (watchlists, history) are stored under `/users/{userId}`, while videos are stored in a separate `/videos` collection. Comments are nested under videos to maintain context and allow efficient querying of comments for a specific video.\n*   **Access Modeling:** Path-based ownership is used for user-owned data like watchlists and history (`/users/{userId}/watchlists/{watchListId}`, `/users/{userId}/history/{historyId}`). This approach simplifies security rules by directly mapping paths to user IDs. Comments, being related to videos, are stored as a subcollection of the video document.\n*   **QAPs (Rules are not Filters):** The structure supports secure `list` operations. For example, listing comments for a specific video is achieved by querying the `/videos/{videoId}/comments` subcollection, ensuring that only comments associated with that video are retrieved. The video ID is present in the comment to prevent needing to validate it from a parent `get()` in security rules. The public video feed can easily be read, as the security rules do not rely on filtering after the data is read. \n*   **Invariants:** The structure supports the integrity of ownership. All relevant data, such as `userId` in `Watchlist`, `History` and `Comment`, is directly present in the document. Timestamps such as uploadDate and viewDate and denormalized data such as `videoId` within `/users/{userId}/history` are also included directly within the documents to support data integrity and invariants."
+  }
+}

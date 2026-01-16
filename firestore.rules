@@ -1,59 +1,193 @@
-
 rules_version = '2';
+
+/**
+ * This ruleset enforces a hybrid security model for a video streaming application.
+ *
+ * Core Philosophy:
+ * The security model is designed for both privacy and community interaction. User-specific
+ * data like watchlists and viewing history is strictly private and accessible only to the
+ * owner. Publicly-facing data, such as videos and comments, is readable by anyone,
+ * but write operations (creating, editing, deleting) are restricted to authenticated
+ * users who own the specific piece of content.
+ *
+ * Data Structure:
+ * - /users/{userId}/...: This path contains all private data for a specific user.
+ *   Access is controlled by ensuring the request's auth UID matches the {userId}
+ *   wildcard. This includes subcollections like 'watchlists' and 'history'.
+ * - /videos/{videoId}/...: This path contains public data related to videos. The
+ *   top-level documents are readable by all, as are subcollections like 'comments'
+ *   and 'skipSegments'.
+ *
+ * Key Security Decisions:
+ * - User Isolation: A user can ONLY access data under their own `/users/{userId}` path.
+ *   They cannot read or write data belonging to any other user.
+ * - No User Listing: The rules explicitly prevent querying the top-level `/users`
+ *   collection, protecting user privacy by making it impossible to enumerate all
+ *   users in the system.
+ * - Public Read, Owner Write: For collaborative content like comments and skip
+ *   segments, anyone can read them. However, creating content requires a user to be
+ *   signed in, and modifying or deleting content is restricted to the original author.
+ * - Backend-Managed Content: The core '/videos' collection is read-only for clients.
+ *   This is a critical security measure assuming that video metadata is managed by a
+ *   trusted backend service or administrative process, preventing any user from
+ *   modifying or deleting video catalog entries.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization, ownership data is denormalized. For
+ * example, a document in `/videos/{videoId}/comments/{commentId}` contains a `userId`
+ * field. This allows the rules to verify comment ownership directly from the document
+ * itself, avoiding a slow and costly `get()` call to another location.
+ *
+ * Structural Segregation:
+ * The separation between private user subcollections (`/users/{userId}/history`) and
+ * public top-level collections (`/videos`) is intentional. This segregation
+ * simplifies security rules and makes list operations more secure and performant.
+ * For instance, a user can safely list their own history without any risk of fetching
+ * another user's data.
+ */
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Default deny all
-    match /{document=**} {
-      allow read, write: if false;
+
+    // Helper functions for improved readability and reuse.
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Admins can manage users
+    /**
+     * Checks if the currently authenticated user is the owner of a resource
+     * identified by a specific userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an *existing* document. Used for update and delete
+     * operations to prevent acting on non-existent data.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Ensures the incoming document's ownership field (`id`) matches the
+     * user's UID and path, critical for linking data on creation.
+     */
+    function isCreatingOwnProfile(userId) {
+      return isOwner(userId) && request.resource.data.id == userId;
+    }
+
+    /**
+     * Ensures a user's ID field remains unchanged during an update.
+     */
+    function isProfileIdImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+    
+    /**
+     * Enforces that the incoming document's `userId` field correctly
+     * matches the owner's UID from the path on create operations.
+     */
+    function isCreatingOwnedContent(userId) {
+      return isOwner(userId) && request.resource.data.userId == userId;
+    }
+    
+    /**
+     * Enforces that the `userId` field is immutable on update operations.
+     */
+    function isContentOwnershipImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * @description Rules for a user's own profile document.
+     * @path /users/{userId}
+     * @allow (create) A new user creating their own profile document: `create /users/user123` with auth.uid `user123`.
+     * @deny (create) A user trying to create a profile for someone else: `create /users/user456` with auth.uid `user123`.
+     * @deny (get) A user trying to read another user's profile: `get /users/user456` with auth.uid `user123`.
+     * @deny (list) Any user trying to list all users: `list /users`.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
-    }
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isCreatingOwnProfile(userId);
+      allow update: if isOwner(userId) && isProfileIdImmutable();
+      allow delete: if false;
 
-    // Admins can manage anime
-    match /anime/{animeId} {
-        allow read: if true;
-        allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      /**
+       * @description Rules for a user's private watchlists.
+       * @path /users/{userId}/watchlists/{watchListId}
+       * @allow (create) A user creating a new watchlist in their own space: `create /users/user123/watchlists/wl456` with auth.uid `user123`.
+       * @deny (get) A user trying to read another user's watchlist: `get /users/user456/watchlists/wl789` with auth.uid `user123`.
+       * @principle Enforces strict data ownership within a user's private data tree.
+       */
+      match /watchlists/{watchListId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isCreatingOwnedContent(userId);
+        allow update: if isExistingOwner(userId) && isContentOwnershipImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description Rules for a user's private viewing history.
+       * @path /users/{userId}/history/{historyId}
+       * @allow (list) A user listing their own viewing history: `list /users/user123/history` with auth.uid `user123`.
+       * @deny (update) A user trying to modify another user's history: `update /users/user456/history/h789` with auth.uid `user123`.
+       * @principle Enforces strict data ownership within a user's private data tree.
+       */
+      match /history/{historyId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isCreatingOwnedContent(userId);
+        allow update: if isExistingOwner(userId) && isContentOwnershipImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
     }
     
-    // Comments can be read by anyone, created by logged-in users, and managed by owners or moderators/admins
-    match /comments/{commentId} {
-        allow read: if true;
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-        allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator']);
-    }
+    /**
+     * @description Rules for the public video catalog.
+     * @path /videos/{videoId}
+     * @allow (get) Any user, signed in or not, retrieving video metadata: `get /videos/vid456`.
+     * @deny (create) Any client trying to add a new video: `create /videos/vid789`.
+     * @principle Provides public read-access while centralizing content management to a trusted backend.
+     */
+    match /videos/{videoId} {
+      allow get, list: if true;
+      // CRITICAL: Cannot implement owner-only writes. The 'Video' entity is missing an 'ownerId' or 'creatorId' field.
+      // This prevents client-side writes, assuming a trusted backend manages video content.
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
 
-    // Notifications: users can only access their own
-    match /notifications/{notificationId} {
-      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if true; // Allow backend services (or admins) to create notifications
-    }
-    
-    // Watchlist & History: users can only access their own
-    match /users/{userId}/watchlist/{animeId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /users/{userId}/history/{episodeId} {
-        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
-    }
-
-    // Watch Together Rooms
-    match /watch-together-rooms/{roomId} {
-        allow read: if true;
-        allow create: if request.auth != null && request.resource.data.hostId == request.auth.uid;
-        allow update: if request.auth != null && (resource.data.hostId == request.auth.uid || request.auth.uid in resource.data.users);
-        allow delete: if request.auth != null && resource.data.hostId == request.auth.uid;
-    }
-
-    match /watch-together-rooms/{roomId}/chat/{messageId} {
-        allow read: if true;
-        allow create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/watch-together-rooms/$(roomId)).data.users;
+      /**
+       * @description Rules for public comments on a video.
+       * @path /videos/{videoId}/comments/{commentId}
+       * @allow (create) A signed-in user posting a comment: `create /videos/vid456/comments/c123` with auth.uid `user123` and data `{ "userId": "user123", ... }`.
+       * @deny (delete) A user trying to delete someone else's comment: `delete /videos/vid456/comments/c456` (where c456 owner is `user789`) with auth.uid `user123`.
+       * @principle Allows public reading of shared content, but restricts modification to the content's original author.
+       */
+      match /comments/{commentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(resource.data.userId);
+      }
+      
+      /**
+       * @description Rules for user-submitted skip segments (e.g., intros/outros).
+       * @path /videos/{videoId}/skipSegments/{skipSegmentId}
+       * @allow (get) Any user fetching skip segments for a video: `get /videos/vid456/skipSegments/ss789`.
+       * @deny (update) A user trying to edit a segment they did not submit: `update /videos/vid456/skipSegments/ss123` with auth.uid `user123`.
+       * @principle Allows public reading of shared content, but restricts modification to the content's original author.
+       */
+      match /skipSegments/{skipSegmentId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && request.resource.data.submitterId == request.auth.uid;
+        allow update: if isExistingOwner(resource.data.submitterId) && request.resource.data.submitterId == resource.data.submitterId;
+        allow delete: if isExistingOwner(resource.data.submitterId);
+      }
     }
   }
 }
