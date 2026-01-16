@@ -114,7 +114,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               setUserState({ user: firebaseUser, userProfile: newUserProfile, loading: false, error: null });
             }
           } catch (e: any) {
-             console.error("FirebaseProvider: Error fetching user profile:", e);
              const contextualError = new FirestorePermissionError({ operation: 'get', path: userRef.path });
              errorEmitter.emit('permission-error', contextualError);
              setUserState({ user: firebaseUser, userProfile: null, loading: false, error: contextualError });
