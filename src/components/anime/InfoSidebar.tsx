@@ -12,7 +12,7 @@ interface InfoSidebarProps {
 export default function InfoSidebar({ moreInfo }: InfoSidebarProps) {
 
   return (
-    <div className="bg-card p-4 rounded-lg border border-border self-start lg:sticky lg:top-20">
+    <div className="bg-card p-4 rounded-lg border border-border self-start xl:sticky xl:top-20">
         <div className="space-y-3 text-sm">
             {Object.entries(moreInfo).map(([key, value]) => {
                 if (!value || ['malId', 'anilistId', 'nextAiringEpisode'].includes(key) || (Array.isArray(value) && value.length === 0)) return null;

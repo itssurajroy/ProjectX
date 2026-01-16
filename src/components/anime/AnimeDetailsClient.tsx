@@ -238,8 +238,17 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
         </div>
 
         <div className="container mx-auto -mt-10 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <div className="lg:col-span-9 order-2 lg:order-1 space-y-12">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                
+                <aside className="hidden xl:block xl:col-span-3">
+                  <InfoSidebar moreInfo={moreInfo} />
+                </aside>
+                
+                <div className="col-span-12 xl:col-span-6 space-y-12">
+                  <div className="block xl:hidden">
+                    <InfoSidebar moreInfo={moreInfo} />
+                  </div>
+
                   <SeasonsSwiper seasons={seasons} currentAnimeId={id} />
 
                   <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
@@ -266,21 +275,20 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                        </div>
                     </section>
                  )}
-              </div>
+                </div>
 
-              <div className="lg:col-span-3 order-1 lg:order-2 space-y-6">
-                  <InfoSidebar moreInfo={moreInfo} />
-                 {relatedAnimes && relatedAnimes.length > 0 && (
-                    <RankedAnimeSidebar title="Related Anime" animes={relatedAnimes} icon={<GitBranch className="w-5 h-5"/>} />
-                 )}
-                 {animeResult?.mostPopularAnimes && animeResult.mostPopularAnimes.length > 0 && (
-                    <RankedAnimeSidebar title="Most Popular" animes={animeResult.mostPopularAnimes} icon={<Star className="w-5 h-5"/>} />
-                 )}
-              </div>
+                <aside className="col-span-12 xl:col-span-3">
+                   <div className="xl:sticky xl:top-20 space-y-6">
+                     {relatedAnimes && relatedAnimes.length > 0 && (
+                        <RankedAnimeSidebar title="Related Anime" animes={relatedAnimes} icon={<GitBranch className="w-5 h-5"/>} />
+                     )}
+                     {animeResult?.mostPopularAnimes && animeResult.mostPopularAnimes.length > 0 && (
+                        <RankedAnimeSidebar title="Most Popular" animes={animeResult.mostPopularAnimes} icon={<Star className="w-5 h-5"/>} />
+                     )}
+                   </div>
+                </aside>
             </div>
         </div>
     </div>
   );
 }
-
-    
