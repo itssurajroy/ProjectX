@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useCollection } from "@/firebase/client/useCollection";
+import { useCollection } from "@/firebase";
 import { UserProfile } from "@/lib/types/user";
 import ErrorDisplay from "@/components/common/ErrorDisplay";
 import { useState } from "react";

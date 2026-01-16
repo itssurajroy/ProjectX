@@ -1,11 +1,11 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCollection } from "@/firebase/client/useCollection";
+import { useCollection } from "@/firebase";
 import { UserProfile } from "@/lib/types/user";
 import { Activity, Users, Film, BarChart, Loader2 } from "lucide-react";
 import { collection, query, where } from 'firebase/firestore';
-import { db } from '@/firebase/client';
 import { useQuery } from "@tanstack/react-query";
 
 export default function AdminDashboardPage() {

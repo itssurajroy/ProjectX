@@ -9,9 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { W2GRoomCard } from "@/components/watch2gether/W2GRoomCard";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/firebase/auth/use-user";
-import { useCollection } from "@/firebase/client/useCollection";
-import { db } from '@/firebase/client';
+import { useUser, useFirestore, useCollection } from "@/firebase";
 import { WatchTogetherRoom } from "@/lib/types/watch2gether";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -27,6 +25,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     const { user, userProfile } = useUser();
     const router = useRouter();
+    const firestore = useFirestore();
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery] = useDebounce(searchQuery, 500);
     const [selectedAnime, setSelectedAnime] = useState<AnimeBase | null>(null);
@@ -89,7 +88,7 @@ const CreateRoomModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                 }
             };
             
-            const docRef = await addDoc(collection(db, 'watch-together-rooms'), roomData);
+            const docRef = await addDoc(collection(firestore, 'watch-together-rooms'), roomData);
             toast.success("Room created!", { id: toastId });
             router.push(`/watch2gether/${docRef.id}`);
 
