@@ -8,7 +8,7 @@ import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { Suspense } from "react";
 import Loading from "./loading";
 import { Analytics } from "@vercel/analytics/react";
-import { FirebaseProvider } from "@/firebase/client/provider";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import ChangelogPopup from "@/components/ChangelogPopup";
 
@@ -64,13 +64,13 @@ export default function RootLayout({
       >
         <Suspense fallback={<Loading />}>
           <Providers>
-            <FirebaseProvider>
+            <FirebaseClientProvider>
               <NotificationProvider>
                   {children}
                 <ShadToaster />
                 <ChangelogPopup />
               </NotificationProvider>
-            </FirebaseProvider>
+            </FirebaseClientProvider>
           </Providers>
         </Suspense>
         <Analytics />

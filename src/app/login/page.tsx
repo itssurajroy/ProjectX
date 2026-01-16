@@ -14,8 +14,11 @@ import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import Link from 'next/link';
-import { signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, googleProvider, auth } from '@/firebase/client';
 import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
+import { useAuth } from '@/firebase/provider';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+
+const googleProvider = new GoogleAuthProvider();
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -24,6 +27,7 @@ const GoogleIcon = () => (
 )
 
 export default function LoginPage() {
+  const auth = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
