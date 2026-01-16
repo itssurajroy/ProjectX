@@ -1,4 +1,3 @@
-
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -174,11 +173,11 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
               src={animeInfo.poster}
               alt={animeInfo.name || "Anime Banner"}
               fill
-              className="object-cover opacity-10 blur-xl scale-110"
+              className="object-cover opacity-20 blur-lg scale-110"
               priority
             />
-             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/20" />
-             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
+             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/50 to-transparent" />
           </div>
 
           <div className="container mx-auto relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-start py-20 md:py-28">
