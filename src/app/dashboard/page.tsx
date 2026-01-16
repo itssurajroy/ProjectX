@@ -151,7 +151,7 @@ export default function DashboardHomePage() {
                                 <AnimeCard key={anime.id} anime={anime} />
                             ))}
                         </div>
-                    </Section>
+                    </section>
                 )}
                 <Section title="Friends Activity" icon={Users} href="/dashboard/friends">
                     <div className="space-y-3 text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">

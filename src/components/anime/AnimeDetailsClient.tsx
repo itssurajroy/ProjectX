@@ -25,12 +25,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
 import ProgressiveImage from '../ProgressiveImage';
-import { useUser } from '@/firebase/auth/use-user';
-import { useDoc } from '@/firebase/client/useDoc';
-import { db } from '@/firebase/client';
+import { useUser, useDoc, useFirestore, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { WatchlistItem } from '@/lib/types/watchlist';
 import toast from 'react-hot-toast';
-import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 import CharacterCard from './CharacterCard';
@@ -53,6 +51,7 @@ const extractEpisodeNumber = (id: string) => id.split('?ep=')[1] || null;
 export default function AnimeDetailsClient({ id }: { id: string }) {
   const router = useRouter();
   const { user } = useUser();
+  const firestore = useFirestore();
   const { language } = useTitleLanguageStore();
   const [showAgeGate, setShowAgeGate] = useState(false);
   
@@ -66,7 +65,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
     queryFn: () => AnimeService.anime(id),
   });
 
-  const { data: watchlistItem, loading: loadingWatchlist } = useDoc<WatchlistItem>(`users/${user?.uid}/watchlist/${id}`);
+  const { data: watchlistItem, loading: loadingWatchlist } = useDoc<WatchlistItem>(user ? `users/${user.uid}/watchlist/${id}`: null);
   const isInWatchlist = !!watchlistItem;
   
   const anime = animeResult?.anime;
@@ -102,31 +101,26 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   
   const isLoading = isLoadingAnime || loadingWatchlist;
 
-  const handleWatchlistToggle = async () => {
+  const handleWatchlistToggle = () => {
     if (!user) {
         toast.error("You must be logged in to manage your watchlist.");
         router.push('/login');
         return;
     }
     const toastId = toast.loading(isInWatchlist ? "Removing from watchlist..." : "Adding to watchlist...");
-    const docRef = doc(db, `users/${user.uid}/watchlist/${id}`);
+    const docRef = doc(firestore, `users/${user.uid}/watchlist/${id}`);
 
-    try {
-        if (isInWatchlist) {
-            await deleteDoc(docRef);
-            toast.success("Removed from watchlist.", { id: toastId });
-        } else {
-            await setDoc(docRef, {
-                id: id,
-                status: 'Plan to Watch',
-                addedAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            });
-            toast.success("Added to watchlist!", { id: toastId });
-        }
-    } catch (e) {
-        console.error("Watchlist error:", e);
-        toast.error("Failed to update watchlist.", { id: toastId });
+    if (isInWatchlist) {
+        deleteDocumentNonBlocking(docRef);
+        toast.success("Removed from watchlist.", { id: toastId });
+    } else {
+        setDocumentNonBlocking(docRef, {
+            id: id,
+            status: 'Plan to Watch',
+            addedAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+        }, { merge: false });
+        toast.success("Added to watchlist!", { id: toastId });
     }
   };
 
