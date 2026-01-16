@@ -6,19 +6,34 @@ import { UserProfile } from "@/lib/types/user";
 import { Activity, Users, Film, BarChart, Loader2 } from "lucide-react";
 import { collection, query, where } from 'firebase/firestore';
 import { db } from '@/firebase/client';
+import { useQuery } from "@tanstack/react-query";
 
 export default function AdminDashboardPage() {
     const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
     
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const newUsersQuery = query(collection(db, 'users'), where('createdAt', '>=', twentyFourHoursAgo));
-    const { data: newUsers, loading: loadingNewUsers } = useCollection<UserProfile>('users', newUsersQuery);
+    // This is a placeholder. In a real app, this would query an 'animes' collection.
+    const { data: animeCount, isLoading: loadingAnimeCount } = useQuery({
+        queryKey: ['animeCount'],
+        queryFn: async () => { 
+            // In a real scenario, you'd do a count query on the 'animes' collection.
+            // For now, we'll return a static number.
+            return 2150;
+        },
+    });
+
+    // This is a placeholder for recent activity.
+    const { data: recentActivityCount, isLoading: loadingRecentActivity } = useQuery({
+        queryKey: ['recentActivityCount'],
+        queryFn: async () => {
+            // This would query a 'logs' or 'comments' collection for recent entries.
+            return 125; // Static for now
+        }
+    });
 
     const kpiData = [
         { title: "Total Users", value: loadingUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : users?.length.toLocaleString() || '0', icon: Users },
-        { title: "New Users (24h)", value: loadingNewUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : newUsers?.length.toLocaleString() || '0', icon: Activity },
-        { title: "Total Anime", value: "2,150", icon: Film },
-        { title: "Total Views (24h)", value: "150,923", icon: BarChart },
+        { title: "Total Anime", value: loadingAnimeCount ? <Loader2 className="w-5 h-5 animate-spin" /> : animeCount?.toLocaleString() || '0', icon: Film },
+        { title: "Recent Activity (24h)", value: loadingRecentActivity ? <Loader2 className="w-5 h-5 animate-spin" /> : recentActivityCount?.toLocaleString() || '0', icon: Activity },
     ];
 
     return (
@@ -44,9 +59,9 @@ export default function AdminDashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card>
-                    <CardHeader><CardTitle>Top Anime</CardTitle></CardHeader>
+                    <CardHeader><CardTitle>User Growth</CardTitle></CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">Most added, highest rated, and most reviewed anime will be displayed here.</p>
+                        <p className="text-muted-foreground">A chart from Recharts showing user sign-ups over time will be displayed here.</p>
                     </CardContent>
                 </Card>
                  <Card>

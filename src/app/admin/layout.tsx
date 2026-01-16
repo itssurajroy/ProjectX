@@ -17,22 +17,27 @@ import AdminSidebar from '@/components/admin/AdminSidebar';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const { user, loading } = useUser();
+    const { user, userProfile, loading } = useUser();
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading && !user) {
-            router.push('/login');
-        }
-    }, [user, loading, router]);
+        if (loading) return;
 
-    if (loading) {
+        if (!user) {
+            toast.error("You must be logged in to view this page.");
+            router.push('/login');
+            return;
+        }
+
+        if (userProfile?.role !== 'admin') {
+            toast.error("You do not have permission to access the admin panel.");
+            router.push('/dashboard');
+        }
+
+    }, [user, userProfile, loading, router]);
+
+    if (loading || !user || userProfile?.role !== 'admin') {
         return <div className="flex h-screen items-center justify-center"><Loader2 className="w-16 h-16 animate-spin text-primary" /></div>;
-    }
-    
-    // Basic role check - in a real app, this would be more robust
-    if (!user) {
-        return null;
     }
 
     return (

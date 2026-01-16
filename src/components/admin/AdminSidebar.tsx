@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Tv, Users, Flag, Settings, LogOut, Calendar, FileUp, Activity } from 'lucide-react';
+import { Home, Tv, Users, Flag, Settings, LogOut, BarChart3 } from 'lucide-react';
 import { useUser } from '@/firebase/auth/use-user';
 import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
@@ -13,10 +13,8 @@ const navItems = [
   { name: 'Dashboard', icon: Home, href: '/admin' },
   { name: 'Anime', icon: Tv, href: '/admin/anime' },
   { name: 'Users', icon: Users, href: '/admin/users' },
-  { name: 'Reviews', icon: Flag, href: '/admin/reviews' },
-  { name: 'Activity Log', icon: Activity, href: '/admin/activity-log' },
-  { name: 'Seasonal', icon: Calendar, href: '/admin/seasonal' },
-  { name: 'Import/Export', icon: FileUp, href: '/admin/import-export' },
+  { name: 'Moderation', icon: Flag, href: '/admin/moderation' },
+  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
   { name: 'Settings', icon: Settings, href: '/admin/settings' },
 ];
 
