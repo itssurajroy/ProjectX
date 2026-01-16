@@ -67,17 +67,17 @@ service cloud.firestore {
     }
     
     /**
-     * Checks if a user has the 'admin' role.
+     * Checks if a user has the 'admin' role by reading their user document.
      */
     function isAdmin() {
-      return isSignedIn() && request.auth.token.role == 'admin';
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     /**
      * Checks if a user has 'admin' or 'moderator' role.
      */
     function isModerator() {
-      return isSignedIn() && (request.auth.token.role == 'admin' || request.auth.token.role == 'moderator');
+      return isSignedIn() && (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'moderator');
     }
 
     /**
@@ -129,7 +129,7 @@ service cloud.firestore {
      * @principle Restricts access to a user's own data tree and prevents user enumeration.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId);
       allow list: if isAdmin();
       allow create: if isCreatingOwnProfile(userId);
       // Allow owner to update their own profile, or admin to update any profile
