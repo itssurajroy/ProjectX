@@ -1,12 +1,11 @@
-
 // src/lib/seed.ts
 import 'dotenv/config';
 import { adminAuth, adminDb } from '@/firebase/server';
 
 const ADMIN_EMAIL = 'admin@projectx.com';
 
-async function grantAdminRole() {
-  console.log(`Attempting to grant admin role to: ${ADMIN_EMAIL}`);
+async function grantAdminRoleAndVerifyEmail() {
+  console.log(`Attempting to grant admin role and verify email for: ${ADMIN_EMAIL}`);
 
   try {
     // 1. Get the user by email from Firebase Auth
@@ -15,11 +14,16 @@ async function grantAdminRole() {
     // 2. Set custom claim for role-based access control
     await adminAuth.setCustomUserClaims(user.uid, { role: 'admin' });
     
-    // 3. Update the user's document in Firestore
+    // 3. Update the user's auth record to be email verified
+    await adminAuth.updateUser(user.uid, {
+        emailVerified: true
+    });
+
+    // 4. Update the user's document in Firestore
     const userRef = adminDb.collection('users').doc(user.uid);
     await userRef.update({ role: 'admin' });
 
-    console.log(`✅ Success! ${ADMIN_EMAIL} has been granted admin privileges.`);
+    console.log(`✅ Success! ${ADMIN_EMAIL} has been granted admin privileges and email is now verified.`);
     console.log("Please log out and log back in for the changes to take effect.");
 
   } catch (error: any) {
@@ -33,4 +37,4 @@ async function grantAdminRole() {
   }
 }
 
-grantAdminRole();
+grantAdminRoleAndVerifyEmail();
