@@ -39,6 +39,18 @@ export default function InfoSidebar({ moreInfo }: InfoSidebarProps) {
                                     </Link>
                                 ))}
                             </div>
+                        ) : (key === 'studios' || key === 'producers') && typeof value === 'string' ? (
+                            <div className="flex flex-wrap items-center gap-1 mt-1">
+                                {value.split(',').map(item => item.trim()).map((item: string) => (
+                                    <Link 
+                                        key={item} 
+                                        href={`/search?q=${encodeURIComponent(item)}`} 
+                                        className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-md hover:text-primary hover:bg-accent"
+                                    >
+                                        {item}
+                                    </Link>
+                                ))}
+                            </div>
                         ) : (
                             <p className="text-muted-foreground text-xs mt-0.5">{value}</p>
                         )}
