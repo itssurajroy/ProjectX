@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,11 +10,13 @@ import { UserProfile } from "@/lib/types/user";
 import ErrorDisplay from "@/components/common/ErrorDisplay";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
+import UserEditDialog from "@/components/admin/UserEditDialog";
 
 export default function AdminUsersPage() {
     const { data: users, loading, error } = useCollection<UserProfile>('users');
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const [editingUser, setEditingUser] = useState<(UserProfile & {id: string}) | null>(null);
 
     const filteredUsers = users?.filter(user => 
         (user.displayName && user.displayName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
@@ -48,6 +51,7 @@ export default function AdminUsersPage() {
                                     <th className="p-4 text-left font-semibold">Username</th>
                                     <th className="p-4 text-left font-semibold">Email</th>
                                     <th className="p-4 text-left font-semibold">Role</th>
+                                    <th className="p-4 text-left font-semibold">Status</th>
                                     <th className="p-4 text-left font-semibold">Created At</th>
                                     <th className="p-4 text-left font-semibold">Actions</th>
                                 </tr>
@@ -55,32 +59,35 @@ export default function AdminUsersPage() {
                             <tbody>
                                 {loading ? (
                                     <tr>
-                                        <td colSpan={5} className="text-center p-8">
+                                        <td colSpan={6} className="text-center p-8">
                                             <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
                                         </td>
                                     </tr>
                                 ) : error ? (
                                     <tr>
-                                        <td colSpan={5} className="p-8">
+                                        <td colSpan={6} className="p-8">
                                             <ErrorDisplay title="Failed to load users" description={error.message} isCompact />
                                         </td>
                                     </tr>
                                 ) : filteredUsers && filteredUsers.length > 0 ? (
                                     filteredUsers.map(user => (
-                                    <tr key={user.email} className="border-b last:border-b-0">
+                                    <tr key={user.id} className="border-b last:border-b-0">
                                         <td className="p-4 font-medium">{user.displayName}</td>
                                         <td className="p-4 text-muted-foreground">{user.email}</td>
                                         <td className="p-4">
                                             <Badge variant={user.role === 'admin' ? 'default' : user.role === 'moderator' ? 'secondary' : 'outline'}>{user.role}</Badge>
                                         </td>
+                                        <td className="p-4">
+                                            <Badge variant={user.status === 'active' ? 'secondary' : 'destructive'} className="capitalize">{user.status || 'active'}</Badge>
+                                        </td>
                                         <td className="p-4 text-muted-foreground">{user.createdAt?.toDate().toLocaleDateString() || 'N/A'}</td>
                                         <td className="p-4">
-                                            <Button variant="outline" size="sm">Edit</Button>
+                                            <Button variant="outline" size="sm" onClick={() => setEditingUser(user as UserProfile & {id: string})}>Edit</Button>
                                         </td>
                                     </tr>
                                 ))) : (
                                      <tr>
-                                        <td colSpan={5} className="text-center p-8 text-muted-foreground">
+                                        <td colSpan={6} className="text-center p-8 text-muted-foreground">
                                             No users found.
                                         </td>
                                     </tr>
@@ -91,6 +98,13 @@ export default function AdminUsersPage() {
                 </CardContent>
             </Card>
 
+            {editingUser && (
+                <UserEditDialog 
+                    isOpen={!!editingUser}
+                    onClose={() => setEditingUser(null)}
+                    user={editingUser}
+                />
+            )}
         </div>
     );
 }

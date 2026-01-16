@@ -8,34 +8,30 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Users can read their own profile, admins can read any
+    // Admins can manage users
     match /users/{userId} {
-      // Anyone can read public profile info
-      allow read: if request.auth != null && ('displayName' in resource.data);
-      allow create: if request.auth != null; // Anyone can create their user doc
-      allow update: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
     }
 
-    // Anime can be read by anyone
+    // Admins can manage anime
     match /anime/{animeId} {
         allow read: if true;
-        // Write access could be restricted to admins in the future
-        allow write: if true; 
+        allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Comments can be read by anyone
+    // Comments can be read by anyone, created by logged-in users, and managed by owners or moderators/admins
     match /comments/{commentId} {
         allow read: if true;
-        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid; // Must be logged in to comment
-        // Users can only edit/delete their own comments
-        allow update: if request.auth != null && resource.data.userId == request.auth.uid;
-        allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+        allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+        allow update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'moderator']);
     }
 
     // Notifications: users can only access their own
     match /notifications/{notificationId} {
       allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if true; // Allow backend services to create notifications
+      allow create: if true; // Allow backend services (or admins) to create notifications
     }
     
     // Watchlist & History: users can only access their own

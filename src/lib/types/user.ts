@@ -4,6 +4,7 @@ export interface UserProfile {
   photoURL?: string;
   email: string;
   role: 'user' | 'admin' | 'moderator';
+  status?: 'active' | 'suspended' | 'banned';
   bio?: string;
   favoriteAnimeId?: string;
   level?: number;

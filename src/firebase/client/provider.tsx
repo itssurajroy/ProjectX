@@ -55,6 +55,7 @@ export function FirebaseProvider({ children }: FirebaseProviderProps) {
                 email: user.email || '',
                 photoURL: user.photoURL || '',
                 role: 'user', // Set default role
+                status: 'active',
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
               };
