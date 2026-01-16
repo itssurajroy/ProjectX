@@ -1,16 +1,20 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, Users, Film, BarChart } from "lucide-react";
-
-const kpiData = [
-    { title: "Total Users", value: "12,405", icon: Users },
-    { title: "Daily Active Users", value: "1,830", icon: Activity },
-    { title: "Total Anime", value: "2,150", icon: Film },
-    { title: "Total Views (24h)", value: "150,923", icon: BarChart },
-];
+import { useCollection } from "@/firebase/client/useCollection";
+import { UserProfile } from "@/lib/types/user";
+import { Activity, Users, Film, BarChart, Loader2 } from "lucide-react";
 
 export default function AdminDashboardPage() {
+    const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
+
+    const kpiData = [
+        { title: "Total Users", value: loadingUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : users?.length.toLocaleString() || '0', icon: Users },
+        { title: "Daily Active Users", value: "1,830", icon: Activity },
+        { title: "Total Anime", value: "2,150", icon: Film },
+        { title: "Total Views (24h)", value: "150,923", icon: BarChart },
+    ];
+
     return (
         <div className="space-y-8">
             <div>
