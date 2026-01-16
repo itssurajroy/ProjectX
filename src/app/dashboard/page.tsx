@@ -84,6 +84,7 @@ const ContinueWatchingSection = () => {
     // Create a map of animeId to the latest history item for that anime
     const latestHistoryByAnime = new Map<string, UserHistory>();
     history.forEach(item => {
+        if (!item.watchedAt) return;
         const existingItem = latestHistoryByAnime.get(item.animeId);
         if (!existingItem || (item.watchedAt && existingItem.watchedAt && item.watchedAt > existingItem.watchedAt)) {
             latestHistoryByAnime.set(item.animeId, item);
@@ -152,7 +153,7 @@ export default function DashboardHomePage() {
                                 <AnimeCard key={anime.id} anime={anime} />
                             ))}
                         </div>
-                    </section>
+                    </Section>
                 )}
                 <Section title="Friends Activity" icon={Users} href="/dashboard/friends">
                     <div className="space-y-3 text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
