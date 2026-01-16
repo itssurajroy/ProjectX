@@ -1,10 +1,9 @@
-
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Tv, Users, Flag, Settings, LogOut, Calendar, FileUp } from 'lucide-react';
+import { Home, Tv, Users, Flag, Settings, LogOut, Calendar, FileUp, Activity } from 'lucide-react';
 import { useUser } from '@/firebase/auth/use-user';
 import { auth } from '@/firebase/client';
 import toast from 'react-hot-toast';
@@ -15,6 +14,7 @@ const navItems = [
   { name: 'Anime', icon: Tv, href: '/admin/anime' },
   { name: 'Users', icon: Users, href: '/admin/users' },
   { name: 'Reports', icon: Flag, href: '/admin/reports' },
+  { name: 'Activity Log', icon: Activity, href: '/admin/activity-log' },
   { name: 'Seasonal', icon: Calendar, href: '/admin/seasonal' },
   { name: 'Import/Export', icon: FileUp, href: '/admin/import-export' },
   { name: 'Settings', icon: Settings, href: '/admin/settings' },
