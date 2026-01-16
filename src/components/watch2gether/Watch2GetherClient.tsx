@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect } from 'react';
@@ -16,14 +15,13 @@ import { AnimeAboutResponse } from '@/lib/types/anime';
 import { WatchTogetherRoom } from '@/lib/types/watch2gether';
 import SiteLogo from '../layout/SiteLogo';
 import W2GAnimeDetails from './W2GAnimeDetails';
-import { useUser } from '@/firebase/auth/use-user';
-import { useDoc } from '@/firebase/client/useDoc';
-import { db } from '@/firebase/client';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { useUser, useDoc, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 
 export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     const router = useRouter();
     const { user, userProfile } = useUser();
+    const firestore = useFirestore();
     const { data: roomData, loading: isRoomLoading, error: roomError } = useDoc<WatchTogetherRoom>(`watch-together-rooms/${roomId}`);
 
     const isHost = user?.uid === roomData?.hostId;
@@ -37,8 +35,8 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
     // Add user to the room on join
     useEffect(() => {
         if (user && userProfile && roomData && !roomData.users.includes(user.uid)) {
-            const roomRef = doc(db, 'watch-together-rooms', roomId);
-            updateDoc(roomRef, {
+            const roomRef = doc(firestore, 'watch-together-rooms', roomId);
+            updateDocumentNonBlocking(roomRef, {
                 users: arrayUnion(user.uid),
                 [`userProfiles.${user.uid}`]: {
                     id: user.uid,
@@ -46,14 +44,14 @@ export default function Watch2GetherClient({ roomId }: { roomId: string }) {
                     avatar: userProfile.photoURL || `https://api.dicebear.com/8.x/identicon/svg?seed=${user.uid}`,
                     isHost: false,
                 }
-            }).catch(err => console.error("Failed to add user to room", err));
+            });
         }
-    }, [user, userProfile, roomData, roomId]);
+    }, [user, userProfile, roomData, roomId, firestore]);
 
     // Remove user from room on leave
     const handleLeave = async () => {
         if (user && roomData?.users.includes(user.uid)) {
-            const roomRef = doc(db, 'watch-together-rooms', roomId);
+            const roomRef = doc(firestore, 'watch-together-rooms', roomId);
             // In a real app, you might want to transfer host role if the host leaves.
             // For now, we just remove the user.
             await updateDoc(roomRef, {

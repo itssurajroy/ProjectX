@@ -1,11 +1,11 @@
+
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Home, Tv, Users, Flag, Settings, LogOut, BarChart3 } from 'lucide-react';
-import { useUser } from '@/firebase/auth/use-user';
-import { auth } from '@/firebase/client';
+import { useAuth } from '@/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 
@@ -36,6 +36,7 @@ const NavLink = ({ item, onClick }: { item: typeof navItems[0], onClick?: () => 
 
 export default function AdminSidebar({ onLinkClick }: { onLinkClick?: () => void }) {
     const router = useRouter();
+    const auth = useAuth();
 
     const handleSignOut = async () => {
       try {

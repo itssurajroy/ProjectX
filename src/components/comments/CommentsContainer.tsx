@@ -7,9 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ShieldCheck, ChevronsDown, Loader2, MessageCircle, Send } from 'lucide-react';
 import { Button } from '../ui/button';
-import { useUser } from '@/firebase/auth/use-user';
-import { db } from '@/firebase/client';
-import { collection, query, where, orderBy, onSnapshot, getDocs, addDoc, serverTimestamp, runTransaction, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, where, orderBy, getDocs, runTransaction, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Comment, CommentWithUser } from '@/lib/types/comment';
 import { UserProfile } from '@/lib/types/user';
 import toast from 'react-hot-toast';
@@ -68,21 +67,23 @@ const buildCommentTree = (comments: CommentWithUser[]): CommentWithUser[] => {
 
 const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: string | null; }) => {
     const { user, userProfile } = useUser();
+    const firestore = useFirestore();
     const [comments, setComments] = useState<CommentWithUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [input, setInput] = useState('');
     const [isSpoiler, setIsSpoiler] = useState(false);
 
+    const commentsCol = collection(firestore, 'comments');
+    const q = query(
+        commentsCol,
+        where('animeId', '==', animeId),
+        where('episodeId', '==', episodeId || null),
+        orderBy('timestamp', 'desc')
+    );
+
+    // This is not a hook, so direct snapshot usage is okay here
     useEffect(() => {
         setIsLoading(true);
-        const commentsCol = collection(db, 'comments');
-        const q = query(
-          commentsCol,
-          where('animeId', '==', animeId),
-          where('episodeId', '==', episodeId || null),
-          orderBy('timestamp', 'desc')
-        );
-
         const unsubscribe = onSnapshot(q, async (snapshot) => {
             if (snapshot.empty) {
                 setComments([]);
@@ -97,7 +98,7 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
             for (let i = 0; i < userIds.length; i += 30) {
                 const batchIds = userIds.slice(i, i + 30);
                 if (batchIds.length > 0) {
-                    const usersQuery = query(collection(db, 'users'), where('__name__', 'in', batchIds));
+                    const usersQuery = query(collection(firestore, 'users'), where('__name__', 'in', batchIds));
                     const usersSnapshot = await getDocs(usersQuery);
                     usersSnapshot.forEach(doc => {
                         userProfiles.set(doc.id, doc.data() as UserProfile);
@@ -120,7 +121,7 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
         });
 
         return () => unsubscribe();
-    }, [animeId, episodeId]);
+    }, [firestore, animeId, episodeId]); // firestore dependency is important
 
     const postComment = async (text: string, parentId: string | null = null) => {
         if (!text.trim() || !user || !userProfile) {
@@ -130,7 +131,8 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
 
         const toastId = toast.loading("Posting comment...");
         try {
-            await addDoc(collection(db, 'comments'), {
+            const collectionRef = collection(firestore, 'comments');
+            await addDocumentNonBlocking(collectionRef, {
                 animeId,
                 episodeId: episodeId || null,
                 userId: user.uid,
@@ -157,9 +159,9 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
             toast.error("You must be logged in to like comments.");
             return;
         }
-        const commentRef = doc(db, 'comments', commentId);
+        const commentRef = doc(firestore, 'comments', commentId);
         try {
-            await runTransaction(db, async (transaction) => {
+            await runTransaction(firestore, async (transaction) => {
                 const commentDoc = await transaction.get(commentRef);
                 if (!commentDoc.exists()) throw "Document does not exist!";
                 

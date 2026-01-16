@@ -34,44 +34,48 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAuthAction = async (action: 'login' | 'signup') => {
+  const handleAuthAction = (action: 'login' | 'signup') => {
     setIsLoading(true);
     setError(null);
     const toastId = toast.loading(action === 'login' ? 'Logging in...' : 'Signing up...');
 
-    try {
-      if (action === 'login') {
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        await createUserWithEmailAndPassword(auth, email, password);
-      }
-      toast.success('Success! Redirecting...', { id: toastId });
-      router.push('/dashboard');
-    } catch (e: any) {
-      const errorMessage = getFirebaseErrorMessage(e.code);
-      setError(errorMessage);
-      toast.error(errorMessage, { id: toastId });
-    } finally {
-      setIsLoading(false);
-    }
+    const authPromise = action === 'login'
+      ? signInWithEmailAndPassword(auth, email, password)
+      : createUserWithEmailAndPassword(auth, email, password);
+
+    authPromise
+      .then(userCredential => {
+        toast.success('Success! Redirecting...', { id: toastId });
+        router.push('/dashboard');
+      })
+      .catch(e => {
+        const errorMessage = getFirebaseErrorMessage(e.code);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
-  const handleGoogleSignIn = async () => {
+  const handleGoogleSignIn = () => {
     setIsLoading(true);
     setError(null);
     const toastId = toast.loading('Waiting for Google...');
 
-    try {
-      await signInWithPopup(auth, googleProvider);
-      toast.success('Logged in with Google!', { id: toastId });
-      router.push('/dashboard');
-    } catch (e: any) {
-      const errorMessage = getFirebaseErrorMessage(e.code);
-      setError(errorMessage);
-      toast.error(errorMessage, { id: toastId });
-    } finally {
-      setIsLoading(false);
-    }
+    signInWithPopup(auth, googleProvider)
+      .then(result => {
+        toast.success('Logged in with Google!', { id: toastId });
+        router.push('/dashboard');
+      })
+      .catch(e => {
+        const errorMessage = getFirebaseErrorMessage(e.code);
+        setError(errorMessage);
+        toast.error(errorMessage, { id: toastId });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   };
 
   return (

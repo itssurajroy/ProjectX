@@ -1,5 +1,4 @@
 
-
 'use client';
 import { User, Loader2, Save, Shield, Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,9 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { useUser } from '@/firebase/auth/use-user';
-import { db } from '@/firebase/client';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { doc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -35,6 +33,7 @@ const RoleBadge = ({ role }: { role: 'user' | 'moderator' | 'admin' }) => {
 
 export default function ProfilePage() {
     const { user, userProfile, loading } = useUser();
+    const firestore = useFirestore();
     const [displayName, setDisplayName] = useState('');
     const [photoURL, setPhotoURL] = useState('');
     const [bio, setBio] = useState('');
@@ -56,16 +55,23 @@ export default function ProfilePage() {
         setIsSaving(true);
         const toastId = toast.loading("Saving profile...");
         try {
-            const userRef = doc(db, 'users', user.uid);
-            await updateDoc(userRef, {
+            const userRef = doc(firestore, 'users', user.uid);
+            
+            // Use non-blocking update for Firestore
+            updateDocumentNonBlocking(userRef, {
                 displayName,
                 photoURL,
                 bio
             });
-            await updateProfile(user, {
-                displayName,
-                photoURL
-            })
+
+            // Auth profile update can be awaited as it's less frequent
+            if (user) {
+                await updateProfile(user, {
+                    displayName,
+                    photoURL
+                });
+            }
+            
             toast.success("Profile updated successfully!", { id: toastId });
         } catch (error) {
             console.error("Error updating profile:", error);

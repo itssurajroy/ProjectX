@@ -1,16 +1,13 @@
 
-
 import { AnimeBase } from "@/lib/types/anime"
 import Link from "next/link"
 import { AnimeTooltip } from "./AnimeTooltip"
-import { Clapperboard, Mic, Play, Clock, BookmarkPlus, BookmarkCheck, MoreHorizontal, Check } from "lucide-react"
+import { Clapperboard, Mic, Play, Clock, BookmarkPlus, MoreHorizontal, Check } from "lucide-react"
 import ProgressiveImage from "./ProgressiveImage"
-import { useUser } from "@/firebase/auth/use-user"
-import { useDoc } from "@/firebase/client/useDoc"
-import { db } from "@/firebase/client"
+import { useUser, useDoc, useFirestore, setDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
 import { WatchlistItem, WatchlistStatus } from "@/lib/types/watchlist"
 import toast from "react-hot-toast"
-import { doc, setDoc, deleteDoc, serverTimestamp, updateDoc } from "firebase/firestore"
+import { doc, serverTimestamp } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import { useTitleLanguageStore } from "@/store/title-language-store"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -24,13 +21,17 @@ type AnimeCardProps = {
 
 const WatchlistButton = ({ animeId }: { animeId: string }) => {
   const { user } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
-  const { data: watchlistItem, loading: loadingWatchlist } = useDoc<WatchlistItem>(`users/${user?.uid}/watchlist/${animeId}`);
+  
+  const docPath = user ? `users/${user.uid}/watchlist/${animeId}` : null;
+  const { data: watchlistItem, isLoading: loadingWatchlist } = useDoc<WatchlistItem>(docPath);
+  
   const isInWatchlist = !!watchlistItem;
 
   const statuses: WatchlistStatus[] = ['Watching', 'Completed', 'On-Hold', 'Dropped', 'Plan to Watch'];
 
-  const handleWatchlistAction = async (e: React.MouseEvent, action: 'add' | 'remove' | 'update', status?: WatchlistStatus) => {
+  const handleWatchlistAction = (e: React.MouseEvent, action: 'add' | 'remove' | 'update', status?: WatchlistStatus) => {
     e.preventDefault(); 
     e.stopPropagation();
 
@@ -40,26 +41,26 @@ const WatchlistButton = ({ animeId }: { animeId: string }) => {
         return;
     }
     
-    const docRef = doc(db, `users/${user.uid}/watchlist/${animeId}`);
+    const docRef = doc(firestore, `users/${user.uid}/watchlist/${animeId}`);
     let toastId;
 
     try {
         if (action === 'add') {
             toastId = toast.loading("Adding to watchlist...");
-            await setDoc(docRef, {
+            setDocumentNonBlocking(docRef, {
                 id: animeId,
                 status: 'Plan to Watch',
                 addedAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-            });
+            }, { merge: false });
             toast.success("Added to watchlist!", { id: toastId });
         } else if (action === 'remove') {
             toastId = toast.loading("Removing from watchlist...");
-            await deleteDoc(docRef);
+            deleteDocumentNonBlocking(docRef);
             toast.success("Removed from watchlist.", { id: toastId });
         } else if (action === 'update' && status) {
             toastId = toast.loading(`Updating status to "${status}"...`);
-            await updateDoc(docRef, {
+            updateDocumentNonBlocking(docRef, {
                 status: status,
                 updatedAt: serverTimestamp(),
             });

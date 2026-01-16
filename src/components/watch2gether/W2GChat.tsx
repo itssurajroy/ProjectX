@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { FormEvent, useEffect, useRef, useState } from 'react';
@@ -9,14 +8,13 @@ import { Loader2, Send } from 'lucide-react';
 import { ChatMessage } from '@/lib/types/watch2gether';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { ScrollArea } from '../ui/scroll-area';
-import { useUser } from '@/firebase/auth/use-user';
-import { useCollection } from '@/firebase/client/useCollection';
-import { db } from '@/firebase/client';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useCollection, useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 export default function W2GChat({ roomId }: { roomId: string }) {
     const { user, userProfile } = useUser();
+    const firestore = useFirestore();
     const [message, setMessage] = useState('');
     const { data: messages, loading: isLoading } = useCollection<ChatMessage>(`watch-together-rooms/${roomId}/chat`);
     const bottomRef = useRef<HTMLDivElement>(null);
@@ -33,10 +31,10 @@ export default function W2GChat({ roomId }: { roomId: string }) {
             return;
         }
 
-        const chatRef = collection(db, `watch-together-rooms/${roomId}/chat`);
+        const chatRef = collection(firestore, `watch-together-rooms/${roomId}/chat`);
         
         try {
-            await addDoc(chatRef, {
+            addDocumentNonBlocking(chatRef, {
                 userId: user.uid,
                 userName: userProfile.displayName,
                 avatar: userProfile.photoURL,

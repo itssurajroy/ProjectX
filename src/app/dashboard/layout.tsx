@@ -1,3 +1,4 @@
+
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -5,8 +6,7 @@ import Link from 'next/link';
 import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
-import { useUser } from '@/firebase/auth/use-user';
-import { auth } from '@/firebase/client';
+import { useUser, useAuth } from '@/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
@@ -43,6 +43,7 @@ const NavLink = ({ item, onClick }: { item: typeof desktopNavItems[0], onClick?:
 
 const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const { user, userProfile } = useUser();
+    const auth = useAuth();
     const router = useRouter();
 
     const handleSignOut = async () => {
