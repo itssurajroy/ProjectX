@@ -197,6 +197,7 @@ export interface SearchSuggestionResponse {
 export interface QtipAnime {
   id: string;
   name: string;
+  poster: string;
   malscore: string;
   quality: string;
   episodes: {
