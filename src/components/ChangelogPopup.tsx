@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -35,14 +35,24 @@ const CHANGELOG_VERSION = '1.03';
 
 export default function ChangelogPopup() {
   const { isOpen, closeChangelog, openChangelog } = useChangelogStore();
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
     const hasSeenChangelog = sessionStorage.getItem(`changelog_${CHANGELOG_VERSION}`);
     if (!hasSeenChangelog) {
       openChangelog();
       sessionStorage.setItem(`changelog_${CHANGELOG_VERSION}`, 'true');
     }
-  }, [openChangelog]);
+  }, [openChangelog, isClient]);
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
