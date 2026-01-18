@@ -1,67 +1,91 @@
 
 'use client';
-
-import Image from 'next/image';
+import { AnimeInfo, AnimeAbout } from '@/lib/types/anime';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Bookmark, Play } from 'lucide-react';
-import { AnimeInfo } from '@/types/anime';
+import { Play, Bookmark, Star, Tv, Clock } from 'lucide-react';
 import Link from 'next/link';
-import StatsBar from './StatsBar';
+import ProgressiveImage from '@/components/ProgressiveImage';
 
 interface AnimeHeroProps {
-  animeInfo: AnimeInfo;
-  animeId: string;
+  anime: AnimeInfo;
+  moreInfo: AnimeAbout['moreInfo'];
 }
 
-export default function AnimeHero({ animeInfo, animeId }: AnimeHeroProps) {
+export default function AnimeHero({ anime, moreInfo }: AnimeHeroProps) {
   return (
-    <div className="relative w-full">
-      {/* Blurred Background Banner */}
-      <div className="absolute inset-x-0 top-0 h-[40vh] w-full">
-        <Image
-          src={animeInfo.poster}
-          alt={`${animeInfo.name} background`}
+    <div className="relative pt-20">
+      <div className="absolute inset-0 h-[60vh] xl:h-[70vh] overflow-hidden">
+        <ProgressiveImage
+          src={anime.poster}
+          alt={anime.name}
           fill
-          className="object-cover object-top opacity-20 blur-md"
           priority
+          className="object-cover object-top opacity-10 blur-sm"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 pt-[15vh] pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-          {/* Lifted Poster */}
-          <div className="md:col-span-3">
-            <div className="relative aspect-[2/3] w-full max-w-[250px] mx-auto md:mx-0 rounded-lg overflow-hidden shadow-2xl shadow-primary/20 border-2 border-primary/30">
-              <Image 
-                src={animeInfo.poster} 
-                alt={animeInfo.name} 
-                fill 
-                className="object-cover" 
-              />
+      <div className="container mx-auto relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-end py-8">
+        <div className="md:col-span-3">
+          <ProgressiveImage
+            src={anime.poster}
+            alt={anime.name}
+            width={250}
+            height={380}
+            className="rounded-lg shadow-2xl w-48 md:w-full mx-auto"
+          />
+        </div>
+        <div className="md:col-span-9 space-y-4 text-center md:text-left">
+          <h1 className="text-3xl md:text-5xl font-bold font-display text-glow">
+            {anime.name}
+          </h1>
+          {moreInfo.japanese && (
+            <h2 className="text-lg text-muted-foreground font-medium">
+              {moreInfo.japanese}
+            </h2>
+          )}
+          <div
+            className="text-sm text-muted-foreground line-clamp-3 max-w-3xl mx-auto md:mx-0"
+            dangerouslySetInnerHTML={{ __html: anime.description }}
+          />
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-2 text-sm">
+            {moreInfo.malscore && (
+              <div className="flex items-center gap-1.5">
+                <Star className="w-4 h-4 text-amber-400" />
+                <span>{moreInfo.malscore}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <Tv className="w-4 h-4" />
+              <span>{anime.stats.type}</span>
             </div>
-            <div className="mt-4 flex flex-col gap-2 max-w-[250px] mx-auto md:mx-0">
-                <Button asChild size="lg" className="w-full">
-                    <Link href={`/watch/${animeId}`}>
-                        <Play className="mr-2 h-5 w-5" /> Watch Now
-                    </Link>
-                </Button>
-                 <Button variant="secondary" size="lg" className="w-full">
-                    <Bookmark className="mr-2 h-5 w-5" /> Add to List
-                </Button>
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+              <span>{anime.stats.duration}</span>
             </div>
+            <Badge variant="secondary">{moreInfo.status}</Badge>
           </div>
-
-          {/* Details */}
-          <div className="md:col-span-9 flex flex-col justify-end">
-            <h1 className="text-3xl md:text-5xl font-bold text-glow font-display">{animeInfo.name}</h1>
-            <div className="mt-4">
-              <StatsBar stats={animeInfo.stats} />
-            </div>
+          <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+            {moreInfo.genres?.map((genre: string) => (
+              <Badge key={genre} variant="outline" className="bg-card/50">
+                {genre}
+              </Badge>
+            ))}
+          </div>
+          <div className="flex gap-4 pt-4 justify-center md:justify-start">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30">
+              <Link href={`#episodes`}>
+                <Play className="w-5 h-5 mr-2" /> Watch Now
+              </Link>
+            </Button>
+            <Button size="lg" variant="secondary" className="bg-card/80">
+              <Bookmark className="w-5 h-5 mr-2" /> Add to List
+            </Button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

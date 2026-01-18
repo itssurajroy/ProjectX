@@ -1,11 +1,72 @@
 
+import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
+import { AnimeService } from '@/lib/services/AnimeService';
+import AnimeHero from '@/components/anime/AnimeHero';
+import EpisodeList from '@/components/anime/EpisodeList';
+import RelatedCarousel from '@/components/anime/RelatedCarousel';
 
-import AnimeDetailsClient from "@/components/anime/AnimeDetailsClient";
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  try {
+    const animeResult = await AnimeService.anime(params.id);
+    const anime = animeResult?.anime?.info;
 
-export default function AnimeDetailsPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+    if (!anime) {
+      return {
+        title: 'Anime Not Found',
+      }
+    }
 
-  // The Server Component simply extracts the ID and passes it to the Client Component.
-  // All data fetching and logic are now handled within AnimeDetailsClient.
-  return <AnimeDetailsClient id={id} />;
+    return {
+      title: `${anime.name} - Watch on ProjectX`,
+      description: anime.description.substring(0, 160),
+    }
+  } catch (error) {
+    return {
+      title: 'Error',
+      description: 'Could not load anime details.'
+    }
+  }
+}
+
+
+export default async function AnimeDetailPage({ params }: { params: { id: string } }) {
+  const animeResult = await AnimeService.anime(params.id).catch(() => null);
+  const episodesResult = await AnimeService.episodes(params.id).catch(() => null);
+
+  const anime = animeResult?.anime;
+  const episodes = episodesResult?.episodes || [];
+  
+  if (!anime?.info || !anime?.moreInfo) {
+    notFound();
+  }
+
+  return (
+    <div className="bg-background text-foreground min-h-screen">
+      <AnimeHero anime={anime.info} moreInfo={anime.moreInfo} />
+
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <div className="lg:col-span-12 space-y-8">
+              {/* Episodes Section */}
+              <EpisodeList episodes={episodes} animeId={params.id} />
+          </div>
+
+        </div>
+
+        {animeResult?.recommendedAnimes && animeResult.recommendedAnimes.length > 0 && (
+          <div className="pt-8">
+            <RelatedCarousel title="Recommendations" animes={animeResult.recommendedAnimes} />
+          </div>
+        )}
+        
+        {animeResult?.relatedAnimes && animeResult.relatedAnimes.length > 0 && (
+            <div className="pt-8">
+              <RelatedCarousel title="Related Anime" animes={animeResult.relatedAnimes} />
+            </div>
+        )}
+      </main>
+    </div>
+  );
 }
