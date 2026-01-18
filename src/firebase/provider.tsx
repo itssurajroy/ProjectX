@@ -109,6 +109,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 status: 'active',
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
+                onboardingCompleted: false,
               };
               // Create profile, non-blocking
               setDocumentNonBlocking(userRef, newUserProfile, { merge: false });

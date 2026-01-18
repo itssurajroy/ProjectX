@@ -13,4 +13,5 @@ export interface UserProfile {
   premiumUntil?: any; // Could be Date or a server timestamp object
   createdAt: any;
   lastLogin: any;
+  onboardingCompleted?: boolean;
 }

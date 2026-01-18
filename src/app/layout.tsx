@@ -1,3 +1,4 @@
+
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
@@ -11,6 +12,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import ChangelogPopup from "@/components/ChangelogPopup";
+import { OnboardingTrigger, OnboardingWizard } from "@/components/onboarding";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -66,6 +68,8 @@ export default function RootLayout({
           <Providers>
             <FirebaseClientProvider>
               <NotificationProvider>
+                  <OnboardingTrigger />
+                  <OnboardingWizard />
                   {children}
                 <ShadToaster />
                 <ChangelogPopup />
