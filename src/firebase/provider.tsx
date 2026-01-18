@@ -99,12 +99,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               setDocumentNonBlocking(userRef, { lastLogin: serverTimestamp() }, { merge: true });
             } else {
               // New user, create profile
+              const isAdmin = firebaseUser.email === 'admin@projectx.com';
               const newUserProfile: UserProfile = {
                 id: firebaseUser.uid,
-                displayName: firebaseUser.displayName || 'Anonymous',
+                displayName: firebaseUser.displayName || (isAdmin ? 'Admin' : 'Anonymous'),
                 email: firebaseUser.email || '',
                 photoURL: firebaseUser.photoURL || '',
-                role: 'user',
+                role: isAdmin ? 'admin' : 'user',
                 status: 'active',
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
