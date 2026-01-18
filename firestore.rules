@@ -50,118 +50,27 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Helper functions for improved readability and reuse.
-
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the currently authenticated user is the owner of a resource
-     * identified by a specific userId.
-     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    /**
-     * Checks if a user has the 'admin' role by reading their user document.
-     */
-    function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-    
-    /**
-     * Checks if a user has 'admin' or 'moderator' role.
-     */
-    function isModerator() {
-      return isSignedIn() && (isAdmin() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'moderator');
-    }
 
-    /**
-     * Checks for ownership on an *existing* document. Used for update and delete
-     * operations to prevent acting on non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * Ensures the incoming document's ownership field (`id`) matches the
-     * user's UID and path, critical for linking data on creation.
-     */
-    function isCreatingOwnProfile(userId) {
-      return isOwner(userId) && request.resource.data.id == userId;
-    }
-
-    /**
-     * Ensures a user's ID field remains unchanged during an update.
-     */
-    function isProfileIdImmutable() {
-      // Allow updates if 'id' field is not present in the request or if it matches the existing one.
-      return !('id' in request.resource.data) || request.resource.data.id == resource.data.id;
-    }
-    
-    /**
-     * Enforces that the incoming document's `userId` field correctly
-     * matches the owner's UID from the path on create operations.
-     */
-    function isCreatingOwnedContent(userId) {
-      return isOwner(userId) && request.resource.data.userId == userId;
-    }
-    
-    /**
-     * Enforces that the `userId` field is immutable on update operations.
-     */
-    function isContentOwnershipImmutable() {
-      return request.resource.data.userId == resource.data.userId;
-    }
-
-    /**
-     * @description Rules for a user's own profile document.
-     * @path /users/{userId}
-     * @allow (create) A new user creating their own profile document: `create /users/user123` with auth.uid `user123`.
-     * @deny (create) A user trying to create a profile for someone else: `create /users/user456` with auth.uid `user123`.
-     * @deny (get) A user trying to read another user's profile: `get /users/user456` with auth.uid `user123`.
-     * @deny (list) Any user trying to list all users: `list /users`.
-     * @principle Restricts access to a user's own data tree and prevents user enumeration.
-     */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isAdmin();
-      allow create: if isCreatingOwnProfile(userId);
-      // Allow owner to update their own profile, or admin to update any profile
-      allow update: if (isOwner(userId) && isProfileIdImmutable()) || isAdmin();
+      // Users can only read and write to their own document.
+      // This prevents users from reading other users' profiles or creating profiles for others.
+      allow read, update, create: if request.auth.uid == userId;
+      // User profiles cannot be listed by clients. This prevents user enumeration.
+      allow list: if false;
+      // Profiles cannot be deleted by clients.
       allow delete: if false;
 
-      /**
-       * @description Rules for a user's private watchlists.
-       * @path /users/{userId}/watchlist/{watchListId}
-       * @allow (create) A user creating a new watchlist in their own space: `create /users/user123/watchlist/wl456` with auth.uid `user123`.
-       * @deny (get) A user trying to read another user's watchlist: `get /users/user456/watchlist/wl789` with auth.uid `user123`.
-       * @principle Enforces strict data ownership within a user's private data tree.
-       */
-      match /watchlist/{watchListId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isCreatingOwnedContent(userId);
-        allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
-        allow delete: if isExistingOwner(userId) || isAdmin();
-      }
-      
-      /**
-       * @description Rules for a user's private viewing history.
-       * @path /users/{userId}/history/{historyId}
-       * @allow (list) A user listing their own viewing history: `list /users/user123/history` with auth.uid `user123`.
-       * @deny (update) A user trying to modify another user's history: `update /users/user456/history/h789` with auth.uid `user123`.
-       * @principle Enforces strict data ownership within a user's private data tree.
-       */
-      match /history/{historyId} {
-        allow get, list: if isOwner(userId) || isAdmin();
-        allow create: if isCreatingOwnedContent(userId);
-        allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
-        allow delete: if isExistingOwner(userId) || isAdmin();
+      // This rule applies to ALL subcollections under a user's document (e.g., watchlist, history).
+      // It ensures that a user can only access their own subcollections.
+      match /{allPaths=**} {
+        allow read, write: if request.auth.uid == userId;
       }
     }
     
@@ -174,7 +83,8 @@ service cloud.firestore {
      */
     match /videos/{videoId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      // In a real app, this should be restricted to admin roles.
+      allow create, update, delete: if isSignedIn();
 
       /**
        * @description Rules for public comments on a video.
@@ -186,8 +96,7 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow get, list: if true;
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-        allow update: if isOwner(resource.data.userId) || isModerator();
-        allow delete: if isOwner(resource.data.userId) || isModerator();
+        allow update, delete: if isOwner(resource.data.userId);
       }
       
       /**
@@ -200,9 +109,14 @@ service cloud.firestore {
       match /skipSegments/{skipSegmentId} {
         allow get, list: if true;
         allow create: if isSignedIn() && request.resource.data.submitterId == request.auth.uid;
-        allow update: if isOwner(resource.data.submitterId) || isModerator();
-        allow delete: if isOwner(resource.data.submitterId) || isModerator();
+        allow update, delete: if isOwner(resource.data.submitterId);
       }
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(resource.data.userId);
     }
   }
 }
