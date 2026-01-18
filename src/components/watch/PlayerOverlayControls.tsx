@@ -41,8 +41,6 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
   const { 
       isFocusMode, 
       toggleFocusMode, 
-      autoNext, 
-      toggleAutoNext,
       autoPlay,
       toggleAutoPlay,
       autoSkip,
@@ -55,7 +53,6 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
   
   const leftControls = [
     { icon: Sun, label: "Focus", onClick: toggleFocusMode, isActive: isFocusMode },
-    { icon: MonitorPlay, label: "AutoNext", onClick: toggleAutoNext, isActive: autoNext },
     { icon: Play, label: "AutoPlay", onClick: toggleAutoPlay, isActive: autoPlay },
     { icon: SkipForward, label: "AutoSkip", onClick: toggleAutoSkip, isActive: autoSkip },
   ];
