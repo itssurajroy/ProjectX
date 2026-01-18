@@ -27,7 +27,7 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
                 </div>
             </Link>
             <div className="flex-1 overflow-hidden">
-                <Link href={`/anime/${anime.id}`} className="font-semibold hover:text-primary line-clamp-1">{anime.name}</Link>
+                <Link href={`/anime/${anime.id}`} className="font-semibold hover:text-primary line-clamp-1 block">{anime.name}</Link>
                 <p className="text-sm text-muted-foreground">Episode {item.episodeNumber}</p>
                 <div className="flex items-center gap-2 mt-2">
                     <Progress value={progress} className="h-1.5" />
