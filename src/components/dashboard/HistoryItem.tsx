@@ -1,16 +1,14 @@
-
 'use client';
 
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Play, Clock } from "lucide-react";
 import ProgressiveImage from "@/components/ProgressiveImage";
-import { Progress } from "@/components/ui/progress";
 import { AnimeBase, UserHistory } from "@/lib/types/anime";
+import { formatDistanceToNow } from "date-fns";
 
 const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | undefined }) => {
     if (!anime) return null;
 
-    const progress = item.duration > 0 ? (item.progress / item.duration) * 100 : 0;
     const watchUrl = `/watch/${item.animeId}?ep=${item.episodeNumber}`;
 
     return (
@@ -29,10 +27,14 @@ const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | un
             <div className="flex-1 overflow-hidden">
                 <Link href={`/anime/${anime.id}`} className="font-semibold hover:text-primary line-clamp-1 block">{anime.name}</Link>
                 <p className="text-sm text-muted-foreground">Episode {item.episodeNumber}</p>
-                <div className="flex items-center gap-2 mt-2">
-                    <Progress value={progress} className="h-1.5" />
-                    <span className="text-xs text-muted-foreground">{Math.round(progress)}%</span>
-                </div>
+                {item.watchedAt && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+                        <Clock className="w-3 h-3" />
+                        <span>
+                            Watched {formatDistanceToNow(item.watchedAt.toDate(), { addSuffix: true })}
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );
