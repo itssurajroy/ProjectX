@@ -21,10 +21,11 @@ rules_version = '2';
  *
  * Key Security Decisions:
  * - User Isolation: A user can ONLY access data under their own `/users/{userId}` path.
- *   They cannot read or write data belonging to any other user.
+ *   They cannot read or write data belonging to any other user. An exception is made
+ *   for admin users, who have broader read/write access for management purposes.
  * - No User Listing: The rules explicitly prevent querying the top-level `/users`
- *   collection, protecting user privacy by making it impossible to enumerate all
- *   users in the system.
+ *   collection for regular users, protecting user privacy by making it impossible to
+ *   enumerate all users. Only admins can perform this action for the admin panel.
  * - Public Read, Owner Write: For collaborative content like comments and skip
  *   segments, anyone can read them. However, creating content requires a user to be
  *   signed in, and modifying or deleting content is restricted to the original author.
@@ -58,19 +59,34 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    match /users/{userId} {
-      // Users can only read and write to their own document.
-      // This prevents users from reading other users' profiles or creating profiles for others.
-      allow read, update, create: if request.auth.uid == userId;
-      // User profiles cannot be listed by clients. This prevents user enumeration.
-      allow list: if false;
-      // Profiles cannot be deleted by clients.
-      allow delete: if false;
+    // Check if the requesting user has an 'admin' role in their user profile.
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
 
-      // This rule applies to ALL subcollections under a user's document (e.g., watchlist, history, favoriteCharacters).
-      // It ensures that a user can only access their own subcollections.
+    /**
+     * @description Rules for user profile documents.
+     * @path /users/{userId}
+     * @allow (get) An admin, or the user who owns the profile.
+     * @allow (list) An admin only, for the user management panel.
+     * @deny (list) All non-admin users, to prevent user enumeration.
+     * @principle Enforce strict ownership for personal data, with an admin override for management.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow delete: if isAdmin();
+
+      /**
+       * @description This rule applies to ALL subcollections under a user's document (e.g., watchlist, history).
+       * @path /users/{userId}/{allPaths=**}
+       * @allow (read, write) The user who owns the data, or an admin for support purposes.
+       * @principle Maintains user data privacy while allowing for administrative oversight.
+       */
       match /{allPaths=**} {
-        allow read, write: if request.auth.uid == userId;
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
     
