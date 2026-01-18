@@ -2,24 +2,27 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { History, Loader2 } from 'lucide-react';
-import { format, isToday, isYesterday } from 'date-fns';
+import { History as HistoryIcon, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 import { UserHistory, AnimeBase } from '@/lib/types/anime';
 import { AnimeService } from '@/lib/services/AnimeService';
 import { useUser, useCollection } from '@/firebase';
 import HistoryGroup from '@/components/dashboard/HistoryGroup';
+import ContinueWatchingCard from '@/components/dashboard/ContinueWatchingCard';
 
 export default function HistoryPage() {
     const { user } = useUser();
+    // Fetch all history items, unsorted for now
     const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
     
+    // Get all unique anime IDs from history
     const animeIds = useMemo(() => {
         if (!history) return [];
         return [...new Set(history.map(item => item.animeId))];
     }, [history]);
     
+    // Fetch details for all unique animes in history
     const { data: animeDetails, isLoading: isLoadingAnime } = useQuery<Map<string, AnimeBase>>({
         queryKey: ['animeDetails', animeIds],
         queryFn: async () => {
@@ -36,37 +39,48 @@ export default function HistoryPage() {
         enabled: animeIds.length > 0
     });
 
-    const groupedHistory = useMemo(() => {
-        if (!history) return {};
-        return history.reduce((acc, item) => {
-            if (!item.watchedAt) return acc;
-            const date = item.watchedAt.toDate();
-            let key = 'Older';
-            if(isToday(date)) key = 'Today';
-            else if (isYesterday(date)) key = 'Yesterday';
-            else key = format(date, 'MMMM d, yyyy');
-            
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(item);
-            return acc;
-        }, {} as Record<string, UserHistory[]>);
+    // Sort history by most recently watched
+    const sortedHistory = useMemo(() => {
+        if (!history) return [];
+        return [...history].sort((a, b) => (b.watchedAt?.toMillis() || 0) - (a.watchedAt?.toMillis() || 0));
     }, [history]);
 
-    const sortedGroupKeys = Object.keys(groupedHistory).sort((a,b) => {
-        if (a === 'Today') return -1;
-        if (b === 'Today') return 1;
-        if (a === 'Yesterday') return -1;
-        if (b === 'Yesterday') return 1;
-        return new Date(b).getTime() - new Date(a).getTime();
-    });
+    // The most recent item is for the "Continue Watching" hero card
+    const latestHistoryItem = sortedHistory?.[0];
+    const latestAnimeDetails = latestHistoryItem ? animeDetails?.get(latestHistoryItem.animeId) : null;
+
+    // Group the rest of the history by anime
+    const groupedHistory = useMemo(() => {
+        if (!sortedHistory || sortedHistory.length < 1 || !animeDetails) return {};
+
+        // Exclude the anime series of the most recent item from the grouped list below
+        const latestAnimeId = sortedHistory[0]?.animeId;
+
+        return sortedHistory.reduce((acc, item) => {
+            if (item.animeId === latestAnimeId) return acc; // Skip items from the hero anime
+            
+            const anime = animeDetails.get(item.animeId);
+            if (anime) {
+                if (!acc[anime.name]) {
+                    acc[anime.name] = [];
+                }
+                // Don't add duplicates for the same episode
+                if (!acc[anime.name].some(i => i.episodeNumber === item.episodeNumber)) {
+                   acc[anime.name].push(item);
+                }
+            }
+            return acc;
+        }, {} as Record<string, UserHistory[]>);
+    }, [sortedHistory, animeDetails]);
+
 
     const isLoading = isLoadingHistory || (animeIds.length > 0 && isLoadingAnime);
 
-    if (!user && !isLoadingHistory) {
+    if (!user && !isLoading) {
          return (
              <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3 mb-6">
-                    <History className="w-8 h-8 text-primary" />
+                    <HistoryIcon className="w-8 h-8 text-primary" />
                     Watch History
                 </h1>
                  <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">
@@ -77,9 +91,9 @@ export default function HistoryPage() {
     }
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3 mb-6">
-                <History className="w-8 h-8 text-primary" />
+        <div className="space-y-12">
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+                <HistoryIcon className="w-8 h-8 text-primary" />
                 Watch History
             </h1>
 
@@ -89,9 +103,17 @@ export default function HistoryPage() {
                 </div>
             ) : history && history.length > 0 ? (
                 <div className="space-y-8">
-                    {sortedGroupKeys.map(key => (
-                        <HistoryGroup key={key} title={key} items={groupedHistory[key]} animeDetails={animeDetails} />
-                    ))}
+                    {latestHistoryItem && latestAnimeDetails && (
+                        <ContinueWatchingCard historyItem={latestHistoryItem} animeDetails={latestAnimeDetails} />
+                    )}
+
+                    {Object.keys(groupedHistory).length > 0 && (
+                        <div className="pt-8 border-t border-border/50 space-y-8">
+                            {Object.entries(groupedHistory).map(([animeName, historyItems]) => (
+                                <HistoryGroup key={animeName} title={animeName} items={historyItems} animeDetails={animeDetails} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="text-center py-20 bg-card/50 rounded-lg border border-dashed border-border/50">

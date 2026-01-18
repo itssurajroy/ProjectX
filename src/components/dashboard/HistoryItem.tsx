@@ -1,42 +1,44 @@
 'use client';
 
 import Link from "next/link";
-import { Play, Clock } from "lucide-react";
+import { Play } from "lucide-react";
 import ProgressiveImage from "@/components/ProgressiveImage";
 import { AnimeBase, UserHistory } from "@/lib/types/anime";
-import { formatDistanceToNow } from "date-fns";
+import { Progress } from "@/components/ui/progress";
 
 const HistoryItem = ({ item, anime }: { item: UserHistory; anime: AnimeBase | undefined }) => {
     if (!anime) return null;
 
+    // We don't have real progress, so this is just a visual placeholder for now
+    const progressPercent = item.progress > 0 && item.duration > 0 ? (item.progress / item.duration) * 100 : 5;
     const watchUrl = `/watch/${item.animeId}?ep=${item.episodeNumber}`;
 
     return (
-        <div className="flex items-center gap-4 p-3 bg-card/50 rounded-lg border border-border/50">
-            <Link href={watchUrl} className="relative w-16 h-24 flex-shrink-0 group">
+        <Link href={watchUrl} className="group block">
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg bg-card shadow-md transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
                 <ProgressiveImage
                     src={anime.poster}
                     alt={anime.name || "Anime Poster"}
                     fill
-                    className="object-cover rounded-md"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Play className="w-6 h-6 text-white" />
-                </div>
-            </Link>
-            <div className="flex-1 overflow-hidden">
-                <Link href={`/anime/${anime.id}`} className="font-semibold hover:text-primary line-clamp-1 block">{anime.name}</Link>
-                <p className="text-sm text-muted-foreground">Episode {item.episodeNumber}</p>
-                {item.watchedAt && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
-                        <Clock className="w-3 h-3" />
-                        <span>
-                            Watched {formatDistanceToNow(item.watchedAt.toDate(), { addSuffix: true })}
-                        </span>
+
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-10">
+                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full p-3 shadow-xl">
+                        <Play className="w-6 h-6 text-white fill-white" />
                     </div>
-                )}
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-2 space-y-1">
+                    <p className="font-bold text-sm text-white truncate group-hover:text-primary transition-colors">
+                        Ep {item.episodeNumber}
+                    </p>
+                    <Progress value={progressPercent} className="h-1 bg-white/30" />
+                </div>
             </div>
-        </div>
+        </Link>
     );
 };
 
