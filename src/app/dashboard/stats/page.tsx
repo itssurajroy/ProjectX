@@ -1,14 +1,16 @@
+
 'use client';
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Clock, Tv, Loader2, Star, BarChart3, TrendingUp } from 'lucide-react';
+import { Clock, Tv, Loader2, Star, BarChart3, TrendingUp, Flame } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import dynamic from 'next/dynamic';
 import { useUser, useCollection } from '@/firebase';
 import { UserHistory } from '@/lib/types/anime';
 import { AnimeService } from '@/lib/services/AnimeService';
 import Link from 'next/link';
+import { differenceInDays, startOfDay } from 'date-fns';
 
 const ActivityHeatmap = dynamic(() => import('@/components/dashboard/ActivityHeatmap'), {
     ssr: false,
@@ -48,16 +50,20 @@ export default function StatsPage() {
         if (!history || !animeDetails) return null;
 
         const totalEpisodes = history.length;
-        const totalMinutes = history.reduce((sum, h) => {
-            const anime = animeDetails.get(h.animeId);
+        let totalMinutes = 0;
+        
+        history.forEach(h => {
+             const anime = animeDetails.get(h.animeId);
             if (anime && anime.stats.duration) {
                 const durationMinutes = parseInt(anime.stats.duration.split(' ')[0], 10);
-                if (!isNaN(durationMinutes)) {
-                    return sum + durationMinutes;
-                }
+                totalMinutes += isNaN(durationMinutes) ? 24 : durationMinutes;
+            } else {
+                totalMinutes += 24; // Default to 24 mins
             }
-            return sum + 24; // Default to 24 mins if duration is unknown
-        }, 0);
+        });
+        
+        const totalHours = Math.floor(totalMinutes / 60);
+        const remainingMinutes = totalMinutes % 60;
 
         const genreCounts = new Map<string, number>();
         history.forEach(h => {
@@ -72,18 +78,39 @@ export default function StatsPage() {
             .sort((a, b) => b.count - a.count);
 
         const activity: Record<string, number> = {};
+        const uniqueDays = new Set<string>();
         history.forEach(h => {
             if (h.watchedAt) {
                 const date = h.watchedAt.toDate().toISOString().split('T')[0];
                 activity[date] = (activity[date] || 0) + 1;
+                uniqueDays.add(startOfDay(h.watchedAt.toDate()).toISOString());
             }
         });
 
+        let streak = 0;
+        if(uniqueDays.size > 0) {
+            const sortedDays = Array.from(uniqueDays).map(d => new Date(d)).sort((a, b) => b.getTime() - a.getTime());
+            let currentStreak = 0;
+            if (differenceInDays(startOfDay(new Date()), sortedDays[0]) <= 1) {
+                currentStreak = 1;
+                for (let i = 0; i < sortedDays.length - 1; i++) {
+                    if (differenceInDays(sortedDays[i], sortedDays[i+1]) === 1) {
+                        currentStreak++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            streak = currentStreak;
+        }
+
         return {
             totalEpisodes,
-            totalHours: Math.round(totalMinutes / 60),
+            totalHours,
+            totalMinutes: remainingMinutes,
             genreCounts: sortedGenres,
             activity,
+            streak
         };
     }, [history, animeDetails]);
     
@@ -127,27 +154,28 @@ export default function StatsPage() {
     }
     
     return (
-        <div className="space-y-8">
+        <div className="space-y-12">
             <h1 className="text-3xl font-bold flex items-center gap-3">
                 <BarChart3 className="w-8 h-8 text-primary" />
-                Statistics
+                Your Stats
             </h1>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <StatCard title="Total Episodes Watched" value={stats.totalEpisodes} icon={Tv} />
-                <StatCard title="Total Watch Time (Hours)" value={stats.totalHours} icon={Clock} />
-                <StatCard title="Most Watched Genre" value={stats.genreCounts[0]?.name || 'N/A'} icon={TrendingUp} />
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard title="Total Episodes" value={stats.totalEpisodes} icon={Tv} accent="purple" subtitle="Cursed energy is flowing." />
+                <StatCard title="Watch Time" value={`${stats.totalHours}h ${stats.totalMinutes}m`} icon={Clock} accent="gold" subtitle="Equivalent to ~3 full seasons" />
+                <StatCard title="Current Streak" value={stats.streak > 0 ? `${stats.streak} day${stats.streak > 1 ? 's' : ''}` : 'N/A'} icon={Flame} accent="red" subtitle={stats.streak > 3 ? "You're on fire!" : "Keep it going!"} />
+                <StatCard title="Top Genre" value={stats.genreCounts[0]?.name || 'N/A'} icon={TrendingUp} subtitle={stats.genreCounts[0]?.count ? `${stats.genreCounts[0].count} episodes` : 'Start watching to reveal'} />
             </div>
 
             <div>
-                <h2 className="text-xl font-bold mb-4">Activity Heatmap</h2>
+                <h2 className="text-2xl font-bold mb-4 font-display">Activity Heatmap</h2>
                 <div className="bg-card/50 p-4 rounded-lg border border-border/50">
                     <ActivityHeatmap activity={stats.activity} />
                 </div>
             </div>
 
              <div>
-                <h2 className="text-xl font-bold mb-4">Genre Distribution</h2>
+                <h2 className="text-2xl font-bold mb-4 font-display">Genre Distribution</h2>
                 <div className="bg-card/50 p-4 rounded-lg border border-border/50">
                     <GenreChart data={stats.genreCounts.slice(0, 10)} />
                 </div>

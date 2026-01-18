@@ -1,10 +1,10 @@
+
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import { Pie, PieChart, Cell, Tooltip } from 'recharts';
 import {
   ChartConfig,
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
 
@@ -12,31 +12,43 @@ interface GenreChartProps {
   data: { name: string; count: number }[];
 }
 
-const chartConfig = {
-  count: {
-    label: 'Episodes Watched',
-    color: 'hsl(var(--primary))',
-  },
-} satisfies ChartConfig;
+const COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--primary) / 0.8)",
+  "hsl(var(--primary) / 0.6)",
+  "hsl(var(--primary) / 0.5)",
+  "hsl(var(--primary) / 0.4)",
+  "hsl(var(--primary) / 0.3)",
+  "hsl(var(--primary) / 0.2)",
+  "hsl(var(--primary) / 0.1)",
+];
 
 export default function GenreChart({ data }: GenreChartProps) {
+  const chartConfig = data.reduce((acc, item) => {
+    acc[item.name] = { label: item.name };
+    return acc;
+  }, {} as ChartConfig);
+  
   return (
     <ChartContainer config={chartConfig} className="h-[300px] w-full">
-      <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.5)" />
-        <XAxis
-          dataKey="name"
-          stroke="hsl(var(--muted-foreground))"
-          fontSize={12}
-          tickLine={false}
-          axisLine={false}
-        />
-        <ChartTooltip
-          content={<ChartTooltipContent />}
-          cursor={{ fill: 'hsl(var(--muted) / 0.5)' }}
-        />
-        <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
-      </BarChart>
+      <PieChart>
+        <Tooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
+        <Pie
+          data={data}
+          dataKey="count"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          fill="#8884d8"
+          stroke="hsl(var(--background))"
+          strokeWidth={2}
+        >
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+      </PieChart>
     </ChartContainer>
   );
 }
