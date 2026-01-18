@@ -73,16 +73,19 @@ export function useCollection<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path: collectionPath,
-        })
-
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
-
-        errorEmitter.emit('permission-error', contextualError);
+        if (error.code === 'permission-denied') {
+            const contextualError = new FirestorePermissionError({
+              operation: 'list',
+              path: collectionPath,
+            });
+            setError(contextualError);
+            errorEmitter.emit('permission-error', contextualError);
+        } else {
+            console.error("useCollection error:", error);
+            setError(error);
+        }
+        setData(null);
+        setIsLoading(false);
       }
     );
 

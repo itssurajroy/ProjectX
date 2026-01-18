@@ -115,9 +115,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               setUserState({ user: firebaseUser, userProfile: newUserProfile, loading: false, error: null });
             }
           } catch (e: any) {
-             const contextualError = new FirestorePermissionError({ operation: 'get', path: userRef.path });
-             errorEmitter.emit('permission-error', contextualError);
-             setUserState({ user: firebaseUser, userProfile: null, loading: false, error: contextualError });
+             let errorToReport: Error;
+             if (e.code === 'permission-denied') {
+                errorToReport = new FirestorePermissionError({ operation: 'get', path: userRef.path });
+                errorEmitter.emit('permission-error', errorToReport as FirestorePermissionError);
+             } else {
+                console.error("FirebaseProvider user profile fetch error:", e);
+                errorToReport = e; // Use the original error
+             }
+             setUserState({ user: firebaseUser, userProfile: null, loading: false, error: errorToReport });
           }
         } else {
           // User is signed out
