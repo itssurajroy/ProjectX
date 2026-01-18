@@ -1,4 +1,3 @@
-
 'use client';
 
 import { AnimeBase } from "@/lib/types/anime";
@@ -19,7 +18,7 @@ export default function RankedAnimeSidebar({ title, animes, icon }: { title: str
                 <Link
                     key={anime.id}
                     href={`/anime/${anime.id}`}
-                    className="flex items-center gap-3 p-2 rounded-lg group hover:bg-accent transition-colors"
+                    className="flex items-center gap-3 p-2 rounded-lg group hover:bg-primary/20 transition-colors"
                 >
                     <div className="relative w-12 h-[72px] flex-shrink-0">
                         <ProgressiveImage
