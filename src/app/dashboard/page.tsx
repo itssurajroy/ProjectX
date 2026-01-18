@@ -11,6 +11,13 @@ import { AnimeCard } from '@/components/AnimeCard';
 import { Button } from '@/components/ui/button';
 import { useUser, useCollection } from '@/firebase';
 import ContinueWatchingCard from '@/components/dashboard/ContinueWatchingCard';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 
 const Section = ({ title, icon: Icon, children, href }: { title: string, icon: React.ElementType, children: React.ReactNode, href?: string }) => (
@@ -30,94 +37,43 @@ const Section = ({ title, icon: Icon, children, href }: { title: string, icon: R
     </section>
 );
 
-const ContinueWatchingSection = () => {
-    const { user } = useUser();
-    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(user ? `users/${user.uid}/history` : null);
-
-    const animeIds = useMemo(() => {
-        if (!history || history.length === 0) return [];
-        // Get the most recent unique anime IDs
-        const uniqueIds = [...new Set(history.map(item => item.animeId))];
-        return uniqueIds.slice(0, 6); // Limit to 6 most recent series
-    }, [history]);
-    
-    const { data: animeDetails, isLoading: isLoadingAnime } = useQuery<Map<string, AnimeBase>>({
-        queryKey: ['animeDetailsForContinueWatching', animeIds],
-        queryFn: async () => {
-            const promises = animeIds.map(id => AnimeService.qtip(id).catch(() => null));
-            const results = await Promise.all(promises);
-            const animeMap = new Map<string, AnimeBase>();
-            results.forEach(res => {
-                if (res && res.anime) {
-                    animeMap.set(res.anime.id, res.anime as AnimeBase);
-                }
-            });
-            return animeMap;
-        },
-        enabled: animeIds.length > 0
-    });
-
-    const isLoading = isLoadingHistory || (animeIds.length > 0 && isLoadingAnime);
-
-    if (isLoading) {
-        return (
-            <div className="grid-cards">
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="space-y-2">
-                        <div className="aspect-[2/3] w-full bg-muted rounded-lg animate-pulse" />
-                        <div className="h-4 w-4/5 bg-muted rounded animate-pulse" />
-                    </div>
-                ))}
-            </div>
-        )
-    }
-
-    if (!history || history.length === 0) {
-        return (
-            <div className="text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
-                <p className="text-muted-foreground text-sm">Your watch history is empty.</p>
-                <Link href="/home" className="text-primary font-semibold text-sm hover:underline mt-2 inline-block">Start Watching Now</Link>
-            </div>
-        )
-    }
-
-    // Create a map of animeId to the latest history item for that anime
-    const latestHistoryByAnime = new Map<string, UserHistory>();
-    history.forEach(item => {
-        if (!item.watchedAt) return;
-        const existingItem = latestHistoryByAnime.get(item.animeId);
-        if (!existingItem || (item.watchedAt && existingItem.watchedAt && item.watchedAt > existingItem.watchedAt)) {
-            latestHistoryByAnime.set(item.animeId, item);
-        }
-    });
-    
-    return (
-        <div className="grid-cards">
-            {animeIds.map(animeId => {
-                const details = animeDetails?.get(animeId);
-                const historyItem = latestHistoryByAnime.get(animeId);
-                if (!details || !historyItem) return null;
-                return <ContinueWatchingCard key={historyItem.id} historyItem={historyItem} animeDetails={details} />
-            })}
-        </div>
-    )
-};
-
 
 export default function DashboardHomePage() {
-     const { user, userProfile } = useUser();
-     const { data: homeData, isLoading: isLoadingHome } = useQuery<HomeData>({
+    const { user, userProfile, loading: isUserLoading } = useUser();
+    const { data: homeData, isLoading: isLoadingHome } = useQuery<HomeData>({
         queryKey: ['homeData'],
         queryFn: AnimeService.home,
     });
+    
+    const { data: history, loading: isLoadingHistory } = useCollection<UserHistory>(user ? `users/${user.uid}/history` : null);
+    
+    const sortedHistory = useMemo(() => {
+        if (!history) return [];
+        return [...history].sort((a, b) => (b.watchedAt?.toMillis() || 0) - (a.watchedAt?.toMillis() || 0));
+    }, [history]);
+    
+    const latestHistoryItem = sortedHistory?.[0];
+    const latestAnimeId = latestHistoryItem?.animeId;
 
-    if (isLoadingHome) {
+    const { data: latestAnimeDetails, isLoading: isLoadingLatestAnime } = useQuery<AnimeBase>({
+        queryKey: ['animeDetailsForHero', latestAnimeId],
+        queryFn: async () => {
+             const res = await AnimeService.anime(latestAnimeId!);
+             return res?.anime?.info as AnimeBase;
+        },
+        enabled: !!latestAnimeId
+    });
+
+
+    if (isUserLoading || isLoadingHome) {
         return (
              <div className="flex items-center justify-center h-[50vh]">
                 <Loader2 className="w-12 h-12 animate-spin text-primary" />
             </div>
         )
     }
+
+    const isLoadingHero = isLoadingHistory || (latestAnimeId && isLoadingLatestAnime);
 
     return (
         <div className="space-y-12">
@@ -129,30 +85,50 @@ export default function DashboardHomePage() {
             </header>
             
             {user && (
-                <Section title="Continue Watching" icon={Activity} href="/dashboard/history">
-                    <ContinueWatchingSection />
-                </Section>
+                isLoadingHero ? (
+                     <div className="w-full h-48 bg-card/50 rounded-lg flex items-center justify-center animate-pulse">
+                         <Loader2 className="w-8 h-8 animate-spin text-primary"/>
+                     </div>
+                ) : latestHistoryItem && latestAnimeDetails ? (
+                     <ContinueWatchingCard historyItem={latestHistoryItem} animeDetails={latestAnimeDetails} />
+                ) : (
+                    <div className="text-center py-10 bg-card/50 rounded-lg border border-dashed border-border/50">
+                        <p className="text-muted-foreground text-sm">Your watch history is empty.</p>
+                        <Link href="/home" className="text-primary font-semibold text-sm hover:underline mt-2 inline-block">Start Watching Now</Link>
+                    </div>
+                )
             )}
             
             {homeData?.latestEpisodeAnimes && homeData.latestEpisodeAnimes.length > 0 && (
                 <Section title="New Episodes Today" icon={Flame}>
-                     <div className="grid-cards">
-                        {homeData.latestEpisodeAnimes.slice(0,6).map(anime => (
-                            <AnimeCard key={anime.id} anime={anime} />
-                        ))}
-                    </div>
+                     <Carousel opts={{ align: 'start', dragFree: true }} className="w-full">
+                        <CarouselContent className="-ml-4">
+                            {homeData.latestEpisodeAnimes.map((anime) => (
+                                <CarouselItem key={anime.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/7 pl-4">
+                                    <AnimeCard anime={anime} />
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2 bg-card/80 hover:bg-card hidden sm:flex" />
+                        <CarouselNext className="right-2 bg-card/80 hover:bg-card hidden sm:flex" />
+                    </Carousel>
                 </Section>
             )}
-            
             
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-12">
                 {homeData?.top10Animes?.week && homeData.top10Animes.week.length > 0 && (
                      <Section title="Trending This Week" icon={TrendingUp}>
-                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {homeData.top10Animes.week.slice(0,3).map(anime => (
-                                <AnimeCard key={anime.id} anime={anime} />
-                            ))}
-                        </div>
+                         <Carousel opts={{ align: 'start', dragFree: true }} className="w-full">
+                            <CarouselContent className="-ml-4">
+                                {homeData.top10Animes.week.map((anime) => (
+                                    <CarouselItem key={anime.id} className="basis-1/2 md:basis-1/3 pl-4">
+                                        <AnimeCard anime={anime} />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="left-2 bg-card/80 hover:bg-card hidden sm:flex" />
+                            <CarouselNext className="right-2 bg-card/80 hover:bg-card hidden sm:flex" />
+                        </Carousel>
                     </Section>
                 )}
                 <Section title="Friends Activity" icon={Users} href="/dashboard/friends">
@@ -167,11 +143,17 @@ export default function DashboardHomePage() {
 
             {homeData?.mostPopularAnimes && homeData.mostPopularAnimes.length > 0 && (
                 <Section title="Most Popular" icon={Sparkles}>
-                     <div className="grid-cards">
-                        {homeData.mostPopularAnimes.slice(0,6).map(anime => (
-                            <AnimeCard key={anime.id} anime={anime} />
-                        ))}
-                    </div>
+                      <Carousel opts={{ align: 'start', dragFree: true }} className="w-full">
+                        <CarouselContent className="-ml-4">
+                            {homeData.mostPopularAnimes.map((anime) => (
+                                <CarouselItem key={anime.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/7 pl-4">
+                                    <AnimeCard anime={anime} />
+                                </CarouselItem>
+                            ))}
+                        </CarouselContent>
+                        <CarouselPrevious className="left-2 bg-card/80 hover:bg-card hidden sm:flex" />
+                        <CarouselNext className="right-2 bg-card/80 hover:bg-card hidden sm:flex" />
+                    </Carousel>
                 </Section>
             )}
         </div>
