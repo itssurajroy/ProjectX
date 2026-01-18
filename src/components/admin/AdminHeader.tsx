@@ -1,7 +1,7 @@
 
 'use client';
 import { Button } from '@/components/ui/button';
-import SiteLogo from '@/components/layout/SiteLogo';
+import AdminLogo from '@/components/admin/AdminLogo';
 import { Menu, Bell } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from '@/firebase/auth/use-user';
@@ -29,7 +29,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                         <Menu className="w-5 h-5" />
                     </Button>
                     <div className="w-64 border-r border-border h-16 items-center justify-center hidden lg:flex">
-                        <SiteLogo />
+                        <AdminLogo />
                     </div>
                 </div>
 

@@ -9,7 +9,7 @@ import { useUser } from '@/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
-import SiteLogo from '@/components/layout/SiteLogo';
+import AdminLogo from '@/components/admin/AdminLogo';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
                     )}>
                         <div className="flex items-center justify-between p-4 border-b border-border">
-                          <SiteLogo />
+                          <AdminLogo />
                           <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
                             <X className="w-5 h-5"/>
                           </Button>
