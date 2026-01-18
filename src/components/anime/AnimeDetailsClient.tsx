@@ -167,6 +167,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     <AlertDialogAction onClick={handleAgeGateAgree}>Enter</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
+        </AlertDialog>
 
         {/* Hero Section */}
         <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
