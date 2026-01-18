@@ -10,6 +10,7 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import { useUser, useCollection } from '@/firebase';
 import HistoryGroup from '@/components/dashboard/HistoryGroup';
 import ContinueWatchingCard from '@/components/dashboard/ContinueWatchingCard';
+import { Accordion } from '@/components/ui/accordion';
 
 export default function HistoryPage() {
     const { user } = useUser();
@@ -108,10 +109,12 @@ export default function HistoryPage() {
                     )}
 
                     {Object.keys(groupedHistory).length > 0 && (
-                        <div className="pt-8 border-t border-border/50 space-y-8">
-                            {Object.entries(groupedHistory).map(([animeName, historyItems]) => (
-                                <HistoryGroup key={animeName} title={animeName} items={historyItems} animeDetails={animeDetails} />
-                            ))}
+                        <div className="pt-8 border-t border-border/50 space-y-4">
+                            <Accordion type="single" collapsible className="w-full space-y-4">
+                                {Object.entries(groupedHistory).map(([animeName, historyItems]) => (
+                                    <HistoryGroup key={animeName} title={animeName} items={historyItems} animeDetails={animeDetails} />
+                                ))}
+                            </Accordion>
                         </div>
                     )}
                 </div>
