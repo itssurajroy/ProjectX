@@ -4,7 +4,7 @@
 
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronLeft, ChevronRight, Search, SlidersHorizontal } from 'lucide-react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname, useParams } from 'next/navigation';
 import { Suspense, useState, useRef, useEffect, useCallback, use } from 'react';
 import { AnimeCard } from '@/components/AnimeCard';
 import Link from 'next/link';
@@ -236,20 +236,20 @@ function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: nu
 }
 
 
-function AZListPageComponent({ params: routeParams }: { params: { character: string } }) {
+function AZListPageComponent({ character }: { character: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const getInitialFilters = useCallback(() => ({
-    character: routeParams.character,
+    character: character,
     page: Number(searchParams.get('page') || '1'),
     q: searchParams.get('q') || '',
     genres: searchParams.get('genres')?.split(',').filter(Boolean) || [],
     type: searchParams.get('type') || '',
     status: searchParams.get('status') || '',
     sort: searchParams.get('sort') || 'Name A-Z',
-  }), [routeParams.character, searchParams]);
+  }), [character, searchParams]);
 
   const [filters, setFilters] = useState(getInitialFilters);
 
@@ -349,11 +349,13 @@ function AZListPageComponent({ params: routeParams }: { params: { character: str
   );
 }
 
-export default function AZListPage({ params }: { params: { character: string } }) {
-    const resolvedParams = use(params as any);
+export default function AZListPage() {
+    const params = useParams();
+    const character = params.character as string;
+
     return (
         <Suspense fallback={<div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div></div>}>
-            <AZListPageComponent params={resolvedParams} />
+            <AZListPageComponent character={character} />
         </Suspense>
     )
 }

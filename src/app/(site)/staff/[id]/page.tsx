@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import Breadcrumb from '@/components/common/Breadcrumb';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
 // Mock types
 interface StaffDetails {
@@ -66,8 +67,9 @@ const RoleCard = ({ role }: { role: StaffDetails['roles'][0] }) => (
     </div>
 )
 
-export default function StaffPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function StaffPage() {
+    const params = useParams();
+    const id = params.id as string;
 
     const { data: staff, isLoading, error, refetch } = useQuery<StaffDetails>({
         queryKey: ['staff', id],

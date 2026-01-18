@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import { AnimeCard } from '@/components/AnimeCard';
 import Breadcrumb from '@/components/common/Breadcrumb';
+import { useParams } from 'next/navigation';
 
 // This is a mock type. In a real scenario, this would come from a dedicated types file.
 interface CharacterDetails {
@@ -45,8 +46,9 @@ const LoadingSkeleton = () => (
     </div>
 )
 
-export default function CharacterPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function CharacterPage() {
+    const params = useParams();
+    const id = params.id as string;
 
     const { data: character, isLoading, error, refetch } = useQuery<CharacterDetails>({
         queryKey: ['character', id],
