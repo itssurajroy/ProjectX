@@ -146,5 +146,14 @@ service cloud.firestore {
       allow get, list, update, delete: if isAdmin();
       allow create: if isSignedIn();
     }
+    
+    /**
+     * @description Rules for admin-only settings collections.
+     * @path /settings_feature_flags/{flagId}
+     * @allow (read, write) An admin managing feature flags.
+     */
+    match /settings_feature_flags/{flagId} {
+        allow read, write: if isAdmin();
+    }
   }
 }

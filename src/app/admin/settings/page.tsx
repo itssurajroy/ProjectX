@@ -4,17 +4,67 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { AlertCircle, ShieldCheck } from "lucide-react";
+import { AlertCircle, ShieldCheck, Loader2 } from "lucide-react";
+import { useCollection, useFirestore, updateDocumentNonBlocking } from "@/firebase";
+import { doc } from "firebase/firestore";
+import toast from "react-hot-toast";
 
-const FeatureFlagItem = ({ title, description, enabled = false }: { title: string, description: string, enabled?: boolean }) => (
-    <div className="flex items-center justify-between space-x-2 py-3">
-        <div className="flex flex-col">
-            <Label htmlFor={`flag-${title.toLowerCase().replace(' ', '-')}`} className="font-semibold">{title}</Label>
-            <span className="text-xs text-muted-foreground">{description}</span>
+interface FeatureFlag {
+    id: string;
+    description: string;
+    enabled: boolean;
+}
+
+const FeatureFlagItem = ({ flag }: { flag: FeatureFlag }) => {
+    const firestore = useFirestore();
+
+    const handleToggle = (enabled: boolean) => {
+        const flagRef = doc(firestore, 'settings_feature_flags', flag.id);
+        updateDocumentNonBlocking(flagRef, { enabled });
+        toast.success(`'${flag.id.replace(/([A-Z])/g, ' $1')}' has been ${enabled ? 'enabled' : 'disabled'}.`);
+    }
+
+    return (
+        <div className="flex items-center justify-between space-x-2 py-3">
+            <div className="flex flex-col">
+                <Label htmlFor={`flag-${flag.id}`} className="font-semibold capitalize">{flag.id.replace(/([A-Z])/g, ' $1')}</Label>
+                <span className="text-xs text-muted-foreground">{flag.description}</span>
+            </div>
+            <Switch
+                id={`flag-${flag.id}`}
+                checked={flag.enabled}
+                onCheckedChange={handleToggle}
+            />
         </div>
-        <Switch id={`flag-${title.toLowerCase().replace(' ', '-')}`} defaultChecked={enabled} disabled />
-    </div>
-);
+    );
+};
+
+const FeatureFlagsCard = () => {
+    const { data: featureFlags, loading } = useCollection<FeatureFlag>('settings_feature_flags');
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Feature Flags</CardTitle>
+                <CardDescription>Enable or disable features across the site.</CardDescription>
+            </CardHeader>
+            <CardContent className="divide-y divide-border">
+                {loading ? (
+                    <div className="flex justify-center items-center h-24">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                    </div>
+                ) : featureFlags && featureFlags.length > 0 ? (
+                    featureFlags.map(flag => <FeatureFlagItem key={flag.id} flag={flag} />)
+                ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No feature flags found in database.</p>
+                )}
+            </CardContent>
+             <CardFooter>
+                 <p className="text-xs text-muted-foreground">Changes are applied in real-time.</p>
+            </CardFooter>
+        </Card>
+    );
+}
 
 
 export default function AdminSettingsPage() {
@@ -28,21 +78,7 @@ export default function AdminSettingsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 
                 <div className="space-y-8">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Feature Flags</CardTitle>
-                            <CardDescription>Enable or disable features across the site.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="divide-y divide-border">
-                            <FeatureFlagItem title="Watch Together (W2G)" description="Enables real-time synchronized video rooms." enabled={true} />
-                            <FeatureFlagItem title="AI Curator" description="Allows users to generate AI-based playlists." enabled={true} />
-                            <FeatureFlagItem title="Manga Reader" description="Activates the manga reading section of the site." />
-                             <FeatureFlagItem title="User Profiles V2" description="Rolls out the new social profile design." />
-                        </CardContent>
-                         <CardFooter>
-                             <p className="text-xs text-muted-foreground">Rollout percentages and role-based visibility coming soon.</p>
-                        </CardFooter>
-                    </Card>
+                     <FeatureFlagsCard />
 
                     <Card>
                         <CardHeader>
