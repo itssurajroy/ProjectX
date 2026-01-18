@@ -1,4 +1,3 @@
-
 'use client';
 import Image from "next/image";
 import { useState } from "react";
@@ -18,6 +17,18 @@ interface ProgressiveImageProps {
 
 const BLUR_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
+const generateSeed = (str: string) => {
+    if (!str) return 1;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash |= 0; // Convert to 32bit integer
+    }
+    return Math.abs(hash);
+}
+
+
 export default function ProgressiveImage({
   src,
   alt,
@@ -31,8 +42,9 @@ export default function ProgressiveImage({
 }: ProgressiveImageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-
-  const effectiveSrc = src || '/placeholder-image.png'; // A default placeholder if src is null/undefined
+  
+  const fallbackSrc = `https://picsum.photos/seed/${generateSeed(alt)}/${width}/${height}`;
+  const effectiveSrc = src || fallbackSrc;
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -47,17 +59,12 @@ export default function ProgressiveImage({
             unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          {error && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-red-400 font-bold text-xl">Image Failed</p>
-            </div>
-          )}
         </div>
       )}
 
       {/* Main Image */}
       <Image
-        src={error ? '/placeholder-image.png' : effectiveSrc}
+        src={error ? fallbackSrc : effectiveSrc}
         alt={alt}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
