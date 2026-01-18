@@ -3,7 +3,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { UserProfile } from '@/lib/types/user';
@@ -84,48 +84,60 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     }
 
     setUserState({ user: null, userProfile: null, loading: true, error: null });
+    
+    let unsubscribeProfile: (() => void) | null = null;
 
-    const unsubscribe = onAuthStateChanged(
+    const unsubscribeAuth = onAuthStateChanged(
       auth,
-      async (firebaseUser) => {
+      (firebaseUser) => {
+        // First, cancel any existing profile listener
+        if (unsubscribeProfile) {
+            unsubscribeProfile();
+            unsubscribeProfile = null;
+        }
+
         if (firebaseUser) {
           const userRef = doc(firestore, 'users', firebaseUser.uid);
-          try {
-            const userSnap = await getDoc(userRef);
-            if (userSnap.exists()) {
-              const profile = userSnap.data() as UserProfile;
-              setUserState({ user: firebaseUser, userProfile: profile, loading: false, error: null });
-              // Non-blocking update for last login
-              setDocumentNonBlocking(userRef, { lastLogin: serverTimestamp() }, { merge: true });
-            } else {
-              // New user, create profile
-              const isAdmin = firebaseUser.email === 'admin@projectx.com';
-              const newUserProfile: UserProfile = {
-                id: firebaseUser.uid,
-                displayName: firebaseUser.displayName || (isAdmin ? 'Admin' : 'Anonymous'),
-                email: firebaseUser.email || '',
-                photoURL: firebaseUser.photoURL || '',
-                role: isAdmin ? 'admin' : 'user',
-                status: 'active',
-                createdAt: serverTimestamp(),
-                lastLogin: serverTimestamp(),
-                onboardingCompleted: false,
-              };
-              // Create profile, non-blocking
-              setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
-              setUserState({ user: firebaseUser, userProfile: newUserProfile, loading: false, error: null });
+
+          // Set up a new real-time listener for the user's profile
+          unsubscribeProfile = onSnapshot(userRef, 
+            (userSnap) => {
+              if (userSnap.exists()) {
+                const profile = userSnap.data() as UserProfile;
+                setUserState({ user: firebaseUser, userProfile: profile, loading: false, error: null });
+                // Non-blocking update for last login
+                setDocumentNonBlocking(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+              } else {
+                // New user, create profile
+                const isAdmin = firebaseUser.email === 'admin@projectx.com';
+                const newUserProfile: UserProfile = {
+                  id: firebaseUser.uid,
+                  displayName: firebaseUser.displayName || (isAdmin ? 'Admin' : 'Anonymous'),
+                  email: firebaseUser.email || '',
+                  photoURL: firebaseUser.photoURL || '',
+                  role: isAdmin ? 'admin' : 'user',
+                  status: 'active',
+                  createdAt: serverTimestamp(),
+                  lastLogin: serverTimestamp(),
+                  onboardingCompleted: false,
+                };
+                // Create profile, non-blocking. The listener will pick up the change.
+                setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
+              }
+            },
+            (e: any) => {
+              let errorToReport: Error;
+              if (e.code === 'permission-denied') {
+                  errorToReport = new FirestorePermissionError({ operation: 'get', path: userRef.path });
+                  errorEmitter.emit('permission-error', errorToReport as FirestorePermissionError);
+              } else {
+                  console.error("FirebaseProvider user profile snapshot error:", e);
+                  errorToReport = e; // Use the original error
+              }
+              setUserState({ user: firebaseUser, userProfile: null, loading: false, error: errorToReport });
             }
-          } catch (e: any) {
-             let errorToReport: Error;
-             if (e.code === 'permission-denied') {
-                errorToReport = new FirestorePermissionError({ operation: 'get', path: userRef.path });
-                errorEmitter.emit('permission-error', errorToReport as FirestorePermissionError);
-             } else {
-                console.error("FirebaseProvider user profile fetch error:", e);
-                errorToReport = e; // Use the original error
-             }
-             setUserState({ user: firebaseUser, userProfile: null, loading: false, error: errorToReport });
-          }
+          );
+          
         } else {
           // User is signed out
           setUserState({ user: null, userProfile: null, loading: false, error: null });
@@ -136,7 +148,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         setUserState({ user: null, userProfile: null, loading: false, error: error });
       }
     );
-    return () => unsubscribe();
+
+    return () => {
+        unsubscribeAuth();
+        if (unsubscribeProfile) {
+            unsubscribeProfile();
+        }
+    };
   }, [auth, firestore]);
 
   const contextValue = useMemo((): FirebaseContextState => {
