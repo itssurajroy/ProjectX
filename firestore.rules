@@ -67,7 +67,7 @@ service cloud.firestore {
       // Profiles cannot be deleted by clients.
       allow delete: if false;
 
-      // This rule applies to ALL subcollections under a user's document (e.g., watchlist, history).
+      // This rule applies to ALL subcollections under a user's document (e.g., watchlist, history, favoriteCharacters).
       // It ensures that a user can only access their own subcollections.
       match /{allPaths=**} {
         allow read, write: if request.auth.uid == userId;

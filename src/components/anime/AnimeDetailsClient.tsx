@@ -1,3 +1,4 @@
+
 'use client';
 import { CharacterVoiceActor, AnimeInfo, AnimeAboutResponse, AnimeBase, PromotionalVideo, AnimeSeason } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -21,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import RankedAnimeSidebar from './RecommendedSidebar';
 import ProgressiveImage from '../ProgressiveImage';
@@ -34,6 +35,7 @@ import { useTitleLanguageStore } from '@/store/title-language-store';
 import CharacterCard from './CharacterCard';
 import InfoSidebar from './InfoSidebar';
 import { AnimeCard } from '../AnimeCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const SeasonsSwiper = dynamic(() => import('@/components/anime/SeasonsSwiper'), {
@@ -54,6 +56,7 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const firestore = useFirestore();
   const { language } = useTitleLanguageStore();
   const [showAgeGate, setShowAgeGate] = useState(false);
+  const [characterFilter, setCharacterFilter] = useState('All'); // 'All', 'Main', 'Supporting'
   
   const {
     data: animeResult,
@@ -76,6 +79,12 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
   const recommendedAnimes = animeResult?.recommendedAnimes;
   const relatedAnimes = animeResult?.relatedAnimes;
   const characters: CharacterVoiceActor[] = animeInfo?.characterVoiceActors ?? [];
+
+  const filteredCharacters = useMemo(() => {
+    if (!characters) return [];
+    if (characterFilter === 'All') return characters;
+    return characters.filter(c => c.character.cast === characterFilter);
+  }, [characters, characterFilter]);
 
   useEffect(() => {
     if (animeInfo?.stats.rating === "R") {
@@ -158,7 +167,6 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                     <AlertDialogAction onClick={handleAgeGateAgree}>Enter</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
-        </AlertDialog>
 
         {/* Hero Section */}
         <div className="relative h-auto md:h-auto overflow-hidden -mt-16">
@@ -247,15 +255,32 @@ export default function AnimeDetailsClient({ id }: { id: string }) {
                   <PVCarousel videos={promotionalVideos} fallbackPoster={animeInfo.poster} />
                   
                   {characters.length > 0 && (
-                    <section>
-                       <h2 className="text-title mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters & Voice Actors</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            {characters.slice(0, 10).map(cv => (
-                                <CharacterCard key={cv.character.id} cv={cv} />
-                            ))}
-                        </div>
-                    </section>
+                     <Tabs defaultValue="characters" className="w-full">
+                        <h2 className="text-title mb-4 border-l-4 border-primary pl-3 flex items-center gap-2"><Users /> Characters &amp; Crew</h2>
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="characters">Characters</TabsTrigger>
+                            <TabsTrigger value="staff">Staff</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="characters" className="pt-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Button size="sm" variant={characterFilter === 'All' ? 'default' : 'outline'} onClick={() => setCharacterFilter('All')}>All</Button>
+                                <Button size="sm" variant={characterFilter === 'Main' ? 'default' : 'outline'} onClick={() => setCharacterFilter('Main')}>Main</Button>
+                                <Button size="sm" variant={characterFilter === 'Supporting' ? 'default' : 'outline'} onClick={() => setCharacterFilter('Supporting')}>Supporting</Button>
+                            </div>
+                            {filteredCharacters.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {filteredCharacters.slice(0, 12).map(cv => (
+                                        <CharacterCard key={cv.character.id} cv={cv} />
+                                    ))}
+                                </div>
+                            ) : <p className="text-muted-foreground text-center py-4">No characters found for this filter.</p>}
+                        </TabsContent>
+                        <TabsContent value="staff">
+                            <p className="text-muted-foreground text-center py-8">Staff information is not yet available for this title.</p>
+                        </TabsContent>
+                    </Tabs>
                   )}
+
                  {animeInfo.id && <CommentsContainer animeId={animeInfo.id} />}
 
                  {recommendedAnimes && recommendedAnimes.length > 0 && (
