@@ -61,7 +61,7 @@ service cloud.firestore {
 
     // Check if the requesting user has an 'admin' role in their user profile.
     function isAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     /**
@@ -133,6 +133,18 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn();
       allow update, delete: if isOwner(resource.data.userId);
+    }
+
+    /**
+     * @description Rules for user-submitted reports.
+     * @path /reports/{reportId}
+     * @allow (get, list, update) An admin managing the moderation queue.
+     * @allow (create) Any signed-in user submitting a report.
+     * @principle Protects report data while allowing moderation workflow.
+     */
+    match /reports/{reportId} {
+      allow get, list, update, delete: if isAdmin();
+      allow create: if isSignedIn();
     }
   }
 }
