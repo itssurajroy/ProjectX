@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -8,14 +6,14 @@ import { Loader2, ServerCrash } from 'lucide-react';
 import { SITE_NAME } from '@/lib/constants';
 import { usePlayerSettings } from '@/store/player-settings';
 import Confetti from 'react-confetti';
-import { useUser } from '@/firebase/auth/use-user';
-import { db } from '@/firebase/client';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { sanitizeFirestoreId } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function AnimePlayer({ hianimeEpisodeId, episodeId, episodeNumber, animeId, onNext }: { hianimeEpisodeId: string; episodeId: string; episodeNumber: string; animeId: string; onNext: () => void }) {
   const { user } = useUser();
+  const firestore = useFirestore();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
@@ -32,28 +30,25 @@ export default function AnimePlayer({ hianimeEpisodeId, episodeId, episodeNumber
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const saveHistory = useCallback(async () => {
+  const saveHistory = useCallback(() => {
     if (!user || !videoRef.current || !episodeId) return;
     const { currentTime, duration } = videoRef.current;
     if (isNaN(duration) || duration === 0) return;
 
     const historyDocId = sanitizeFirestoreId(episodeId);
-    const historyRef = doc(db, `users/${user.uid}/history`, historyDocId);
+    const historyRef = doc(firestore, `users/${user.uid}/history`, historyDocId);
 
-    try {
-      await setDoc(historyRef, {
-        id: historyDocId,
-        animeId: animeId,
-        episodeId: episodeId,
-        episodeNumber: Number(episodeNumber),
-        watchedAt: serverTimestamp(),
-        progress: currentTime,
-        duration: duration,
-      }, { merge: true });
-    } catch(err) {
-      console.error("Failed to save watch history:", err);
-    }
-  }, [user, animeId, episodeId, episodeNumber]);
+    setDocumentNonBlocking(historyRef, {
+      id: historyDocId,
+      animeId: animeId,
+      episodeId: episodeId,
+      episodeNumber: Number(episodeNumber),
+      watchedAt: serverTimestamp(),
+      progress: currentTime,
+      duration: duration,
+    }, { merge: true });
+    
+  }, [user, firestore, animeId, episodeId, episodeNumber]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -68,10 +63,12 @@ export default function AnimePlayer({ hianimeEpisodeId, episodeId, episodeNumber
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('pause', saveHistory);
+    window.addEventListener('beforeunload', saveHistory);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('pause', saveHistory);
+      window.removeEventListener('beforeunload', saveHistory);
       if (updateProgressTimeout.current) {
         clearTimeout(updateProgressTimeout.current);
       }
