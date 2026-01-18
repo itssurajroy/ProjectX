@@ -207,7 +207,7 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
 
             <div className="space-y-4">
                 {isLoading && <div className="flex items-center justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}
-                {!isLoading && commentTree.map((comment) => <CommentItem key={comment.id} comment={comment} onLike={likeComment} onReply={postComment} currentUser={user} />)}
+                {!isLoading && commentTree.map((comment) => <CommentItem key={comment.id} comment={comment} onLike={likeComment} onReply={postComment} currentUser={user} currentUserProfile={userProfile} />)}
                 {!isLoading && comments.length === 0 && <div className="text-center py-10 text-muted-foreground"><p>Be the first to comment!</p></div>}
             </div>
         </div>
@@ -256,5 +256,3 @@ export default function CommentsContainer({ animeId, episodeId }: { animeId: str
     </Card>
   );
 }
-
-    

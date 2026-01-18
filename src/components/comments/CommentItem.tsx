@@ -1,8 +1,7 @@
 
-
 'use client';
 import { useState } from 'react';
-import { Heart, MessageCircle, AlertTriangle, Shield, Send } from 'lucide-react';
+import { Heart, MessageCircle, AlertTriangle, Shield, Send, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '../ui/textarea';
@@ -12,6 +11,16 @@ import { cn } from '@/lib/utils';
 import type { User } from 'firebase/auth';
 import type { CommentWithUser } from '@/lib/types/comment';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useFirestore, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp } from 'firebase/firestore';
+import toast from 'react-hot-toast';
+import { UserProfile } from '@/lib/types/user';
 
 const RoleBadge = ({ role }: { role: 'user' | 'moderator' | 'admin' }) => {
     const roleStyles = {
@@ -59,10 +68,44 @@ const ReplyForm = ({ onReply, commentId, onCancel }: { onReply: (text: string, p
 };
 
 
-export default function CommentItem ({ comment, onLike, onReply, currentUser, level = 0 }: { comment: CommentWithUser, onLike: (id: string) => void; onReply: (text: string, parentId: string) => void; currentUser: User | null; level?: number }) {
+export default function CommentItem ({ comment, onLike, onReply, currentUser, currentUserProfile, level = 0 }: { comment: CommentWithUser, onLike: (id: string) => void; onReply: (text: string, parentId: string) => void; currentUser: User | null; currentUserProfile: UserProfile | null; level?: number }) {
     const [isReplying, setIsReplying] = useState(false);
-    const [showReplies, setShowReplies] = useState(true);
-    
+    const firestore = useFirestore();
+
+    const handleReport = () => {
+        if (!currentUser || !currentUserProfile) {
+            toast.error("Please log in to report comments.");
+            return;
+        }
+
+        const toastId = toast.loading("Submitting report...");
+
+        const reportData = {
+            type: 'Comment',
+            contentId: comment.id,
+            contentSnippet: comment.text.substring(0, 150),
+            reason: "User submission",
+            status: "Pending",
+            severity: "Medium",
+            reportedUserId: comment.userId,
+            reportedUserName: comment.username,
+            reporterId: currentUser.uid,
+            reporterName: currentUserProfile.displayName,
+            createdAt: serverTimestamp()
+        };
+        
+        const reportsCol = collection(firestore, 'reports');
+
+        addDocumentNonBlocking(reportsCol, reportData)
+            .then(() => {
+                toast.success("Report submitted. Thank you for helping keep the community safe.", { id: toastId });
+            })
+            .catch(err => {
+                console.error("Failed to submit report:", err);
+                toast.error("Could not submit report.", { id: toastId });
+            });
+    }
+
     return (
         <div className="flex gap-3">
           <Avatar className="w-10 h-10">
@@ -91,15 +134,30 @@ export default function CommentItem ({ comment, onLike, onReply, currentUser, le
                     <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
                 )}
 
-                <div className="flex items-center gap-4 mt-3">
-                  <Button variant="ghost" size="sm" onClick={() => onLike(comment.id)} className={cn("gap-1", currentUser && comment.likes?.includes(currentUser.uid) ? 'text-primary' : 'text-muted-foreground')}>
-                    <Heart className="w-4 h-4" />
-                    <span className="text-xs">{comment.likes?.length || 0}</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setIsReplying(!isReplying)} className="gap-1 text-muted-foreground">
-                    <MessageCircle className="w-4 h-4" />
-                    <span className="text-xs">Reply</span>
-                  </Button>
+                <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="sm" onClick={() => onLike(comment.id)} className={cn("gap-1", currentUser && comment.likes?.includes(currentUser.uid) ? 'text-primary' : 'text-muted-foreground')}>
+                            <Heart className="w-4 h-4" />
+                            <span className="text-xs">{comment.likes?.length || 0}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setIsReplying(!isReplying)} className="gap-1 text-muted-foreground">
+                            <MessageCircle className="w-4 h-4" />
+                            <span className="text-xs">Reply</span>
+                        </Button>
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+                                <MoreVertical className="w-4 h-4"/>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem onSelect={handleReport} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                                <AlertTriangle className="mr-2 h-4 w-4" />
+                                <span>Report</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
                 {isReplying && <ReplyForm onReply={onReply} commentId={comment.id} onCancel={() => setIsReplying(false)} />}
             </div>
@@ -107,7 +165,7 @@ export default function CommentItem ({ comment, onLike, onReply, currentUser, le
             {comment.replies && comment.replies.length > 0 && level < 5 && (
                  <div className="mt-4 space-y-4 pl-4 border-l-2 border-border/50">
                     {comment.replies.map(reply => (
-                        <CommentItem key={reply.id} comment={reply} onLike={onLike} onReply={onReply} currentUser={currentUser} level={level + 1} />
+                        <CommentItem key={reply.id} comment={reply} onLike={onLike} onReply={onReply} currentUser={currentUser} currentUserProfile={currentUserProfile} level={level + 1} />
                     ))}
                 </div>
             )}

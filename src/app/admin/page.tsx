@@ -4,6 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useCollection } from "@/firebase";
 import { UserProfile } from "@/lib/types/user";
+import { Report } from "@/lib/types/report";
 import { Activity, Users, Film, Loader2, Flag, AlertTriangle, PlusCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -15,6 +16,7 @@ import Link from "next/link";
 
 export default function AdminDashboardPage() {
     const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
+    const { data: reports, loading: loadingReports } = useCollection<Report>('reports');
     
     // This is a placeholder. In a real app, this would query an 'animes' collection.
     const { data: animeCount, isLoading: loadingAnimeCount } = useQuery({
@@ -24,11 +26,16 @@ export default function AdminDashboardPage() {
         },
     });
 
+    const pendingReportsCount = useMemo(() => {
+        if (!reports) return 0;
+        return reports.filter(r => r.status === 'Pending').length;
+    }, [reports]);
+
     const kpiData = [
         { title: "Total Users", value: loadingUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : users?.length.toLocaleString() || '0', icon: Users },
         { title: "Total Anime", value: loadingAnimeCount ? <Loader2 className="w-5 h-5 animate-spin" /> : animeCount?.toLocaleString() || '0', icon: Film },
         { title: "Online Users", value: 73, icon: Activity },
-        { title: "Pending Reports", value: 12, icon: Flag },
+        { title: "Pending Reports", value: loadingReports ? <Loader2 className="w-5 h-5 animate-spin" /> : pendingReportsCount, icon: Flag },
     ];
 
     const userGrowthData = useMemo(() => {
