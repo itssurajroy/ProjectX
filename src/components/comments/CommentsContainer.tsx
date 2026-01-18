@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ShieldCheck, ChevronsDown, Loader2, MessageCircle, Send } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, orderBy, getDocs, runTransaction, doc, arrayUnion, arrayRemove, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, runTransaction, doc, arrayUnion, arrayRemove, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { Comment, CommentWithUser } from '@/lib/types/comment';
 import { UserProfile } from '@/lib/types/user';
 import toast from 'react-hot-toast';
@@ -77,8 +77,7 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
     const q = query(
         commentsCol,
         where('animeId', '==', animeId),
-        where('episodeId', '==', episodeId || null),
-        orderBy('timestamp', 'desc')
+        where('episodeId', '==', episodeId || null)
     );
 
     // This is not a hook, so direct snapshot usage is okay here
@@ -111,6 +110,9 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
                 userProfile: userProfiles.get(comment.userId),
                 replies: []
             }));
+            
+            // Sort client-side to avoid needing a composite index
+            commentsWithProfiles.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
 
             setComments(commentsWithProfiles);
             setIsLoading(false);
@@ -254,3 +256,5 @@ export default function CommentsContainer({ animeId, episodeId }: { animeId: str
     </Card>
   );
 }
+
+    
