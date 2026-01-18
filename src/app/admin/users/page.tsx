@@ -11,17 +11,26 @@ import ErrorDisplay from "@/components/common/ErrorDisplay";
 import { useState } from "react";
 import { useDebounce } from "use-debounce";
 import UserEditDialog from "@/components/admin/UserEditDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminUsersPage() {
     const { data: users, loading, error } = useCollection<UserProfile>('users');
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [editingUser, setEditingUser] = useState<(UserProfile & {id: string}) | null>(null);
 
-    const filteredUsers = users?.filter(user => 
-        (user.displayName && user.displayName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
-        (user.email && user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()))
-    );
+    const filteredUsers = users?.filter(user => {
+        const searchMatch = !debouncedSearchTerm ||
+            (user.displayName && user.displayName.toLowerCase().includes(debouncedSearchTerm.toLowerCase())) ||
+            (user.email && user.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()));
+
+        const roleMatch = roleFilter === 'all' || user.role === roleFilter;
+        const statusMatch = statusFilter === 'all' || (user.status || 'active') === statusFilter;
+
+        return searchMatch && roleMatch && statusMatch;
+    });
 
     return (
         <div className="space-y-8">
@@ -30,7 +39,7 @@ export default function AdminUsersPage() {
                 <p className="text-muted-foreground">View, edit roles, and manage all users.</p>
             </div>
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative w-full max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input 
@@ -39,6 +48,30 @@ export default function AdminUsersPage() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
+                </div>
+                <div className="flex gap-4">
+                    <Select value={roleFilter} onValueChange={setRoleFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by role..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Roles</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="moderator">Moderator</SelectItem>
+                            <SelectItem value="user">User</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by status..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Statuses</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="suspended">Suspended</SelectItem>
+                            <SelectItem value="banned">Banned</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -52,7 +85,7 @@ export default function AdminUsersPage() {
                                     <th className="p-4 text-left font-semibold">Email</th>
                                     <th className="p-4 text-left font-semibold">Role</th>
                                     <th className="p-4 text-left font-semibold">Status</th>
-                                    <th className="p-4 text-left font-semibold">Created At</th>
+                                    <th className="p-4 text-left font-semibold">Last Active</th>
                                     <th className="p-4 text-left font-semibold">Actions</th>
                                 </tr>
                             </thead>
@@ -80,7 +113,7 @@ export default function AdminUsersPage() {
                                         <td className="p-4">
                                             <Badge variant={user.status === 'active' ? 'secondary' : 'destructive'} className="capitalize">{user.status || 'active'}</Badge>
                                         </td>
-                                        <td className="p-4 text-muted-foreground">{user.createdAt?.toDate().toLocaleDateString() || 'N/A'}</td>
+                                        <td className="p-4 text-muted-foreground">{user.lastLogin?.toDate().toLocaleString() || 'N/A'}</td>
                                         <td className="p-4">
                                             <Button variant="outline" size="sm" onClick={() => setEditingUser(user as UserProfile & {id: string})}>Edit</Button>
                                         </td>
