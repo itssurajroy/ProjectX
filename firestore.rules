@@ -144,8 +144,7 @@ service cloud.firestore {
        * @principle Enforces strict data ownership within a user's private data tree.
        */
       match /watchlists/{watchListId} {
-        allow get, list: if isOwner(userId);
-        allow get, list: if isAdmin();
+        allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isCreatingOwnedContent(userId);
         allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
         allow delete: if isExistingOwner(userId) || isAdmin();
@@ -159,8 +158,7 @@ service cloud.firestore {
        * @principle Enforces strict data ownership within a user's private data tree.
        */
       match /history/{historyId} {
-        allow get, list: if isOwner(userId);
-        allow get, list: if isAdmin();
+        allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isCreatingOwnedContent(userId);
         allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
         allow delete: if isExistingOwner(userId) || isAdmin();
@@ -205,13 +203,6 @@ service cloud.firestore {
         allow update: if isOwner(resource.data.submitterId) || isModerator();
         allow delete: if isOwner(resource.data.submitterId) || isModerator();
       }
-    }
-
-    match /comments/{commentId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isOwner(resource.data.userId) || isModerator();
-      allow delete: if isOwner(resource.data.userId) || isModerator();
     }
   }
 }
