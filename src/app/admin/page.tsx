@@ -4,9 +4,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCollection } from "@/firebase";
 import { UserProfile } from "@/lib/types/user";
-import { Activity, Users, Film, BarChart, Loader2 } from "lucide-react";
-import { collection, query, where } from 'firebase/firestore';
+import { Activity, Users, Film, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
+import { format } from "date-fns";
+import UserGrowthChart from "@/components/admin/UserGrowthChart";
 
 export default function AdminDashboardPage() {
     const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
@@ -29,6 +31,33 @@ export default function AdminDashboardPage() {
             return 125; // Static for now
         }
     });
+
+    const userGrowthData = useMemo(() => {
+        if (!users) return [];
+        
+        // Count new users per day
+        const dailyCounts: { [key: string]: { date: Date, count: number } } = {};
+        users.forEach(user => {
+            if (user.createdAt?.toDate) {
+                const date = format(user.createdAt.toDate(), 'yyyy-MM-dd');
+                if (!dailyCounts[date]) {
+                    dailyCounts[date] = { date: user.createdAt.toDate(), count: 0 };
+                }
+                dailyCounts[date].count++;
+            }
+        });
+    
+        // Get the last 30 distinct days that had signups
+        return Object.values(dailyCounts)
+            .sort((a, b) => a.date.getTime() - b.date.getTime())
+            .slice(-30)
+            .map(item => ({
+                date: format(item.date, 'MMM dd'),
+                users: item.count,
+            }));
+    
+    }, [users]);
+
 
     const kpiData = [
         { title: "Total Users", value: loadingUsers ? <Loader2 className="w-5 h-5 animate-spin" /> : users?.length.toLocaleString() || '0', icon: Users },
@@ -58,12 +87,16 @@ export default function AdminDashboardPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card>
-                    <CardHeader><CardTitle>User Growth</CardTitle></CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground">A chart from Recharts showing user sign-ups over time will be displayed here.</p>
-                    </CardContent>
-                </Card>
+                {loadingUsers ? (
+                     <Card>
+                        <CardHeader><CardTitle>User Growth</CardTitle></CardHeader>
+                        <CardContent className="h-80 flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <UserGrowthChart data={userGrowthData} />
+                )}
                  <Card>
                     <CardHeader><CardTitle>Genre Distribution</CardTitle></CardHeader>
                     <CardContent>
