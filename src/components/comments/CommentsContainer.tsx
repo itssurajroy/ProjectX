@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ShieldCheck, ChevronsDown, Loader2, MessageCircle, Send } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useUser, useFirestore, useCollection, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, where, orderBy, getDocs, runTransaction, doc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, runTransaction, doc, arrayUnion, arrayRemove, onSnapshot } from 'firebase/firestore';
 import { Comment, CommentWithUser } from '@/lib/types/comment';
 import { UserProfile } from '@/lib/types/user';
 import toast from 'react-hot-toast';
