@@ -1,54 +1,88 @@
 
 'use client';
 
-import { Pie, PieChart, Cell, Tooltip } from 'recharts';
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
+import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { BarChart3 } from 'lucide-react';
 
-interface GenreChartProps {
-  data: { name: string; count: number }[];
+interface GenreData {
+  name: string;
+  value: number; 
+  fill: string;
 }
 
-const COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--primary) / 0.8)",
-  "hsl(var(--primary) / 0.6)",
-  "hsl(var(--primary) / 0.5)",
-  "hsl(var(--primary) / 0.4)",
-  "hsl(var(--primary) / 0.3)",
-  "hsl(var(--primary) / 0.2)",
-  "hsl(var(--primary) / 0.1)",
-];
+interface Props {
+  data: GenreData[];
+}
 
-export default function GenreChart({ data }: GenreChartProps) {
-  const chartConfig = data.reduce((acc, item) => {
-    acc[item.name] = { label: item.name };
-    return acc;
-  }, {} as ChartConfig);
-  
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-lg border bg-card p-2 shadow-sm text-card-foreground">
+        <div className="grid grid-cols-2 gap-2">
+          <div className="flex flex-col space-y-1">
+            <span className="text-sm font-bold">{payload[0].name}</span>
+            <span className="text-sm text-muted-foreground">
+              {payload[0].value} episodes
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+
+export default function GenreChart({ data }: Props) {
+  if (!data?.length) {
+    return (
+      <div className="bg-card/50 rounded-lg p-6 border border-border/50 text-center">
+        <p className="text-muted-foreground">No genre data yet...</p>
+        <p className="text-sm mt-2">Watch more to reveal your cursed preferences</p>
+      </div>
+    );
+  }
+
   return (
-    <ChartContainer config={chartConfig} className="h-[300px] w-full">
-      <PieChart>
-        <Tooltip content={<ChartTooltipContent nameKey="name" hideLabel />} />
-        <Pie
-          data={data}
-          dataKey="count"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          outerRadius={100}
-          fill="#8884d8"
-          stroke="hsl(var(--background))"
-          strokeWidth={2}
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-      </PieChart>
-    </ChartContainer>
+    <div className="bg-card/50 rounded-xl p-4 border border-border/50">
+      <h3 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
+        <BarChart3 className="w-6 h-6 text-primary" />
+        Genre Distribution
+      </h3>
+
+      <div className="h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={100}
+              paddingAngle={2}
+              dataKey="value"
+              nameKey="name"
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} stroke={"hsl(var(--card))"} strokeWidth={2} />
+              ))}
+            </Pie>
+
+            <Tooltip
+              cursor={{ fill: 'hsl(var(--muted) / 0.5)' }}
+              content={<CustomTooltip />}
+            />
+
+            <Legend
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
+              wrapperStyle={{ paddingLeft: '20px' }}
+              formatter={(value) => <span className="text-sm text-foreground truncate max-w-[120px]">{value}</span>}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
   );
 }

@@ -22,6 +22,20 @@ const GenreChart = dynamic(() => import('@/components/dashboard/GenreChart'), {
     loading: () => <div className="h-[300px] w-full bg-card/50 rounded-lg flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin"/></div>
 });
 
+const GENRE_COLORS = [
+    "hsl(var(--primary))",
+    "hsl(var(--primary) / 0.8)",
+    "hsl(var(--primary) / 0.6)",
+    "hsl(var(--primary) / 0.5)",
+    "hsl(var(--accent))",
+    "hsl(var(--accent) / 0.8)",
+    "hsl(var(--accent) / 0.6)",
+    "hsl(var(--secondary))",
+    "hsl(var(--muted))",
+    "hsl(var(--border))",
+];
+
+
 export default function StatsPage() {
     const { user } = useUser();
     const { data: history, loading: loadingHistory } = useCollection<UserHistory>(`users/${user?.uid}/history`);
@@ -37,6 +51,7 @@ export default function StatsPage() {
             const animeMap = new Map<string, any>();
             for (const id of animeIds) {
                 try {
+                    // Use the more detailed 'anime' endpoint to get duration and genres
                     const res = await AnimeService.anime(id);
                     if (res?.anime?.info) animeMap.set(id, res.anime.info);
                 } catch { /* ignore individual failures */ }
@@ -74,8 +89,12 @@ export default function StatsPage() {
         });
 
         const sortedGenres = Array.from(genreCounts.entries())
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count);
+            .sort(([, a], [, b]) => b - a)
+            .map(([name, value], index) => ({
+                name,
+                value,
+                fill: GENRE_COLORS[index % GENRE_COLORS.length],
+            }));
 
         const activity: Record<string, number> = {};
         const uniqueDays = new Set<string>();
@@ -164,7 +183,7 @@ export default function StatsPage() {
                 <StatCard title="Total Episodes" value={stats.totalEpisodes} icon={Tv} accent="purple" subtitle="Cursed energy is flowing." />
                 <StatCard title="Watch Time" value={`${stats.totalHours}h ${stats.totalMinutes}m`} icon={Clock} accent="gold" subtitle="Equivalent to ~3 full seasons" />
                 <StatCard title="Current Streak" value={stats.streak > 0 ? `${stats.streak} day${stats.streak > 1 ? 's' : ''}` : 'N/A'} icon={Flame} accent="red" subtitle={stats.streak > 3 ? "You're on fire!" : "Keep it going!"} />
-                <StatCard title="Top Genre" value={stats.genreCounts[0]?.name || 'N/A'} icon={TrendingUp} subtitle={stats.genreCounts[0]?.count ? `${stats.genreCounts[0].count} episodes` : 'Start watching to reveal'} />
+                <StatCard title="Top Genre" value={stats.genreCounts[0]?.name || 'N/A'} icon={TrendingUp} subtitle={stats.genreCounts[0]?.value ? `${stats.genreCounts[0].value} episodes` : 'Start watching to reveal'} />
             </div>
 
             <div>
@@ -176,9 +195,7 @@ export default function StatsPage() {
 
              <div>
                 <h2 className="text-2xl font-bold mb-4 font-display">Genre Distribution</h2>
-                <div className="bg-card/50 p-4 rounded-lg border border-border/50">
-                    <GenreChart data={stats.genreCounts.slice(0, 10)} />
-                </div>
+                <GenreChart data={stats.genreCounts.slice(0, 10)} />
             </div>
 
         </div>
