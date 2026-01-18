@@ -105,8 +105,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               if (userSnap.exists()) {
                 const profile = userSnap.data() as UserProfile;
                 setUserState({ user: firebaseUser, userProfile: profile, loading: false, error: null });
-                // Non-blocking update for last login
-                setDocumentNonBlocking(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+
+                const isAdmin = firebaseUser.email === 'admin@projectx.com';
+                const updatesToPerform: Partial<UserProfile> = { lastLogin: serverTimestamp() };
+                
+                // Also ensure the admin role is correctly set for the specific admin user.
+                if (isAdmin && profile.role !== 'admin') {
+                  updatesToPerform.role = 'admin';
+                }
+            
+                // Non-blocking update for last login and potentially role.
+                // The onSnapshot listener will catch any changes and update the UI.
+                setDocumentNonBlocking(userRef, updatesToPerform, { merge: true });
+
               } else {
                 // New user, create profile
                 const isAdmin = firebaseUser.email === 'admin@projectx.com';
