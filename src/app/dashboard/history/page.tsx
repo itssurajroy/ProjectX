@@ -23,12 +23,12 @@ export default function HistoryPage() {
     const { data: animeDetails, isLoading: isLoadingAnime } = useQuery<Map<string, AnimeBase>>({
         queryKey: ['animeDetails', animeIds],
         queryFn: async () => {
-            const promises = animeIds.map(id => AnimeService.qtip(id).catch(() => null));
+            const promises = animeIds.map(id => AnimeService.anime(id).catch(() => null));
             const results = await Promise.all(promises);
             const animeMap = new Map<string, AnimeBase>();
             results.forEach(res => {
-                if (res && res.anime) {
-                    animeMap.set(res.anime.id, res.anime as AnimeBase);
+                if (res && res.anime && res.anime.info) {
+                    animeMap.set(res.anime.info.id, res.anime.info as AnimeBase);
                 }
             });
             return animeMap;

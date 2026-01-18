@@ -35,8 +35,8 @@ export default function StatsPage() {
             const animeMap = new Map<string, any>();
             for (const id of animeIds) {
                 try {
-                    const res = await AnimeService.qtip(id);
-                    if (res?.anime) animeMap.set(id, res.anime);
+                    const res = await AnimeService.anime(id);
+                    if (res?.anime?.info) animeMap.set(id, res.anime.info);
                 } catch { /* ignore individual failures */ }
             }
             return animeMap;
@@ -50,8 +50,8 @@ export default function StatsPage() {
         const totalEpisodes = history.length;
         const totalMinutes = history.reduce((sum, h) => {
             const anime = animeDetails.get(h.animeId);
-            if (anime && anime.duration) {
-                const durationMinutes = parseInt(anime.duration.split(' ')[0], 10);
+            if (anime && anime.stats.duration) {
+                const durationMinutes = parseInt(anime.stats.duration.split(' ')[0], 10);
                 if (!isNaN(durationMinutes)) {
                     return sum + durationMinutes;
                 }
@@ -62,7 +62,7 @@ export default function StatsPage() {
         const genreCounts = new Map<string, number>();
         history.forEach(h => {
             const anime = animeDetails.get(h.animeId);
-            anime?.genres?.forEach((genre: string) => {
+            anime?.moreInfo?.genres?.forEach((genre: string) => {
                 genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
             });
         });
