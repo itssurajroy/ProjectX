@@ -125,5 +125,8 @@ const curateAnimeFlow = ai.defineFlow(
 
 // Export a wrapper function to be called from the client
 export async function curateAnime(input: CurateAnimeInput): Promise<CurateAnimeOutput> {
+  if (!process.env.GEMINI_API_KEY) {
+    throw new Error('The AI Curator is not configured. A Gemini API key is missing in your .env file.');
+  }
   return await curateAnimeFlow(input);
 }
