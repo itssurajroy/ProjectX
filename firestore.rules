@@ -14,7 +14,7 @@ rules_version = '2';
  * Data Structure:
  * - /users/{userId}/...: This path contains all private data for a specific user.
  *   Access is controlled by ensuring the request's auth UID matches the {userId}
- *   wildcard. This includes subcollections like 'watchlists' and 'history'.
+ *   wildcard. This includes subcollections like 'watchlist' and 'history'.
  * - /videos/{videoId}/...: This path contains public data related to videos. The
  *   top-level documents are readable by all, as are subcollections like 'comments'
  *   and 'skipSegments'.
@@ -138,12 +138,12 @@ service cloud.firestore {
 
       /**
        * @description Rules for a user's private watchlists.
-       * @path /users/{userId}/watchlists/{watchListId}
-       * @allow (create) A user creating a new watchlist in their own space: `create /users/user123/watchlists/wl456` with auth.uid `user123`.
-       * @deny (get) A user trying to read another user's watchlist: `get /users/user456/watchlists/wl789` with auth.uid `user123`.
+       * @path /users/{userId}/watchlist/{watchListId}
+       * @allow (create) A user creating a new watchlist in their own space: `create /users/user123/watchlist/wl456` with auth.uid `user123`.
+       * @deny (get) A user trying to read another user's watchlist: `get /users/user456/watchlist/wl789` with auth.uid `user123`.
        * @principle Enforces strict data ownership within a user's private data tree.
        */
-      match /watchlists/{watchListId} {
+      match /watchlist/{watchListId} {
         allow get, list: if isOwner(userId) || isAdmin();
         allow create: if isCreatingOwnedContent(userId);
         allow update: if (isExistingOwner(userId) && isContentOwnershipImmutable()) || isAdmin();
