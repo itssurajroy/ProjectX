@@ -7,6 +7,7 @@ import { AnimeBase, SearchResult } from "@/lib/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { Film, Loader2, PlusCircle, Search } from "lucide-react";
 import { useState } from "react";
+import ProgressiveImage from "@/components/ProgressiveImage";
 
 export default function AdminAnimePage() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -86,7 +87,15 @@ export default function AdminAnimePage() {
                                     animes.map((anime: AnimeBase) => (
                                     <tr key={anime.id} className="border-b last:border-b-0">
                                         <td className="p-4 flex items-center gap-3">
-                                            <img src={anime.poster} alt={anime.name} className="w-10 h-14 object-cover rounded-md" />
+                                            <div className="w-10 h-14 relative flex-shrink-0">
+                                                <ProgressiveImage 
+                                                    src={anime.poster} 
+                                                    alt={anime.name}
+                                                    width={40}
+                                                    height={56}
+                                                    className="object-cover rounded-md"
+                                                />
+                                            </div>
                                             <span>{anime.name}</span>
                                         </td>
                                         <td className="p-4">{anime.type || 'N/A'}</td>
