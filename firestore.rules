@@ -155,6 +155,15 @@ service cloud.firestore {
     match /settings_ad_slots/{slotId} {
         allow read, write: if isAdmin();
     }
+
+    /**
+     * @description Rules for sent notifications log.
+     * @path /sent_notifications/{notificationId}
+     * @allow (read, write) An admin managing notification logs.
+     */
+    match /sent_notifications/{notificationId} {
+        allow read, write, delete: if isAdmin();
+    }
     
     /**
      * @description Rules for blog posts.

@@ -19,3 +19,13 @@ export interface Notification {
   read: boolean;
   createdAt: any; // Could be Date or a server timestamp object
 }
+
+// New type for the admin panel log
+export interface SentNotification {
+  id: string;
+  title: string;
+  message: string;
+  link?: string;
+  sentAt: any; // Firestore Timestamp
+  target: 'all_users' | 'segment'; // For future use
+}
