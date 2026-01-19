@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useFirestore, updateDocumentNonBlocking } from "@/firebase";
+import { useFirestore, updateDocumentNonBlocking, useUser, addDocumentNonBlocking } from "@/firebase";
 import { UserProfile } from "@/lib/types/user";
-import { doc } from "firebase/firestore";
+import { collection, doc, serverTimestamp } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -19,6 +19,7 @@ interface UserEditDialogProps {
 
 export default function UserEditDialog({ user, isOpen, onClose }: UserEditDialogProps) {
     const firestore = useFirestore();
+    const { user: adminUser, userProfile: adminUserProfile } = useUser();
     const [role, setRole] = useState(user.role);
     const [status, setStatus] = useState(user.status || 'active');
     const [isSaving, setIsSaving] = useState(false);
@@ -34,6 +35,23 @@ export default function UserEditDialog({ user, isOpen, onClose }: UserEditDialog
         try {
             const userRef = doc(firestore, 'users', user.id);
             updateDocumentNonBlocking(userRef, { role, status });
+            
+            if ((user.role !== role || (user.status || 'active') !== status) && adminUser && adminUserProfile) {
+                const activityLogRef = collection(firestore, 'activity_log');
+                addDocumentNonBlocking(activityLogRef, {
+                    type: 'update_user_role',
+                    timestamp: serverTimestamp(),
+                    userId: adminUser.uid,
+                    username: adminUserProfile.displayName,
+                    userAvatar: adminUserProfile.photoURL,
+                    details: {
+                        summary: `updated ${user.displayName}'s profile. Role: ${user.role} -> ${role}, Status: ${user.status || 'active'} -> ${status}`,
+                        link: `/admin/users`,
+                        targetUserId: user.id
+                    }
+                });
+            }
+
             toast.success("User updated successfully", { id: toastId });
             onClose();
         } catch (error) {

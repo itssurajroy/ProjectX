@@ -95,10 +95,24 @@ export default function CommentItem ({ comment, onLike, onReply, currentUser, cu
         };
         
         const reportsCol = collection(firestore, 'reports');
+        const activityLogCol = collection(firestore, 'activity_log');
 
         addDocumentNonBlocking(reportsCol, reportData)
             .then(() => {
                 toast.success("Report submitted. Thank you for helping keep the community safe.", { id: toastId });
+                addDocumentNonBlocking(activityLogCol, {
+                    type: 'new_report',
+                    timestamp: serverTimestamp(),
+                    userId: currentUser.uid,
+                    username: currentUserProfile.displayName,
+                    userAvatar: currentUserProfile.photoURL,
+                    details: {
+                        summary: `reported a comment by ${comment.username}`,
+                        link: `/admin/moderation`,
+                        reportedUserId: comment.userId,
+                        commentText: comment.text.substring(0, 100),
+                    }
+                });
             })
             .catch(err => {
                 console.error("Failed to submit report:", err);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { 
     Home, Tv, Users, Flag, Settings, LogOut, BarChart3, LineChart, PenSquare,
-    MessageSquare, Files, Menu, Megaphone, CreditCard, Plug, FileWarning, Library, TrendingUp, Bell 
+    MessageSquare, Files, Menu, Megaphone, CreditCard, Plug, FileWarning, Library, TrendingUp, Bell, History
 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import toast from 'react-hot-toast';
@@ -16,6 +17,7 @@ const navItems = [
   { name: 'Dashboard', icon: Home, href: '/admin' },
   { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
   { name: 'Reports', icon: FileWarning, href: '/admin/reports' },
+  { name: 'Activity Log', icon: History, href: '/admin/activity-log' },
   { name: 'Notifications', icon: Bell, href: '/admin/notifications' },
 
   // Content Management

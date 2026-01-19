@@ -3,12 +3,12 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, serverTimestamp, collection } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { UserProfile } from '@/lib/types/user';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { FirestorePermissionError } from './errors';
 import { errorEmitter } from './error-emitter';
 
@@ -139,6 +139,20 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 };
                 // Create profile, non-blocking. The listener will pick up the change.
                 setDocumentNonBlocking(userRef, newUserProfile, { merge: false });
+
+                // Log new user registration activity
+                const activityLogRef = collection(firestore, 'activity_log');
+                addDocumentNonBlocking(activityLogRef, {
+                    type: 'new_user',
+                    timestamp: serverTimestamp(),
+                    userId: firebaseUser.uid,
+                    username: newUserProfile.displayName,
+                    userAvatar: newUserProfile.photoURL,
+                    details: {
+                        summary: `registered.`,
+                        link: `/admin/users`
+                    }
+                });
               }
             },
             (e: any) => {

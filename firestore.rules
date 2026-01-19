@@ -188,5 +188,14 @@ service cloud.firestore {
       allow read: if resource.data.status == 'published' || isAdmin();
       allow write: if isAdmin();
     }
+
+    /**
+     * @description Rules for the admin-only activity log.
+     * @path /activity_log/{logId}
+     * @allow (read, write) Admins only, to view and create log entries.
+     */
+    match /activity_log/{logId} {
+        allow read, write: if isAdmin();
+    }
   }
 }

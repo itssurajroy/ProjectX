@@ -5,6 +5,7 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import AnimeHero from '@/components/anime/AnimeHero';
 import EpisodeList from '@/components/anime/EpisodeList';
 import RelatedCarousel from '@/components/anime/RelatedCarousel';
+import CommentsContainer from '@/components/comments/CommentsContainer';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
@@ -51,6 +52,8 @@ export default async function AnimeDetailPage({ params }: { params: { id: string
           <div className="lg:col-span-12 space-y-8">
               {/* Episodes Section */}
               <EpisodeList episodes={episodes} animeId={params.id} />
+              {/* Comments Section */}
+              <CommentsContainer animeId={anime.info.id} animeName={anime.info.name} />
           </div>
 
         </div>

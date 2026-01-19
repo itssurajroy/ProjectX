@@ -65,7 +65,7 @@ const buildCommentTree = (comments: CommentWithUser[]): CommentWithUser[] => {
     return commentTree;
 }
 
-const CommentContent = ({ animeId, episodeId, episodeNumber }: { animeId: string; episodeId?: string | null; episodeNumber?: number | null; }) => {
+const CommentContent = ({ animeId, episodeId, episodeNumber, animeName }: { animeId: string; episodeId?: string | null; episodeNumber?: number | null; animeName: string; }) => {
     const { user, userProfile } = useUser();
     const firestore = useFirestore();
     const [comments, setComments] = useState<CommentWithUser[]>([]);
@@ -147,6 +147,23 @@ const CommentContent = ({ animeId, episodeId, episodeNumber }: { animeId: string
                 timestamp: serverTimestamp(),
                 parentId: parentId
             });
+
+            if (!parentId) {
+                const activityLogRef = collection(firestore, 'activity_log');
+                addDocumentNonBlocking(activityLogRef, {
+                    type: 'new_comment',
+                    timestamp: serverTimestamp(),
+                    userId: user.uid,
+                    username: userProfile.displayName,
+                    userAvatar: userProfile.photoURL,
+                    details: {
+                        summary: `commented on ${animeName}${episodeNumber ? ` Ep. ${episodeNumber}` : ''}`,
+                        content: text.substring(0, 100),
+                        link: `/watch/${animeId}?ep=${episodeNumber}`
+                    }
+                });
+            }
+
             toast.success("Comment posted!", { id: toastId });
             if (!parentId) {
                 setInput('');
@@ -216,7 +233,7 @@ const CommentContent = ({ animeId, episodeId, episodeNumber }: { animeId: string
 }
 
 
-export default function CommentsContainer({ animeId, episodeId, episodeNumber }: { animeId: string; episodeId?: string | null; episodeNumber?: number | null; }) {
+export default function CommentsContainer({ animeId, episodeId, episodeNumber, animeName }: { animeId: string; episodeId?: string | null; episodeNumber?: number | null; animeName: string; }) {
   const [showComments, setShowComments] = useState(true);
   const [showRules, setShowRules] = useState(false);
   const [activeTab, setActiveTab] = useState(episodeId ? 'episode' : 'anime');
@@ -247,10 +264,10 @@ export default function CommentsContainer({ animeId, episodeId, episodeNumber }:
       {showComments && (
         <Tabs value={activeTab} className="w-full">
             <TabsContent value="anime">
-                <CommentContent animeId={animeId} />
+                <CommentContent animeId={animeId} animeName={animeName} />
             </TabsContent>
             <TabsContent value="episode">
-                <CommentContent animeId={animeId} episodeId={episodeId} episodeNumber={episodeNumber} />
+                <CommentContent animeId={animeId} episodeId={episodeId} episodeNumber={episodeNumber} animeName={animeName} />
             </TabsContent>
         </Tabs>
       )}
