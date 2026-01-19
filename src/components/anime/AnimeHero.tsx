@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Play, Bookmark, Star, Tv, Clock } from 'lucide-react';
 import Link from 'next/link';
 import ProgressiveImage from '@/components/ProgressiveImage';
+import ShareButtons from '../common/ShareButtons';
 
 interface AnimeHeroProps {
   anime: AnimeInfo;
@@ -82,6 +83,7 @@ export default function AnimeHero({ anime, moreInfo }: AnimeHeroProps) {
             <Button size="lg" variant="secondary" className="bg-card/80">
               <Bookmark className="w-5 h-5 mr-2" /> Add to List
             </Button>
+            <ShareButtons title={anime.name} />
           </div>
         </div>
       </div>
@@ -89,3 +91,4 @@ export default function AnimeHero({ anime, moreInfo }: AnimeHeroProps) {
   );
 }
 
+    

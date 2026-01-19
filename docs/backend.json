@@ -224,7 +224,10 @@
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com",
+      "facebook.com",
+      "twitter.com"
     ]
   },
   "firestore": {
@@ -345,3 +348,4 @@
     "reasoning": "The Firestore structure is designed to provide a secure, scalable, and easily maintainable database for ProjectX. It prioritizes authorization independence using denormalization, structural segregation for simplified security rules, and consistent access modeling. Path-based ownership is used for private user data, while membership maps handle collaborative scenarios.\n\n*   **Authorization Independence:** Denormalization is used to eliminate `get()` calls in security rules. For example, the `Comment` subcollection includes the `userId` to allow direct validation of ownership without needing to retrieve the parent video document. This ensures atomic operations and simplifies debugging.\n*   **Structural Segregation:** Data with different access requirements are stored in separate collections, ensuring that all documents within a collection share the same security posture. User-specific data (watchlists, history) are stored under `/users/{userId}`, while videos are stored in a separate `/videos` collection. Comments are nested under videos to maintain context and allow efficient querying of comments for a specific video.\n*   **Access Modeling:** Path-based ownership is used for user-owned data like watchlists and history (`/users/{userId}/watchlists/{watchListId}`, `/users/{userId}/history/{historyId}`). This approach simplifies security rules by directly mapping paths to user IDs. Comments, being related to videos, are stored as a subcollection of the video document.\n*   **QAPs (Rules are not Filters):** The structure supports secure `list` operations. For example, listing comments for a specific video is achieved by querying the `/videos/{videoId}/comments` subcollection, ensuring that only comments associated with that video are retrieved. The video ID is present in the comment to prevent needing to validate it from a parent `get()` in security rules. The public video feed can easily be read, as the security rules do not rely on filtering after the data is read. \n*   **Invariants:** The structure supports the integrity of ownership. All relevant data, such as `userId` in `Watchlist`, `History` and `Comment`, is directly present in the document. Timestamps such as uploadDate and viewDate and denormalized data such as `videoId` within `/users/{userId}/history` are also included directly within the documents to support data integrity and invariants."
   }
 }
+    

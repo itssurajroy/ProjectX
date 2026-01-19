@@ -9,16 +9,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, KeyRound, Mail, Lock, X } from 'lucide-react';
+import { Loader2, KeyRound, Mail, Lock, X, Facebook, Twitter } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SiteLogo from '@/components/layout/SiteLogo';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import Link from 'next/link';
 import { getFirebaseErrorMessage } from '@/lib/firebaseErrors';
 import { useAuth } from '@/firebase/provider';
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+const twitterProvider = new TwitterAuthProvider();
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -58,14 +60,20 @@ export default function LoginPage() {
       });
   };
 
-  const handleGoogleSignIn = () => {
+  const handleOAuthSignIn = (provider: GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider) => {
     setIsLoading(true);
     setError(null);
-    const toastId = toast.loading('Waiting for Google...');
 
-    signInWithPopup(auth, googleProvider)
+    let providerName = 'provider';
+    if (provider.providerId === 'google.com') providerName = 'Google';
+    if (provider.providerId === 'facebook.com') providerName = 'Facebook';
+    if (provider.providerId === 'twitter.com') providerName = 'Twitter';
+
+    const toastId = toast.loading(`Waiting for ${providerName}...`);
+
+    signInWithPopup(auth, provider)
       .then(result => {
-        toast.success('Logged in with Google!', { id: toastId });
+        toast.success(`Logged in with ${providerName}!`, { id: toastId });
         router.push('/dashboard');
       })
       .catch(e => {
@@ -129,10 +137,20 @@ export default function LoginPage() {
                         <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or continue with</span></div>
                     </div>
-                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full">
-                       {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon /> }
-                        Google
-                    </Button>
+                     <div className="w-full grid grid-cols-1 gap-2">
+                        <Button variant="secondary" onClick={() => handleOAuthSignIn(googleProvider)} disabled={isLoading} className="w-full">
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon /> }
+                            Google
+                        </Button>
+                        <Button variant="secondary" onClick={() => handleOAuthSignIn(facebookProvider)} disabled={isLoading} className="w-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90">
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Facebook className="mr-2 h-4 w-4" /> }
+                            Facebook
+                        </Button>
+                        <Button variant="secondary" onClick={() => handleOAuthSignIn(twitterProvider)} disabled={isLoading} className="w-full bg-[#1DA1F2] text-white hover:bg-[#1DA1F2]/90">
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Twitter className="mr-2 h-4 w-4" /> }
+                            Twitter
+                        </Button>
+                    </div>
                 </CardFooter>
             </TabsContent>
 
@@ -159,10 +177,20 @@ export default function LoginPage() {
                         <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
                         <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">Or sign up with</span></div>
                     </div>
-                    <Button variant="secondary" onClick={handleGoogleSignIn} disabled={isLoading} className="w-full">
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon /> }
-                        Google
-                    </Button>
+                    <div className="w-full grid grid-cols-1 gap-2">
+                        <Button variant="secondary" onClick={() => handleOAuthSignIn(googleProvider)} disabled={isLoading} className="w-full">
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GoogleIcon /> }
+                            Google
+                        </Button>
+                         <Button variant="secondary" onClick={() => handleOAuthSignIn(facebookProvider)} disabled={isLoading} className="w-full bg-[#1877F2] text-white hover:bg-[#1877F2]/90">
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Facebook className="mr-2 h-4 w-4" /> }
+                            Facebook
+                        </Button>
+                        <Button variant="secondary" onClick={() => handleOAuthSignIn(twitterProvider)} disabled={isLoading} className="w-full bg-[#1DA1F2] text-white hover:bg-[#1DA1F2]/90">
+                           {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Twitter className="mr-2 h-4 w-4" /> }
+                            Twitter
+                        </Button>
+                    </div>
                 </CardFooter>
             </TabsContent>
         </Card>
@@ -171,3 +199,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
