@@ -138,7 +138,7 @@ export default function AdminSeoPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Metadata Templates</CardTitle>
-                        <CardDescription>Define default SEO titles and descriptions for different content types. Use variables like `{{anime_name}}`, `{{episode_number}}`, `{{query}}`, `{{site_name}}`.</CardDescription>
+                        <CardDescription>{"Define default SEO titles and descriptions for different content types. Use variables like `{{anime_name}}`, `{{episode_number}}`, `{{query}}`, `{{site_name}}`."}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {loadingSeo ? <div className="flex justify-center my-10"><Loader2 className="w-6 h-6 animate-spin"/></div> : (
