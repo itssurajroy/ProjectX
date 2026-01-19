@@ -119,6 +119,15 @@ service cloud.firestore {
     match /settings_feature_flags/{flagId} {
         allow read, write: if isAdmin();
     }
+
+    /**
+     * @description Rules for admin-only redirect settings.
+     * @path /settings_redirects/{redirectId}
+     * @allow (read, write) An admin managing URL redirects.
+     */
+    match /settings_redirects/{redirectId} {
+        allow read, write: if isAdmin();
+    }
     
     /**
      * @description Rules for blog posts.

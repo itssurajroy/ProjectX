@@ -1,4 +1,3 @@
-
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -6,16 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Copy, Globe, Link, PlusCircle, Trash2, Loader2 } from "lucide-react";
+import { Copy, Globe, Link as LinkIcon, PlusCircle, Trash2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useDoc, useFirestore, setDocumentNonBlocking } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { useDoc, useFirestore, setDocumentNonBlocking, useCollection, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
+import { collection, doc } from "firebase/firestore";
 import { useState, useEffect } from "react";
-
-const mockRedirects = [
-    { id: 1, from: '/old-anime-link', to: '/anime/new-anime-slug', type: 301 },
-    { id: 2, from: '/promo/2023-event', to: '/events/2024-convention', type: 302 },
-];
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Link from 'next/link';
 
 interface SeoTemplates {
     animeTitle: string;
@@ -33,6 +30,77 @@ interface SeoTemplates {
 interface RobotsTxt {
     content: string;
 }
+
+interface Redirect {
+    id: string;
+    from: string;
+    to: string;
+    type: 301 | 302;
+}
+
+// New AddRedirectDialog component
+const AddRedirectDialog = ({ isOpen, onClose, onAdd }: { isOpen: boolean, onClose: () => void, onAdd: (redirect: Omit<Redirect, 'id'>) => void }) => {
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
+    const [type, setType] = useState<'301' | '302'>('301');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleAdd = () => {
+        if (!from || !to || !from.startsWith('/') || !to.startsWith('/')) {
+            toast.error("Both 'From' and 'To' paths are required and must start with '/'.");
+            return;
+        }
+        setIsSaving(true);
+        onAdd({ from, to, type: Number(type) as 301 | 302 });
+        // The parent component will handle closing and toast notifications
+        setIsSaving(false);
+        onClose();
+        // Reset form
+        setFrom('');
+        setTo('');
+        setType('301');
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={onClose}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Add New Redirect</DialogTitle>
+                    <DialogDescription>Create a new URL redirect. Ensure paths start with a '/'.</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="from-path" className="text-right">From</Label>
+                        <Input id="from-path" value={from} onChange={e => setFrom(e.target.value)} className="col-span-3" placeholder="/old-path" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="to-path" className="text-right">To</Label>
+                        <Input id="to-path" value={to} onChange={e => setTo(e.target.value)} className="col-span-3" placeholder="/new-path" />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="redirect-type" className="text-right">Type</Label>
+                        <Select value={type} onValueChange={(v) => setType(v as '301' | '302')}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="301">301 (Permanent)</SelectItem>
+                                <SelectItem value="302">302 (Temporary)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button onClick={handleAdd} disabled={isSaving}>
+                        {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin"/>} Add Redirect
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+};
+
 
 export default function AdminSeoPage() {
     const firestore = useFirestore();
@@ -57,6 +125,11 @@ export default function AdminSeoPage() {
     const [robotsContent, setRobotsContent] = useState('');
     const [isSavingRobots, setIsSavingRobots] = useState(false);
 
+    // *** New Redirects state and data ***
+    const { data: redirects, loading: loadingRedirects } = useCollection<Redirect>('settings_redirects');
+    const [isAddRedirectOpen, setIsAddRedirectOpen] = useState(false);
+
+
     useEffect(() => {
         if (seoData) {
             setAnimeTitle(seoData.animeTitle || 'Watch {{anime_name}} Online | {{site_name}}');
@@ -69,27 +142,14 @@ export default function AdminSeoPage() {
             setMoviesDesc(seoData.moviesDesc || 'Browse our collection of the latest and greatest anime movies.');
             setTvTitle(seoData.tvTitle || 'Watch Anime Series Online Free | {{site_name}}');
             setTvDesc(seoData.tvDesc || 'Browse our collection of the latest and greatest anime TV shows.');
-        } else if (!loadingSeo) {
-            setAnimeTitle('Watch {{anime_name}} Online | {{site_name}}');
-            setAnimeDesc('Stream all episodes of {{anime_name}} in HD quality with English subtitles. Best place to watch anime online for free.');
-            setWatchTitle('Watch {{anime_name}} Episode {{episode_number}} on {{site_name}}');
-            setWatchDesc('Stream episode {{episode_number}} of {{anime_name}} online for free. No ads, HD quality.');
-            setSearchTitle('Search results for "{{query}}" on {{site_name}}');
-            setSearchDesc('Find and watch anime similar to "{{query}}".');
-            setMoviesTitle('Watch Anime Movies Online Free | {{site_name}}');
-            setMoviesDesc('Browse our collection of the latest and greatest anime movies.');
-            setTvTitle('Watch Anime Series Online Free | {{site_name}}');
-            setTvDesc('Browse our collection of the latest and greatest anime TV shows.');
         }
-    }, [seoData, loadingSeo]);
+    }, [seoData]);
 
     useEffect(() => {
         if (robotsData) {
             setRobotsContent(robotsData.content || `User-agent: *\nAllow: /\n\nDisallow: /admin\nDisallow: /watch2gether`);
-        } else if (!loadingRobots) {
-            setRobotsContent(`User-agent: *\nAllow: /\n\nDisallow: /admin\nDisallow: /watch2gether`);
         }
-    }, [robotsData, loadingRobots]);
+    }, [robotsData]);
 
     const handleSaveTemplates = () => {
         setIsSavingTemplates(true);
@@ -124,6 +184,23 @@ export default function AdminSeoPage() {
             }
         );
     }
+
+    const handleAddRedirect = (redirect: Omit<Redirect, 'id'>) => {
+        const toastId = toast.loading("Adding redirect...");
+        const redirectsCol = collection(firestore, 'settings_redirects');
+        addDocumentNonBlocking(redirectsCol, redirect)
+            .then(() => toast.success("Redirect added!", { id: toastId }))
+            .catch(err => toast.error("Failed to add redirect.", { id: toastId }));
+    };
+
+    const handleDeleteRedirect = (redirectId: string) => {
+        if (!confirm("Are you sure you want to delete this redirect? This action cannot be undone.")) return;
+
+        const toastId = toast.loading("Deleting redirect...");
+        const redirectRef = doc(firestore, 'settings_redirects', redirectId);
+        deleteDocumentNonBlocking(redirectRef);
+        toast.success("Redirect deleted.", { id: toastId });
+    };
 
     const sitemapUrl = typeof window !== 'undefined' ? `${window.location.origin}/sitemap.xml` : '/sitemap.xml';
 
@@ -230,11 +307,13 @@ export default function AdminSeoPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Redirect Manager</CardTitle>
                     <div className="flex justify-between items-center">
-                         <CardDescription>Manage URL redirects to prevent broken links.</CardDescription>
-                         <Button size="sm" className="gap-2"><PlusCircle className="w-4 h-4"/> Add Redirect</Button>
+                        <CardTitle>Redirect Manager</CardTitle>
+                        <Button size="sm" className="gap-2" onClick={() => setIsAddRedirectOpen(true)}>
+                            <PlusCircle className="w-4 h-4"/> Add Redirect
+                        </Button>
                     </div>
+                    <CardDescription>Manage URL redirects to prevent broken links.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -247,21 +326,30 @@ export default function AdminSeoPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {mockRedirects.map(redirect => (
-                                <TableRow key={redirect.id}>
-                                    <TableCell className="font-mono text-sm">{redirect.from}</TableCell>
-                                    <TableCell className="font-mono text-sm">{redirect.to}</TableCell>
-                                    <TableCell>{redirect.type}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="w-4 h-4"/></Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {loadingRedirects ? (
+                                <TableRow><TableCell colSpan={4} className="text-center p-8"><Loader2 className="w-6 h-6 animate-spin mx-auto"/></TableCell></TableRow>
+                            ) : redirects && redirects.length > 0 ? (
+                                redirects.map(redirect => (
+                                    <TableRow key={redirect.id}>
+                                        <TableCell className="font-mono text-sm">{redirect.from}</TableCell>
+                                        <TableCell className="font-mono text-sm">{redirect.to}</TableCell>
+                                        <TableCell>{redirect.type}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDeleteRedirect(redirect.id)}>
+                                                <Trash2 className="w-4 h-4"/>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow><TableCell colSpan={4} className="text-center p-8 text-muted-foreground">No redirects configured.</TableCell></TableRow>
+                            )}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
 
+            <AddRedirectDialog isOpen={isAddRedirectOpen} onClose={() => setIsAddRedirectOpen(false)} onAdd={handleAddRedirect} />
         </div>
     );
 }
