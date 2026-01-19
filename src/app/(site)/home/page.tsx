@@ -395,7 +395,18 @@ export default function MainDashboardPage() {
     return <ErrorDisplay onRetry={refetch} />;
   }
   
-  const spotlightAnimes = customSpotlights && customSpotlights.length > 0 ? customSpotlights : homeData.spotlightAnimes;
+  const apiSpotlights = homeData.spotlightAnimes || [];
+  const manualSpotlights = customSpotlights || [];
+  
+  // Create a Set of IDs from the API spotlights to easily check for duplicates
+  const apiSpotlightIds = new Set(apiSpotlights.map(anime => anime.id));
+
+  // Filter the manual spotlights to only include those not already in the API list
+  const uniqueManualSpotlights = manualSpotlights.filter(anime => !apiSpotlightIds.has(anime.id));
+  
+  // Combine the lists: API spotlights first, then unique manual spotlights
+  const spotlightAnimes = [...apiSpotlights, ...uniqueManualSpotlights];
+
   const { top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = homeData;
 
 
@@ -431,5 +442,7 @@ export default function MainDashboardPage() {
     </div>
   );
 }
+
+    
 
     
