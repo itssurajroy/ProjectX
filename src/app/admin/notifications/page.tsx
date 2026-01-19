@@ -1,18 +1,20 @@
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useCollection, useFirestore, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
+import { useCollection, useFirestore, addDocumentNonBlocking, deleteDocumentNonBlocking, useDoc, setDocumentNonBlocking } from "@/firebase";
 import { collection, doc, serverTimestamp } from "firebase/firestore";
 import { Bell, Loader2, Send, Trash2, Users } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { AppNotification } from '@/lib/types/notification';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDistanceToNow } from "date-fns";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const NotificationComposer = () => {
     const [title, setTitle] = useState('');
@@ -58,7 +60,7 @@ const NotificationComposer = () => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Compose Notification</CardTitle>
+                <CardTitle>Compose Push Notification</CardTitle>
                 <CardDescription>Create and send a push notification to all users.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -106,8 +108,8 @@ const NotificationHistory = () => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Sent History</CardTitle>
-                <CardDescription>A log of previously sent notifications.</CardDescription>
+                <CardTitle>Push Notification History</CardTitle>
+                <CardDescription>A log of previously sent push notifications.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -138,14 +140,89 @@ const NotificationHistory = () => {
                                 </TableRow>
                             ))
                         ) : (
-                             <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No notifications have been sent yet.</TableCell></TableRow>
+                             <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No push notifications have been sent yet.</TableCell></TableRow>
                         )}
                     </TableBody>
                 </Table>
             </CardContent>
         </Card>
     );
-}
+};
+
+const AnnouncementSettingsCard = () => {
+    const firestore = useFirestore();
+    const { data: announcement, loading } = useDoc<any>('site_config/announcement');
+
+    const [enabled, setEnabled] = useState(false);
+    const [text, setText] = useState('');
+    const [type, setType] = useState<'info' | 'warning' | 'critical'>('info');
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (announcement) {
+            setEnabled(announcement.enabled ?? false);
+            setText(announcement.text ?? '');
+            setType(announcement.type ?? 'info');
+        }
+    }, [announcement]);
+
+    const handleSave = () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        const toastId = toast.loading("Saving announcement...");
+        const settingsRef = doc(firestore, 'site_config/announcement');
+
+        setDocumentNonBlocking(settingsRef, { text, enabled, type }, { merge: true });
+
+        toast.success("Announcement saved!", { id: toastId });
+        setIsSaving(false);
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>System Announcement</CardTitle>
+                <CardDescription>Display a site-wide banner for all users.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {loading ? <div className="h-64 flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin"/></div> : <>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border">
+                        <Label htmlFor="announcement-enabled" className="font-semibold">Enable Announcement Banner</Label>
+                        <Switch id="announcement-enabled" checked={enabled} onCheckedChange={setEnabled} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="announcement-text">Banner Text</Label>
+                        <Textarea 
+                            id="announcement-text" 
+                            placeholder="E.g., The site will be down for maintenance at 2 AM EST." 
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="announcement-type">Banner Type</Label>
+                        <Select value={type} onValueChange={(v) => setType(v as any)}>
+                            <SelectTrigger id="announcement-type">
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="info">Info (Blue)</SelectItem>
+                                <SelectItem value="warning">Warning (Amber)</SelectItem>
+                                <SelectItem value="critical">Critical (Red)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </>}
+            </CardContent>
+            <CardFooter>
+                 <Button onClick={handleSave} disabled={isSaving || loading} className="ml-auto">
+                    {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Save Announcement
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
 
 
 export default function AdminNotificationsPage() {
@@ -153,18 +230,25 @@ export default function AdminNotificationsPage() {
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3"><Bell className="w-8 h-8"/> Notifications</h1>
-                <p className="text-muted-foreground">Send global push notifications to all users.</p>
+                <p className="text-muted-foreground">Send global push notifications and manage site-wide announcements.</p>
             </div>
             
-            <NotificationComposer />
-            <NotificationHistory />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <div className="space-y-8">
+                    <NotificationComposer />
+                    <NotificationHistory />
+                </div>
+                <div className="space-y-8">
+                    <AnnouncementSettingsCard />
+                </div>
+            </div>
 
              <Card>
                 <CardHeader>
                     <CardTitle>Important Note</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">This interface creates a notification document in the database. A backend service (like a Cloud Function) is required to listen for these documents and send actual push notifications via Firebase Cloud Messaging (FCM). However, this app includes a client-side listener that will show a "toast" notification in real-time for any user currently on the site.</p>
+                    <p className="text-muted-foreground">The "Push Notification" composer creates a notification document in the database. A backend service (like a Cloud Function) is required to listen for these and send actual push notifications via FCM. The "System Announcement" is a live banner shown to all users on the site.</p>
                 </CardContent>
             </Card>
         </div>

@@ -1,11 +1,10 @@
-
 'use client';
 import BackToTopButton from "@/components/common/BackToTopButton";
 import Footer from "@/components/layout/footer";
 import Header from "@/components/layout/header";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { usePathname } from "next/navigation";
-
+import AnnouncementBanner from "@/components/layout/AnnouncementBanner";
 
 export default function SiteLayout({
   children,
@@ -25,6 +24,7 @@ export default function SiteLayout({
 
   return (
     <div className="flex flex-col min-h-screen w-full">
+      <AnnouncementBanner />
       {showHeader && <Header />}
       <main className={`flex-grow ${showHeader ? 'pt-16' : ''}`}>
         {children}

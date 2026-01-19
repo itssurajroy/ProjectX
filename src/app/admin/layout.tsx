@@ -1,4 +1,3 @@
-
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -12,6 +11,7 @@ import { useState, useEffect } from 'react';
 import AdminLogo from '@/components/admin/AdminLogo';
 import AdminHeader from '@/components/admin/AdminHeader';
 import AdminSidebar from '@/components/admin/AdminSidebar';
+import AnnouncementBanner from '@/components/layout/AnnouncementBanner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -40,6 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <>
+            <AnnouncementBanner />
             <AdminHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
             
             <div className="flex min-h-screen pt-16">

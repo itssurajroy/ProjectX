@@ -197,5 +197,16 @@ service cloud.firestore {
     match /activity_log/{logId} {
         allow read, write: if isAdmin();
     }
+
+    /**
+     * @description Rules for global, publicly readable site configuration like announcements.
+     * @path /site_config/{configId}
+     * @allow (get) Any user, signed in or not, to read configuration.
+     * @allow (write) Admins only to change configuration.
+     */
+    match /site_config/{configId} {
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
+    }
   }
 }
