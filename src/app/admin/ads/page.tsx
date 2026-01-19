@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,32 +8,38 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, PlusCircle, Trash2, Megaphone, DollarSign } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Megaphone, DollarSign, Settings, SlidersHorizontal } from "lucide-react";
 import { useDoc, useCollection, useFirestore, setDocumentNonBlocking, addDocumentNonBlocking, deleteDocumentNonBlocking } from "@/firebase";
 import { collection, doc } from "firebase/firestore";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { Textarea } from "@/components/ui/textarea";
 
-// Data interfaces
+// --- DATA INTERFACES ---
 interface AdSettings {
     adsEnabled: boolean;
     premiumUsersNoAds: boolean;
+    adNetwork: 'adsense' | 'custom';
     adsensePublisherId?: string;
+    customAdTagUrl?: string;
+    adFrequency: number; // e.g., ads per hour
 }
 
 interface AdSlot {
     id: string;
     name: string;
-    type: 'banner' | 'video_preroll' | 'video_midroll';
+    type: 'banner' | 'video_preroll' | 'video_midroll' | 'sidebar_box';
     size: string; // e.g., "728x90", "300x250"
     enabled: boolean;
 }
+
+// --- COMPONENTS ---
 
 // AddAdSlotDialog component
 function AddAdSlotDialog() {
     const [open, setOpen] = useState(false);
     const [name, setName] = useState('');
-    const [type, setType] = useState<'banner' | 'video_preroll' | 'video_midroll'>('banner');
+    const [type, setType] = useState<'banner' | 'video_preroll' | 'video_midroll' | 'sidebar_box'>('banner');
     const [size, setSize] = useState('728x90');
     const [enabled, setEnabled] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -78,6 +85,7 @@ function AddAdSlotDialog() {
                             <SelectTrigger id="slot-type"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="banner">Banner</SelectItem>
+                                <SelectItem value="sidebar_box">Sidebar Box</SelectItem>
                                 <SelectItem value="video_preroll">Video Pre-roll</SelectItem>
                                 <SelectItem value="video_midroll">Video Mid-roll</SelectItem>
                             </SelectContent>
@@ -103,36 +111,124 @@ function AddAdSlotDialog() {
     );
 }
 
+// AdNetworkConfigCard component
+const AdNetworkConfigCard = ({ settings, setSettings, isSaving, handleSave, loading }: { settings: AdSettings, setSettings: React.Dispatch<React.SetStateAction<AdSettings>>, isSaving: boolean, handleSave: () => void, loading: boolean }) => {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><DollarSign className="w-5 h-5 text-green-400"/> Ad Network</CardTitle>
+                <CardDescription>Configure your primary ad provider.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                    <>
+                        <div className="space-y-2">
+                            <Label htmlFor="ad-network">Ad Network Provider</Label>
+                            <Select value={settings.adNetwork} onValueChange={(val) => setSettings(prev => ({...prev, adNetwork: val as any}))}>
+                                <SelectTrigger id="ad-network"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="adsense">Google AdSense</SelectItem>
+                                    <SelectItem value="custom">Custom Ad Tags</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {settings.adNetwork === 'adsense' && (
+                             <div className="space-y-2">
+                                <Label htmlFor="adsenseId">AdSense Publisher ID</Label>
+                                <Input id="adsenseId" value={settings.adsensePublisherId || ''} onChange={(e) => setSettings(prev => ({ ...prev, adsensePublisherId: e.target.value }))} placeholder="pub-xxxxxxxxxxxxxxxx" />
+                            </div>
+                        )}
+                         {settings.adNetwork === 'custom' && (
+                             <div className="space-y-2">
+                                <Label htmlFor="customAdTagUrl">Custom Ad Tag URL</Label>
+                                <Textarea id="customAdTagUrl" value={settings.customAdTagUrl || ''} onChange={(e) => setSettings(prev => ({ ...prev, customAdTagUrl: e.target.value }))} placeholder="Enter your script or ad tag URL..." />
+                            </div>
+                        )}
+                    </>
+                )}
+            </CardContent>
+            <CardFooter>
+                 <Button onClick={handleSave} disabled={isSaving || loading} className="w-full">
+                    {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Save Network Settings
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
+
+// AdRulesCard component
+const AdRulesCard = ({ settings, setSettings, isSaving, handleSave, loading }: { settings: AdSettings, setSettings: React.Dispatch<React.SetStateAction<AdSettings>>, isSaving: boolean, handleSave: () => void, loading: boolean }) => {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><SlidersHorizontal className="w-5 h-5 text-blue-400" /> Ad Rules & Frequency</CardTitle>
+                <CardDescription>Set global rules for when and how ads are displayed.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                    <>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="adsEnabled" className="font-semibold">Enable Ads Globally</Label>
+                            <Switch id="adsEnabled" checked={settings.adsEnabled} onCheckedChange={(val) => setSettings(prev => ({...prev, adsEnabled: val}))} />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="premiumUsersNoAds" className="font-semibold">Premium Users See No Ads</Label>
+                            <Switch id="premiumUsersNoAds" checked={settings.premiumUsersNoAds} onCheckedChange={(val) => setSettings(prev => ({...prev, premiumUsersNoAds: val}))} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="adFrequency">Ad Frequency</Label>
+                            <div className="flex items-center gap-2">
+                                <Input id="adFrequency" type="number" value={settings.adFrequency} onChange={e => setSettings(prev => ({...prev, adFrequency: Number(e.target.value)}))} className="max-w-[100px]" />
+                                <span className="text-sm text-muted-foreground">ads per hour</span>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </CardContent>
+            <CardFooter>
+                 <Button onClick={handleSave} disabled={isSaving || loading} className="w-full">
+                    {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Save Rules
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
+
 // Main component
 export default function AdminAdsPage() {
     const firestore = useFirestore();
     const { data: adSettings, loading: loadingSettings } = useDoc<AdSettings>('settings/advertisements');
     const { data: adSlots, loading: loadingSlots } = useCollection<AdSlot>('settings_ad_slots');
 
-    const [settings, setSettings] = useState<AdSettings>({ adsEnabled: false, premiumUsersNoAds: true });
-    const [isSavingSettings, setIsSavingSettings] = useState(false);
+    const [settings, setSettings] = useState<AdSettings>({
+        adsEnabled: false,
+        premiumUsersNoAds: true,
+        adNetwork: 'adsense',
+        adsensePublisherId: '',
+        customAdTagUrl: '',
+        adFrequency: 2,
+    });
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (adSettings) {
-            setSettings(adSettings);
+            setSettings(s => ({...s, ...adSettings}));
         }
     }, [adSettings]);
 
-    const handleSettingsChange = (key: keyof AdSettings, value: any) => {
-        setSettings(prev => ({ ...prev, [key]: value }));
-    };
-
     const handleSaveSettings = () => {
-        setIsSavingSettings(true);
+        setIsSaving(true);
         const toastId = toast.loading("Saving ad settings...");
         const settingsRef = doc(firestore, 'settings/advertisements');
         setDocumentNonBlocking(settingsRef, settings, { merge: true });
         toast.success("Ad settings saved!", { id: toastId });
-        setIsSavingSettings(false);
+        setIsSaving(false);
     };
 
     const handleDeleteSlot = (id: string) => {
-        if (!confirm("Are you sure you want to delete this ad slot?")) return;
+        if (!confirm("Are you sure you want to delete this ad slot? This cannot be undone.")) return;
         const toastId = toast.loading("Deleting slot...");
         const slotRef = doc(firestore, 'settings_ad_slots', id);
         deleteDocumentNonBlocking(slotRef);
@@ -152,7 +248,7 @@ export default function AdminAdsPage() {
                     <Card>
                         <CardHeader className="flex flex-row justify-between items-center">
                             <div>
-                                <CardTitle>Ad Placement Zones</CardTitle>
+                                <CardTitle className="flex items-center gap-2"><Settings className="w-5 h-5 text-primary" />Ad Placement Zones</CardTitle>
                                 <CardDescription>Define where ads can appear on the site.</CardDescription>
                             </div>
                             <AddAdSlotDialog />
@@ -199,35 +295,8 @@ export default function AdminAdsPage() {
                 </div>
 
                 <div className="lg:col-span-1 space-y-8">
-                    {/* Global Ad Settings */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2"><DollarSign className="w-5 h-5 text-green-400"/> Global Ad Settings</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            {loadingSettings ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                                <>
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="adsEnabled" className="font-semibold">Enable Ads Globally</Label>
-                                        <Switch id="adsEnabled" checked={settings.adsEnabled} onCheckedChange={(val) => handleSettingsChange('adsEnabled', val)} />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="premiumUsersNoAds" className="font-semibold">Premium Users See No Ads</Label>
-                                        <Switch id="premiumUsersNoAds" checked={settings.premiumUsersNoAds} onCheckedChange={(val) => handleSettingsChange('premiumUsersNoAds', val)} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="adsenseId">AdSense Publisher ID</Label>
-                                        <Input id="adsenseId" value={settings.adsensePublisherId || ''} onChange={(e) => handleSettingsChange('adsensePublisherId', e.target.value)} placeholder="pub-xxxxxxxxxxxxxxxx" />
-                                    </div>
-                                </>
-                            )}
-                        </CardContent>
-                        <CardFooter>
-                            <Button onClick={handleSaveSettings} disabled={isSavingSettings || loadingSettings} className="w-full">
-                                {isSavingSettings && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Save Settings
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                     <AdNetworkConfigCard settings={settings} setSettings={setSettings} isSaving={isSaving} handleSave={handleSaveSettings} loading={loadingSettings} />
+                     <AdRulesCard settings={settings} setSettings={setSettings} isSaving={isSaving} handleSave={handleSaveSettings} loading={loadingSettings} />
                 </div>
             </div>
         </div>
