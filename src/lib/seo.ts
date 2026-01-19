@@ -1,4 +1,5 @@
-import { adminDb } from "@/firebase/server";
+
+import { getAdminDb } from "@/firebase/server";
 import { SITE_NAME } from "./constants";
 
 export interface SeoTemplates {
@@ -28,6 +29,7 @@ export async function getSeoTemplates(): Promise<SeoTemplates> {
     }
 
     try {
+        const adminDb = getAdminDb();
         const doc = await adminDb.doc('settings/seo').get();
         if (doc.exists) {
             seoTemplatesCache = doc.data() as SeoTemplates;

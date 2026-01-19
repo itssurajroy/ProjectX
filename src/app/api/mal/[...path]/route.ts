@@ -1,6 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/firebase/server';
+import { getAdminDb } from '@/firebase/server';
 
 const API_BASE_URL = 'https://api.myanimelist.net/v2';
 
@@ -15,6 +15,7 @@ async function getMalClientId(): Promise<string | null> {
     }
 
     try {
+        const adminDb = getAdminDb();
         const doc = await adminDb.doc('settings/api_keys').get();
         if (doc.exists) {
             const data = doc.data();

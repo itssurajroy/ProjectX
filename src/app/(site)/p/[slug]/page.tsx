@@ -1,5 +1,5 @@
 
-import { adminDb } from "@/firebase/server";
+import { getAdminDb } from "@/firebase/server";
 import { Page } from "@/lib/types/page";
 import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { notFound } from "next/navigation";
@@ -15,6 +15,7 @@ type Props = {
 }
 
 async function getPage(slug: string): Promise<Page | null> {
+    const adminDb = getAdminDb();
     const pagesRef = collection(adminDb, 'pages');
     const q = query(pagesRef, where('slug', '==', slug), where('status', '==', 'published'), limit(1));
     const querySnapshot = await getDocs(q);
