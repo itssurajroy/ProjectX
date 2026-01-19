@@ -1,52 +1,6 @@
 
 rules_version = '2';
 
-/**
- * This ruleset enforces a hybrid security model for a video streaming application.
- *
- * Core Philosophy:
- * The security model is designed for both privacy and community interaction. User-specific
- * data like watchlists and viewing history is strictly private and accessible only to the
- * owner. Publicly-facing data, such as videos and comments, is readable by anyone,
- * but write operations (creating, editing, deleting) are restricted to authenticated
- * users who own the specific piece of content.
- *
- * Data Structure:
- * - /users/{userId}/...: This path contains all private data for a specific user.
- *   Access is controlled by ensuring the request's auth UID matches the {userId}
- *   wildcard. This includes subcollections like 'watchlist' and 'history'.
- * - /videos/{videoId}/...: This path contains public data related to videos. The
- *   top-level documents are readable by all, as are subcollections like 'comments'
- *   and 'skipSegments'.
- *
- * Key Security Decisions:
- * - User Isolation: A user can ONLY access data under their own `/users/{userId}` path.
- *   They cannot read or write data belonging to any other user. An exception is made
- *   for admin users, who have broader read/write access for management purposes.
- * - No User Listing: The rules explicitly prevent querying the top-level `/users`
- *   collection for regular users, protecting user privacy by making it impossible to
- *   enumerate all users. Only admins can perform this action for the admin panel.
- * - Public Read, Owner Write: For collaborative content like comments and skip
- *   segments, anyone can read them. However, creating content requires a user to be
- *   signed in, and modifying or deleting content is restricted to the original author.
- * - Backend-Managed Content: The core '/videos' collection is read-only for clients.
- *   This is a critical security measure assuming that video metadata is managed by a
- *   trusted backend service or administrative process, preventing any user from
- *   modifying or deleting video catalog entries.
- *
- * Denormalization for Authorization:
- * To ensure fast and secure authorization, ownership data is denormalized. For
- * example, a document in `/videos/{videoId}/comments/{commentId}` contains a `userId`
- * field. This allows the rules to verify comment ownership directly from the document
- * itself, avoiding a slow and costly `get()` call to another location.
- *
- * Structural Segregation:
- * The separation between private user subcollections (`/users/{userId}/history`) and
- * public top-level collections (`/videos`) is intentional. This segregation
- * simplifies security rules and makes list operations more secure and performant.
- * For instance, a user can safely list their own history without any risk of fetching
- * another user's data.
- */
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -76,9 +30,7 @@ service cloud.firestore {
      * @principle Enforce strict ownership for personal data, with an admin override for management.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId) || isAdmin();
-      allow list: if isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
+      allow get, list, update: if isAdmin() || isOwner(userId);
       allow create: if isOwner(userId);
       allow delete: if isAdmin();
 
@@ -166,6 +118,17 @@ service cloud.firestore {
      */
     match /settings_feature_flags/{flagId} {
         allow read, write: if isAdmin();
+    }
+    
+    /**
+     * @description Rules for blog posts.
+     * @path /blogs/{blogId}
+     * @allow (read) Anyone if the post is published, or any admin.
+     * @allow (write) Admins only.
+     */
+    match /blogs/{blogId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
     }
   }
 }

@@ -4,7 +4,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Tv, Users, Flag, Settings, LogOut, BarChart3 } from 'lucide-react';
+import { Home, Tv, Users, Flag, Settings, LogOut, BarChart3, LineChart, PenSquare } from 'lucide-react';
 import { useAuth } from '@/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ const navItems = [
   { name: 'Users', icon: Users, href: '/admin/users' },
   { name: 'Moderation', icon: Flag, href: '/admin/moderation' },
   { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
+  { name: 'SEO', icon: LineChart, href: '/admin/seo' },
+  { name: 'Blog', icon: PenSquare, href: '/admin/blog' },
   { name: 'Settings', icon: Settings, href: '/admin/settings' },
 ];
 
