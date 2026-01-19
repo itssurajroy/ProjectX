@@ -166,5 +166,16 @@ service cloud.firestore {
       allow read: if resource.data.status == 'published' || isAdmin();
       allow write: if isAdmin();
     }
+
+    /**
+     * @description Rules for static pages.
+     * @path /pages/{pageId}
+     * @allow (read) Anyone if the page is published, or any admin.
+     * @allow (write) Admins only.
+     */
+    match /pages/{pageId} {
+      allow read: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
   }
 }
