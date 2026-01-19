@@ -7,6 +7,8 @@ import { Bookmark, Expand, MonitorPlay, Play, SkipForward, Users, Flag, SkipBack
 import { usePlayerSettings } from "@/store/player-settings";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useState, useEffect } from 'react';
+import { Skeleton } from '../ui/skeleton';
 
 interface PlayerOverlayControlsProps {
     onPrev: () => void;
@@ -38,6 +40,7 @@ const ControlButton = ({
 }
 
 export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDisabled, isNextDisabled }: PlayerOverlayControlsProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const { 
       isFocusMode, 
       toggleFocusMode, 
@@ -46,6 +49,10 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
       autoSkip,
       toggleAutoSkip,
   } = usePlayerSettings();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   const handleBookmark = () => toast.success("Added to your watchlist!");
   const handleReport = () => toast.error("Report form is coming soon!");
@@ -63,6 +70,10 @@ export default function PlayerOverlayControls({ onPrev, onNext, onW2G, isPrevDis
       { icon: Users, label: "W2G", onClick: onW2G, isStatic: true },
       { icon: Flag, label: "Report", onClick: handleReport, isStatic: true },
   ]
+
+  if (!isMounted) {
+    return <Skeleton className="h-[44px] w-full rounded-lg" />;
+  }
 
   return (
     <div className="bg-card/50 p-2 border border-border/50 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
