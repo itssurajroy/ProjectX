@@ -308,7 +308,6 @@ const AnnouncementSettingsCard = () => {
 
 interface MonetizationSettings {
     enabled: boolean;
-    premiumNoAds: boolean;
     adsFrequency: number;
 }
 
@@ -317,14 +316,12 @@ const MonetizationSettingsCard = () => {
     const { data: settings, loading } = useDoc<MonetizationSettings>('settings/monetization');
 
     const [enabled, setEnabled] = useState(false);
-    const [premiumNoAds, setPremiumNoAds] = useState(true);
     const [adsFrequency, setAdsFrequency] = useState(4);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (settings) {
             setEnabled(settings.enabled ?? false);
-            setPremiumNoAds(settings.premiumNoAds ?? true);
             setAdsFrequency(settings.adsFrequency ?? 4);
         }
     }, [settings]);
@@ -341,7 +338,7 @@ const MonetizationSettingsCard = () => {
         setIsSaving(false);
     };
 
-    const handleToggle = (key: 'enabled' | 'premiumNoAds', value: boolean) => {
+    const handleToggle = (key: 'enabled', value: boolean) => {
         const settingsRef = doc(firestore, 'settings/monetization');
         updateDocumentNonBlocking(settingsRef, { [key]: value });
         toast.success(`Setting updated.`);
@@ -352,7 +349,7 @@ const MonetizationSettingsCard = () => {
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><DollarSign className="w-5 h-5 text-green-500" />Monetization</CardTitle>
-                    <CardDescription>Control ad placements and premium features.</CardDescription>
+                    <CardDescription>Control ad placements.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-40 flex items-center justify-center">
                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -368,7 +365,7 @@ const MonetizationSettingsCard = () => {
                     <DollarSign className="w-5 h-5 text-green-500" />
                     Monetization
                 </CardTitle>
-                <CardDescription>Control ad placements and premium features.</CardDescription>
+                <CardDescription>Control ad placements.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/10 border border-green-500/30">
@@ -379,21 +376,6 @@ const MonetizationSettingsCard = () => {
                         onCheckedChange={(val) => {
                             setEnabled(val);
                             handleToggle('enabled', val);
-                        }}
-                    />
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                        <Label htmlFor="premium-no-ads" className="font-semibold">Premium Disables Ads</Label>
-                        <span className="text-xs text-muted-foreground">Exempt premium users from seeing ads.</span>
-                    </div>
-                    <Switch
-                        id="premium-no-ads"
-                        checked={premiumNoAds}
-                        onCheckedChange={(val) => {
-                            setPremiumNoAds(val);
-                            handleToggle('premiumNoAds', val);
                         }}
                     />
                 </div>

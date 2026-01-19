@@ -18,7 +18,6 @@ import { Textarea } from "@/components/ui/textarea";
 // --- DATA INTERFACES ---
 interface AdSettings {
     adsEnabled: boolean;
-    premiumUsersNoAds: boolean;
     adNetwork: 'adsense' | 'custom';
     adsensePublisherId?: string;
     customAdTagUrl?: string;
@@ -172,10 +171,6 @@ const AdRulesCard = ({ settings, setSettings, isSaving, handleSave, loading }: {
                             <Label htmlFor="adsEnabled" className="font-semibold">Enable Ads Globally</Label>
                             <Switch id="adsEnabled" checked={settings.adsEnabled} onCheckedChange={(val) => setSettings(prev => ({...prev, adsEnabled: val}))} />
                         </div>
-                        <div className="flex items-center justify-between">
-                            <Label htmlFor="premiumUsersNoAds" className="font-semibold">Premium Users See No Ads</Label>
-                            <Switch id="premiumUsersNoAds" checked={settings.premiumUsersNoAds} onCheckedChange={(val) => setSettings(prev => ({...prev, premiumUsersNoAds: val}))} />
-                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="adFrequency">Ad Frequency</Label>
                             <div className="flex items-center gap-2">
@@ -204,7 +199,6 @@ export default function AdminAdsPage() {
 
     const [settings, setSettings] = useState<AdSettings>({
         adsEnabled: false,
-        premiumUsersNoAds: true,
         adNetwork: 'adsense',
         adsensePublisherId: '',
         customAdTagUrl: '',

@@ -30,7 +30,6 @@ const navItems = [
   // User & Community
   { name: 'Users', icon: Users, href: '/admin/users' },
   { name: 'Moderation', icon: Flag, href: '/admin/moderation' },
-  { name: 'Subscriptions', icon: CreditCard, href: '/admin/subscriptions' },
 
   // System & SEO
   { name: 'Settings', icon: Settings, href: '/admin/settings' },

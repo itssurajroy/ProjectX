@@ -10,8 +10,6 @@ export interface UserProfile {
   favoriteAnimeId?: string;
   level?: number;
   xp?: number;
-  premiumUntil?: any; // Could be Date or a server timestamp object
-  subscriptionTier?: 'free' | 'premium' | 'vip';
   createdAt: any;
   lastLogin: any;
   onboardingCompleted?: boolean;
