@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertCircle, ShieldCheck, Loader2 } from "lucide-react";
-import { useCollection, useFirestore, updateDocumentNonBlocking } from "@/firebase";
+import { useCollection, useDoc, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import toast from "react-hot-toast";
+import { useState, useEffect } from "react";
 
 interface FeatureFlag {
     id: string;
@@ -66,6 +68,98 @@ const FeatureFlagsCard = () => {
     );
 }
 
+interface MaintenanceSettings {
+    enabled: boolean;
+    message: string;
+}
+
+const MaintenanceModeCard = () => {
+    const firestore = useFirestore();
+    const { data: maintenanceSettings, loading } = useDoc<MaintenanceSettings>('settings/maintenance');
+    
+    const [enabled, setEnabled] = useState(false);
+    const [message, setMessage] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (maintenanceSettings) {
+            setEnabled(maintenanceSettings.enabled);
+            setMessage(maintenanceSettings.message || '');
+        }
+    }, [maintenanceSettings]);
+
+    const handleSaveMessage = () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        const toastId = toast.loading("Saving maintenance message...");
+        const settingsRef = doc(firestore, 'settings/maintenance');
+        
+        setDocumentNonBlocking(settingsRef, { message }, { merge: true });
+        
+        toast.success("Message saved!", { id: toastId });
+        setIsSaving(false);
+    };
+
+    const handleToggle = (newEnabledState: boolean) => {
+        setEnabled(newEnabledState);
+        const settingsRef = doc(firestore, 'settings/maintenance');
+         setDocumentNonBlocking(settingsRef, {
+            enabled: newEnabledState,
+        }, { merge: true });
+        toast.success(`Maintenance mode has been ${newEnabledState ? 'enabled' : 'disabled'}.`);
+    }
+
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Maintenance Mode</CardTitle>
+                    <CardDescription>Block site access for maintenance work.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-40 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Maintenance Mode</CardTitle>
+                <CardDescription>Block site access for maintenance work.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-500" />
+                        <div className="flex flex-col">
+                            <Label htmlFor="maintenance-mode" className="font-semibold text-amber-300">Enable Maintenance Mode</Label>
+                            <span className="text-xs text-amber-400/80">Admins will still have access.</span>
+                        </div>
+                    </div>
+                    <Switch id="maintenance-mode" checked={enabled} onCheckedChange={handleToggle} />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="maintenance-message">Maintenance Message</Label>
+                    <Textarea 
+                        id="maintenance-message" 
+                        placeholder="E.g., We'll be back shortly! Upgrading our servers." 
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                    />
+                </div>
+            </CardContent>
+             <CardFooter>
+                 <Button onClick={handleSaveMessage} disabled={isSaving} className="ml-auto">
+                    {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Save Message
+                </Button>
+            </CardFooter>
+        </Card>
+    )
+}
+
 
 export default function AdminSettingsPage() {
     return (
@@ -103,28 +197,7 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div className="space-y-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Maintenance Mode</CardTitle>
-                            <CardDescription>Block site access for maintenance work.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center justify-between p-3 rounded-lg bg-amber-500/10 border border-amber-500/30">
-                                <div className="flex items-center gap-3">
-                                    <AlertCircle className="w-5 h-5 text-amber-500" />
-                                    <div className="flex flex-col">
-                                        <Label htmlFor="maintenance-mode" className="font-semibold text-amber-300">Enable Maintenance Mode</Label>
-                                        <span className="text-xs text-amber-400/80">Admins will still have access.</span>
-                                    </div>
-                                </div>
-                                <Switch id="maintenance-mode" disabled />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="maintenance-message">Maintenance Message</Label>
-                                <Textarea id="maintenance-message" placeholder="E.g., We'll be back shortly! Upgrading our servers." disabled />
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <MaintenanceModeCard />
 
                     <Card>
                         <CardHeader>

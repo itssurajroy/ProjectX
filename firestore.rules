@@ -153,6 +153,15 @@ service cloud.firestore {
     
     /**
      * @description Rules for admin-only settings collections.
+     * @path /settings/{settingId}
+     * @allow (read, write) An admin managing site-wide settings.
+     */
+    match /settings/{settingId} {
+        allow read, write: if isAdmin();
+    }
+
+    /**
+     * @description Rules for admin-only feature flag settings.
      * @path /settings_feature_flags/{flagId}
      * @allow (read, write) An admin managing feature flags.
      */
