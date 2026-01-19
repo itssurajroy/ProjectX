@@ -1,23 +1,42 @@
-
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Home, Tv, Users, Flag, Settings, LogOut, BarChart3, LineChart, PenSquare } from 'lucide-react';
+import { 
+    Home, Tv, Users, Flag, Settings, LogOut, BarChart3, LineChart, PenSquare,
+    MessageSquare, Files, Menu, Megaphone, CreditCard, Plug, FileWarning, Library, TrendingUp, Bell 
+} from 'lucide-react';
 import { useAuth } from '@/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
+  // General
   { name: 'Dashboard', icon: Home, href: '/admin' },
+  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
+  { name: 'Reports', icon: FileWarning, href: '/admin/reports' },
+  { name: 'Notifications', icon: Bell, href: '/admin/notifications' },
+
+  // Content Management
   { name: 'Anime', icon: Tv, href: '/admin/anime' },
+  { name: 'Blog', icon: PenSquare, href: '/admin/blog' },
+  { name: 'Comments', icon: MessageSquare, href: '/admin/comments' },
+  { name: 'Pages', icon: Files, href: '/admin/pages' },
+  { name: 'Menus', icon: Menu, href: '/admin/menus' },
+  { name: 'Media Library', icon: Library, href: '/admin/media' },
+  { name: 'Trending', icon: TrendingUp, href: '/admin/trending' },
+  
+  // User & Community
   { name: 'Users', icon: Users, href: '/admin/users' },
   { name: 'Moderation', icon: Flag, href: '/admin/moderation' },
-  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
-  { name: 'SEO', icon: LineChart, href: '/admin/seo' },
-  { name: 'Blog', icon: PenSquare, href: '/admin/blog' },
+  { name: 'Subscriptions', icon: CreditCard, href: '/admin/subscriptions' },
+
+  // System & SEO
   { name: 'Settings', icon: Settings, href: '/admin/settings' },
+  { name: 'SEO', icon: LineChart, href: '/admin/seo' },
+  { name: 'Advertisement', icon: Megaphone, href: '/admin/ads' },
+  { name: 'API Integration', icon: Plug, href: '/admin/api-settings' },
 ];
 
 const NavLink = ({ item, onClick }: { item: typeof navItems[0], onClick?: () => void }) => {
