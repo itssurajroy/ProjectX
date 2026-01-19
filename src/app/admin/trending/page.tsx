@@ -1,10 +1,11 @@
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDoc, useFirestore, setDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { Loader2, TrendingUp, Sparkles, PlusCircle, Trash2, ArrowUp, ArrowDown, Search } from "lucide-react";
 import { AnimeBase, SearchSuggestion } from "@/lib/types/anime";
@@ -222,8 +223,8 @@ export default function AdminTrendingPage() {
     const firestore = useFirestore();
     const { data: homepageSettings, loading: loadingSettings } = useDoc<HomepageSettings>('settings/homepage');
     const [spotlightAnimes, setSpotlightAnimes] = useState<SpotlightAnime[]>([]);
-    const [isSaving, setIsSaving] = useState(false);
     const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+    const isInitialLoad = useRef(true);
 
     useEffect(() => {
         if (homepageSettings?.spotlightAnimeIds) {
@@ -234,53 +235,68 @@ export default function AdminTrendingPage() {
                 const detailedAnimes = results
                     .filter(res => res && res.anime)
                     .map(res => res.anime as SpotlightAnime);
-                setSpotlightAnimes(detailedAnimes);
+                
+                const orderedAnimes = homepageSettings.spotlightAnimeIds!
+                    .map(id => detailedAnimes.find(anime => anime.id === id))
+                    .filter((a): a is SpotlightAnime => !!a);
+
+                setSpotlightAnimes(orderedAnimes);
                 setIsFetchingDetails(false);
+                isInitialLoad.current = true;
             };
             fetchDetails();
+        } else if (!loadingSettings) {
+            setSpotlightAnimes([]);
+            isInitialLoad.current = true;
         }
-    }, [homepageSettings]);
+    }, [homepageSettings, loadingSettings]);
     
+    // Real-time save effect
+    useEffect(() => {
+        if (isInitialLoad.current) {
+            isInitialLoad.current = false;
+            return;
+        }
+        if (loadingSettings || isFetchingDetails) return;
+        
+        const animeIds = spotlightAnimes.map(a => a.id);
+        const settingsRef = doc(firestore, 'settings/homepage');
+        setDocumentNonBlocking(settingsRef, { spotlightAnimeIds: animeIds }, { merge: true });
+
+    }, [spotlightAnimes, firestore, loadingSettings, isFetchingDetails]);
+
+
     const handleAddAnime = (anime: SearchSuggestion) => {
-        if(spotlightAnimes.some(a => a.id === anime.id)) {
+        if (spotlightAnimes.some(a => a.id === anime.id)) {
             toast.error(`${anime.name} is already in the spotlight.`);
             return;
         }
         setSpotlightAnimes(prev => [...prev, anime as SpotlightAnime]);
-        toast.success(`${anime.name} added to spotlight list.`);
-    }
+        toast.success(`${anime.name} added to spotlight.`);
+    };
 
     const handleRemoveAnime = (animeId: string) => {
         setSpotlightAnimes(prev => prev.filter(a => a.id !== animeId));
-    }
+        toast.success(`Anime removed from spotlight.`);
+    };
     
     const handleMove = (index: number, direction: 'up' | 'down') => {
         const newIndex = direction === 'up' ? index - 1 : index + 1;
         if (newIndex < 0 || newIndex >= spotlightAnimes.length) return;
 
-        const newAnimes = [...spotlightAnimes];
-        const temp = newAnimes[index];
-        newAnimes[index] = newAnimes[newIndex];
-        newAnimes[newIndex] = temp;
-        setSpotlightAnimes(newAnimes);
-    }
-
-    const handleSaveChanges = () => {
-        setIsSaving(true);
-        const toastId = toast.loading("Saving spotlight configuration...");
-        const settingsRef = doc(firestore, 'settings/homepage');
-        const animeIds = spotlightAnimes.map(a => a.id);
-        
-        setDocumentNonBlocking(settingsRef, { spotlightAnimeIds: animeIds }, { merge: true });
-
-        toast.success("Spotlight saved!", { id: toastId });
-        setIsSaving(false);
-    }
+        setSpotlightAnimes(prev => {
+            const newAnimes = [...prev];
+            const temp = newAnimes[index];
+            newAnimes[index] = newAnimes[newIndex];
+            newAnimes[newIndex] = temp;
+            return newAnimes;
+        });
+    };
 
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold flex items-center gap-3"><TrendingUp className="w-8 h-8"/> Trending & Featured</h1>
+                <h1 className="text-3xl font-bold flex items-center gap-3"><TrendingUp className="w-8 h-8"/> Trending &amp; Featured</h1>
                 <p className="text-muted-foreground">Manually override or adjust trending and featured content.</p>
             </div>
 
@@ -324,12 +340,6 @@ export default function AdminTrendingPage() {
                                <p className="text-center text-muted-foreground py-10">No anime in the spotlight. Add one to get started.</p>
                            )}
                         </CardContent>
-                        <CardFooter>
-                            <Button onClick={handleSaveChanges} disabled={isSaving || loadingSettings || isFetchingDetails} className="ml-auto">
-                                {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin"/>}
-                                Save Spotlight
-                            </Button>
-                        </CardFooter>
                     </Card>
                 </div>
                 <div className="space-y-8">
