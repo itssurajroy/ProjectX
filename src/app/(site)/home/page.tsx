@@ -5,7 +5,7 @@ import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, Qtip
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { AnimeCard } from '@/components/AnimeCard';
 import { Bookmark } from 'lucide-react';
@@ -390,23 +390,21 @@ export default function MainDashboardPage() {
   
   const isLoading = isLoadingHome || (!!homepageSettings && isLoadingCustomSpotlights);
   
+  const spotlightAnimes = useMemo(() => {
+    const apiSpotlights = homeData?.spotlightAnimes || [];
+    const manualSpotlights = customSpotlights || [];
+
+    const apiSpotlightIds = new Set(apiSpotlights.map(anime => anime.id));
+    const uniqueManualSpotlights = manualSpotlights.filter(anime => !apiSpotlightIds.has(anime.id));
+
+    return [...apiSpotlights, ...uniqueManualSpotlights];
+  }, [homeData?.spotlightAnimes, customSpotlights]);
+
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
   if (error || !homeData) {
     return <ErrorDisplay onRetry={refetch} />;
   }
   
-  const apiSpotlights = homeData.spotlightAnimes || [];
-  const manualSpotlights = customSpotlights || [];
-  
-  // Create a Set of IDs from the API spotlights to easily check for duplicates
-  const apiSpotlightIds = new Set(apiSpotlights.map(anime => anime.id));
-
-  // Filter the manual spotlights to only include those not already in the API list
-  const uniqueManualSpotlights = manualSpotlights.filter(anime => !apiSpotlightIds.has(anime.id));
-  
-  // Combine the lists: API spotlights first, then unique manual spotlights
-  const spotlightAnimes = [...apiSpotlights, ...uniqueManualSpotlights];
-
   const { top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = homeData;
 
 
