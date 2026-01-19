@@ -17,9 +17,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDebounce } from "use-debounce";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+
+interface FeaturedSection {
+    id: string;
+    title: string;
+    enabled: boolean;
+}
 
 interface HomepageSettings {
     spotlightAnimeIds?: string[];
+    featuredSections?: FeaturedSection[];
 }
 
 interface SpotlightAnime extends AnimeBase {
@@ -217,6 +225,110 @@ const TrendingAlgorithmCard = () => {
     )
 }
 
+const DEFAULT_SECTIONS: FeaturedSection[] = [
+    { id: 'trending', title: 'Trending', enabled: true },
+    { id: 'latest-episodes', title: 'Latest Episodes', enabled: true },
+    { id: 'top-upcoming', title: 'Top Upcoming', enabled: true },
+    { id: 'top-airing', title: 'Top Airing', enabled: true },
+    { id: 'completed-series', title: 'Completed Series', enabled: true },
+    { id: 'most-popular', title: 'Most Popular', enabled: true },
+    { id: 'most-favorite', title: 'Most Favorite', enabled: true },
+];
+
+const FeaturedSectionsCard = () => {
+    const firestore = useFirestore();
+    const { data: homepageSettings, loading: loadingSettings } = useDoc<HomepageSettings>('settings/homepage');
+    const [sections, setSections] = useState<FeaturedSection[]>([]);
+    const isInitialLoad = useRef(true);
+
+    useEffect(() => {
+        if (homepageSettings) {
+            const firestoreSectionsMap = new Map(homepageSettings.featuredSections?.map(s => [s.id, s]));
+            const mergedSections = DEFAULT_SECTIONS.map(defaultSection => 
+                firestoreSectionsMap.get(defaultSection.id) || defaultSection
+            );
+
+            // Re-order mergedSections based on the order in firestore
+            const orderedSections = homepageSettings.featuredSections
+                ? homepageSettings.featuredSections.map(fs => mergedSections.find(ms => ms.id === fs.id)).filter(Boolean) as FeaturedSection[]
+                : mergedSections;
+
+            const existingIds = new Set(orderedSections.map(s => s.id));
+            const newSections = mergedSections.filter(s => !existingIds.has(s.id));
+
+            setSections([...orderedSections, ...newSections]);
+
+        } else if (!loadingSettings) {
+            setSections(DEFAULT_SECTIONS);
+        }
+        if (!loadingSettings) {
+            isInitialLoad.current = true;
+        }
+    }, [homepageSettings, loadingSettings]);
+    
+    useEffect(() => {
+        if (isInitialLoad.current) {
+            isInitialLoad.current = false;
+            return;
+        }
+        if (loadingSettings) return;
+        
+        const settingsRef = doc(firestore, 'settings/homepage');
+        setDocumentNonBlocking(settingsRef, { featuredSections: sections }, { merge: true });
+
+    }, [sections, firestore, loadingSettings]);
+
+
+    const handleToggle = (id: string, enabled: boolean) => {
+        setSections(prev => prev.map(s => s.id === id ? { ...s, enabled } : s));
+        toast.success(`'${sections.find(s=>s.id===id)?.title}' section ${enabled ? 'enabled' : 'disabled'}.`);
+    };
+
+    const handleMove = (index: number, direction: 'up' | 'down') => {
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= sections.length) return;
+
+        setSections(prev => {
+            const newSections = [...prev];
+            const temp = newSections[index];
+            newSections[index] = newSections[newIndex];
+            newSections[newIndex] = temp;
+            return newSections;
+        });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Featured Sections</CardTitle>
+                <CardDescription>Reorder and toggle visibility of homepage sections.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loadingSettings ? (
+                    <div className="h-64 flex justify-center items-center"><Loader2 className="w-8 h-8 animate-spin"/></div>
+                ) : (
+                    <div className="space-y-2">
+                        {sections.map((section, index) => (
+                            <div key={section.id} className="flex items-center gap-4 p-2 rounded-lg bg-card border border-border">
+                                <p className="font-semibold flex-1 truncate">{section.title}</p>
+                                <div className="flex items-center gap-1">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMove(index, 'up')} disabled={index === 0}>
+                                        <ArrowUp className="w-4 h-4"/>
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMove(index, 'down')} disabled={index === sections.length - 1}>
+                                        <ArrowDown className="w-4 h-4"/>
+                                    </Button>
+                                     <Switch checked={section.enabled} onCheckedChange={(checked) => handleToggle(section.id, checked)} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+};
+
 
 // --- Main Component ---
 export default function AdminTrendingPage() {
@@ -344,14 +456,7 @@ export default function AdminTrendingPage() {
                 </div>
                 <div className="space-y-8">
                      <TrendingAlgorithmCard />
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Featured Sections</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <p className="text-muted-foreground">Management for other homepage sections (e.g., "Most Popular") is under development.</p>
-                        </CardContent>
-                    </Card>
+                     <FeaturedSectionsCard />
                 </div>
             </div>
         </div>

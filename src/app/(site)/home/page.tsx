@@ -22,6 +22,7 @@ import { useDoc } from '@/firebase';
 
 interface HomepageSettings {
     spotlightAnimeIds?: string[];
+    featuredSections?: { id: string; title: string; enabled: boolean; }[];
 }
 
 
@@ -347,7 +348,7 @@ export default function MainDashboardPage() {
     queryFn: AnimeService.home,
   });
 
-  const { data: homepageSettings } = useDoc<HomepageSettings>('settings/homepage');
+  const { data: homepageSettings, isLoading: isLoadingSettings } = useDoc<HomepageSettings>('settings/homepage');
 
   const { data: customSpotlights, isLoading: isLoadingCustomSpotlights } = useQuery({
       queryKey: ['customSpotlights', homepageSettings?.spotlightAnimeIds],
@@ -388,7 +389,7 @@ export default function MainDashboardPage() {
       staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  const isLoading = isLoadingHome || (!!homepageSettings && isLoadingCustomSpotlights);
+  const isLoading = isLoadingHome || isLoadingSettings || (!!homepageSettings && isLoadingCustomSpotlights);
   
   const spotlightAnimes = useMemo(() => {
     const apiSpotlights = homeData?.spotlightAnimes || [];
@@ -405,7 +406,34 @@ export default function MainDashboardPage() {
     return <ErrorDisplay onRetry={refetch} />;
   }
   
-  const { top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = homeData;
+  const { top10Animes, topAiringAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes, topUpcomingAnimes } = homeData;
+
+  const allSections = useMemo(() => [
+        { id: 'trending', title: 'Trending', category: 'trending', isSpecial: 'trending', animes: trendingAnimes, component: AnimeSection },
+        { id: 'latest-episodes', title: 'Latest Episodes', category: 'latest-episodes', animes: latestEpisodeAnimes, component: AnimeSection },
+        { id: 'top-upcoming', title: 'Top Upcoming', category: 'top-upcoming', animes: topUpcomingAnimes, component: AnimeSection },
+        { id: 'top-airing', title: 'Top Airing', animes: topAiringAnimes, component: SmallListSection },
+        { id: 'completed-series', title: 'Completed Series', animes: latestCompletedAnimes, component: SmallListSection },
+        { id: 'most-popular', title: 'Most Popular', category: 'most-popular', animes: mostPopularAnimes, component: AnimeSection },
+        { id: 'most-favorite', title: 'Most Favorite', category: 'most-favorite', animes: mostFavoriteAnimes, component: AnimeSection },
+  ], [homeData]);
+
+  const orderedSections = useMemo(() => {
+    if (homepageSettings?.featuredSections) {
+        return homepageSettings.featuredSections
+            .filter(s => s.enabled)
+            .map(s => {
+                const sectionData = allSections.find(as => as.id === s.id);
+                return sectionData ? { ...sectionData, title: s.title } : null;
+            })
+            .filter((s): s is typeof allSections[0] => !!s);
+    }
+    return allSections;
+  }, [homepageSettings, allSections]);
+
+  const smallSectionIds = ['top-airing', 'completed-series'];
+  const mainSections = orderedSections.filter(s => !smallSectionIds.includes(s.id));
+  const smallSections = orderedSections.filter(s => smallSectionIds.includes(s.id));
 
 
   return (
@@ -421,15 +449,26 @@ export default function MainDashboardPage() {
         
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
             <div className="md:col-span-12 xl:col-span-9 space-y-12">
-                <AnimeSection title="Trending" animes={trendingAnimes} category="trending" isSpecial="trending" />
-                <AnimeSection title="Latest Episodes" animes={latestEpisodeAnimes} category="latest-episodes" />
-                <AnimeSection title="Top Upcoming" animes={topUpcomingAnimes} category="top-upcoming" />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <SmallListSection title="Top Airing" animes={topAiringAnimes} />
-                    <SmallListSection title="Completed Series" animes={latestCompletedAnimes} />
-                </div>
-                <AnimeSection title="Most Popular" animes={mostPopularAnimes} category="most-popular" />
-                <AnimeSection title="Most Favorite" animes={mostFavoriteAnimes} category="most-favorite" />
+                {mainSections.map((section) => (
+                    <section.component 
+                        key={section.id} 
+                        title={section.title} 
+                        animes={section.animes} 
+                        {...(section.component === AnimeSection && { category: section.id, isSpecial: section.isSpecial })} 
+                    />
+                ))}
+                
+                {smallSections.length > 0 && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {smallSections.map(section => (
+                            <section.component 
+                                key={section.id}
+                                title={section.title}
+                                animes={section.animes}
+                            />
+                        ))}
+                    </div>
+                )}
             </div>
             <div className="md:col-span-12 xl:col-span-3 space-y-8">
                 <TrendingSidebar top10Animes={top10Animes} />
@@ -444,3 +483,4 @@ export default function MainDashboardPage() {
     
 
     
+
