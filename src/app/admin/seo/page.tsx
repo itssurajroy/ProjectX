@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -19,6 +20,14 @@ const mockRedirects = [
 interface SeoTemplates {
     animeTitle: string;
     animeDesc: string;
+    watchTitle: string;
+    watchDesc: string;
+    searchTitle: string;
+    searchDesc: string;
+    moviesTitle: string;
+    moviesDesc: string;
+    tvTitle: string;
+    tvDesc: string;
 }
 
 interface RobotsTxt {
@@ -32,6 +41,15 @@ export default function AdminSeoPage() {
     const { data: seoData, loading: loadingSeo } = useDoc<SeoTemplates>('settings/seo');
     const [animeTitle, setAnimeTitle] = useState('');
     const [animeDesc, setAnimeDesc] = useState('');
+    const [watchTitle, setWatchTitle] = useState('');
+    const [watchDesc, setWatchDesc] = useState('');
+    const [searchTitle, setSearchTitle] = useState('');
+    const [searchDesc, setSearchDesc] = useState('');
+    const [moviesTitle, setMoviesTitle] = useState('');
+    const [moviesDesc, setMoviesDesc] = useState('');
+    const [tvTitle, setTvTitle] = useState('');
+    const [tvDesc, setTvDesc] = useState('');
+
     const [isSavingTemplates, setIsSavingTemplates] = useState(false);
 
     // Robots.txt state and data
@@ -42,9 +60,28 @@ export default function AdminSeoPage() {
     useEffect(() => {
         if (seoData) {
             setAnimeTitle(seoData.animeTitle || 'Watch {{anime_name}} Online | {{site_name}}');
-            setAnimeDesc(seoData.animeDesc || 'Stream all episodes of {{anime_name}} in HD quality...');
+            setAnimeDesc(seoData.animeDesc || 'Stream all episodes of {{anime_name}} in HD quality with English subtitles. Best place to watch anime online for free.');
+            setWatchTitle(seoData.watchTitle || 'Watch {{anime_name}} Episode {{episode_number}} on {{site_name}}');
+            setWatchDesc(seoData.watchDesc || 'Stream episode {{episode_number}} of {{anime_name}} online for free. No ads, HD quality.');
+            setSearchTitle(seoData.searchTitle || 'Search results for "{{query}}" on {{site_name}}');
+            setSearchDesc(seoData.searchDesc || 'Find and watch anime similar to "{{query}}".');
+            setMoviesTitle(seoData.moviesTitle || 'Watch Anime Movies Online Free | {{site_name}}');
+            setMoviesDesc(seoData.moviesDesc || 'Browse our collection of the latest and greatest anime movies.');
+            setTvTitle(seoData.tvTitle || 'Watch Anime Series Online Free | {{site_name}}');
+            setTvDesc(seoData.tvDesc || 'Browse our collection of the latest and greatest anime TV shows.');
+        } else if (!loadingSeo) {
+            setAnimeTitle('Watch {{anime_name}} Online | {{site_name}}');
+            setAnimeDesc('Stream all episodes of {{anime_name}} in HD quality with English subtitles. Best place to watch anime online for free.');
+            setWatchTitle('Watch {{anime_name}} Episode {{episode_number}} on {{site_name}}');
+            setWatchDesc('Stream episode {{episode_number}} of {{anime_name}} online for free. No ads, HD quality.');
+            setSearchTitle('Search results for "{{query}}" on {{site_name}}');
+            setSearchDesc('Find and watch anime similar to "{{query}}".');
+            setMoviesTitle('Watch Anime Movies Online Free | {{site_name}}');
+            setMoviesDesc('Browse our collection of the latest and greatest anime movies.');
+            setTvTitle('Watch Anime Series Online Free | {{site_name}}');
+            setTvDesc('Browse our collection of the latest and greatest anime TV shows.');
         }
-    }, [seoData]);
+    }, [seoData, loadingSeo]);
 
     useEffect(() => {
         if (robotsData) {
@@ -58,8 +95,12 @@ export default function AdminSeoPage() {
         setIsSavingTemplates(true);
         const toastId = toast.loading("Saving templates...");
         const settingsRef = doc(firestore, 'settings', 'seo');
-        setDocumentNonBlocking(settingsRef, { animeTitle, animeDesc }, { merge: true });
-        // Because it's non-blocking, we show success almost immediately
+        const dataToSave: SeoTemplates = {
+            animeTitle, animeDesc, watchTitle, watchDesc,
+            searchTitle, searchDesc, moviesTitle, moviesDesc,
+            tvTitle, tvDesc
+        };
+        setDocumentNonBlocking(settingsRef, dataToSave, { merge: true });
         toast.success("Templates saved!", { id: toastId });
         setIsSavingTemplates(false);
     };
@@ -97,26 +138,43 @@ export default function AdminSeoPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Metadata Templates</CardTitle>
-                        <CardDescription>Define default SEO titles and descriptions for different content types.</CardDescription>
+                        <CardDescription>Define default SEO titles and descriptions for different content types. Use variables like `{{anime_name}}`, `{{episode_number}}`, `{{query}}`, `{{site_name}}`.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {loadingSeo ? <div className="flex justify-center my-10"><Loader2 className="w-6 h-6 animate-spin"/></div> : (
-                        <>
-                            <div className="space-y-2">
-                                <Label htmlFor="anime-title">Anime Page Title Template</Label>
-                                <Input id="anime-title" value={animeTitle} onChange={e => setAnimeTitle(e.target.value)} />
+                        <div className="space-y-6">
+                            <div className="space-y-2 p-3 border rounded-lg">
+                                <Label htmlFor="anime-title" className="font-semibold">Anime Page</Label>
+                                <Input id="anime-title" value={animeTitle} onChange={e => setAnimeTitle(e.target.value)} placeholder="Title for Anime Detail pages..."/>
+                                <Textarea id="anime-desc" value={animeDesc} onChange={e => setAnimeDesc(e.target.value)} placeholder="Description for Anime Detail pages..." />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="anime-desc">Anime Page Description Template</Label>
-                                <Textarea id="anime-desc" value={animeDesc} onChange={e => setAnimeDesc(e.target.value)} />
+                             <div className="space-y-2 p-3 border rounded-lg">
+                                <Label htmlFor="watch-title" className="font-semibold">Watch Page</Label>
+                                <Input id="watch-title" value={watchTitle} onChange={e => setWatchTitle(e.target.value)} placeholder="Title for Watch pages..." />
+                                <Textarea id="watch-desc" value={watchDesc} onChange={e => setWatchDesc(e.target.value)} placeholder="Description for Watch pages..."/>
                             </div>
-                        </>
+                             <div className="space-y-2 p-3 border rounded-lg">
+                                <Label htmlFor="search-title" className="font-semibold">Search Page</Label>
+                                <Input id="search-title" value={searchTitle} onChange={e => setSearchTitle(e.target.value)} placeholder="Title for Search pages..." />
+                                <Textarea id="search-desc" value={searchDesc} onChange={e => setSearchDesc(e.target.value)} placeholder="Description for Search pages..." />
+                            </div>
+                             <div className="space-y-2 p-3 border rounded-lg">
+                                <Label htmlFor="movies-title" className="font-semibold">Movies Page</Label>
+                                <Input id="movies-title" value={moviesTitle} onChange={e => setMoviesTitle(e.target.value)} placeholder="Title for Movies listing page..." />
+                                <Textarea id="movies-desc" value={moviesDesc} onChange={e => setMoviesDesc(e.target.value)} placeholder="Description for Movies listing page..." />
+                            </div>
+                             <div className="space-y-2 p-3 border rounded-lg">
+                                <Label htmlFor="tv-title" className="font-semibold">TV Shows Page</Label>
+                                <Input id="tv-title" value={tvTitle} onChange={e => setTvTitle(e.target.value)} placeholder="Title for TV Shows listing page..." />
+                                <Textarea id="tv-desc" value={tvDesc} onChange={e => setTvDesc(e.target.value)} placeholder="Description for TV Shows listing page..."/>
+                            </div>
+                        </div>
                         )}
                     </CardContent>
                     <CardFooter>
                         <Button className="ml-auto" onClick={handleSaveTemplates} disabled={isSavingTemplates || loadingSeo}>
                             {isSavingTemplates && <Loader2 className="w-4 h-4 mr-2 animate-spin"/>}
-                            Save Templates
+                            Save All Templates
                         </Button>
                     </CardFooter>
                 </Card>
