@@ -130,6 +130,15 @@ service cloud.firestore {
     }
     
     /**
+     * @description Rules for admin-only webhook settings.
+     * @path /settings_webhooks/{webhookId}
+     * @allow (read, write) An admin managing webhooks.
+     */
+    match /settings_webhooks/{webhookId} {
+        allow read, write: if isAdmin();
+    }
+    
+    /**
      * @description Rules for blog posts.
      * @path /blogs/{blogId}
      * @allow (read) Anyone if the post is published, or any admin.
