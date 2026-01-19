@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useCollection } from "@/firebase";
@@ -13,13 +14,6 @@ import { useQuery } from "@tanstack/react-query";
 import { AnimeService } from "@/lib/services/AnimeService";
 import { HomeData } from "@/lib/types/anime";
 
-const kpiData = [
-    { title: "Total Plays", value: "1.2M", change: "+5.2%", icon: PlayCircle },
-    { title: "Unique Viewers", value: "89.4K", change: "+1.8%", icon: Users },
-    { title: "Avg. Watch Time", value: "24m 12s", change: "-2.1%", icon: Clock },
-    { title: "Completion Rate", value: "78.3%", change: "+0.5%", icon: CheckCircle },
-];
-
 
 export default function AdminAnalyticsPage() {
     const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
@@ -30,6 +24,13 @@ export default function AdminAnalyticsPage() {
     });
 
     const topAnime = homeData?.mostPopularAnimes || [];
+
+    const kpiData = [
+        { title: "Total Plays", value: "1.2M", change: "+5.2%", icon: PlayCircle, loading: false },
+        { title: "Unique Viewers", value: users?.length.toLocaleString() ?? '0', change: null, icon: Users, loading: loadingUsers },
+        { title: "Avg. Watch Time", value: "24m 12s", change: "-2.1%", icon: Clock, loading: false },
+        { title: "Completion Rate", value: "78.3%", change: "+0.5%", icon: CheckCircle, loading: false },
+    ];
 
 
     const userGrowthData = useMemo(() => {
@@ -105,8 +106,10 @@ export default function AdminAnalyticsPage() {
                             <kpi.icon className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{kpi.value}</div>
-                            <p className="text-xs text-muted-foreground">{kpi.change} vs last period</p>
+                            <div className="text-2xl font-bold">
+                                {kpi.loading ? <Loader2 className="w-6 h-6 animate-spin" /> : kpi.value}
+                            </div>
+                            {kpi.change && <p className="text-xs text-muted-foreground">{kpi.change} vs last period</p>}
                         </CardContent>
                     </Card>
                 ))}

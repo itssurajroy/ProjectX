@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -265,7 +266,7 @@ export default function AdminSeoPage() {
                         <CardContent className="flex items-center gap-2">
                            <Globe className="w-4 h-4 text-muted-foreground"/>
                            <Link href="/sitemap.xml" target="_blank" className="text-sm font-medium hover:underline text-primary">
-                             /sitemap.xml
+                             {sitemapUrl}
                            </Link>
                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => {
                                navigator.clipboard.writeText(sitemapUrl);
