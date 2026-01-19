@@ -139,6 +139,15 @@ service cloud.firestore {
     }
 
     /**
+     * @description Rules for admin-only menu settings.
+     * @path /settings_menus/{menuId}
+     * @allow (read, write) An admin managing navigation menus.
+     */
+    match /settings_menus/{menuId} {
+        allow read, write: if isAdmin();
+    }
+
+    /**
      * @description Rules for admin-only ad slot settings.
      * @path /settings_ad_slots/{slotId}
      * @allow (read, write) An admin managing ad placement zones.
