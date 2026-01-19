@@ -1,7 +1,7 @@
 
 
 'use client';
-import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime } from '@/lib/types/anime';
+import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime, AnimeAboutResponse } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
@@ -18,10 +18,12 @@ import Balancer from 'react-wrap-balancer';
 import { Button } from '@/components/ui/button';
 import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
 import { useTitleLanguageStore } from '@/store/title-language-store';
+import { useDoc } from '@/firebase';
 
-interface HomeDataWithQtips extends HomeData {
-    qtips: Record<string, QtipAnime>;
+interface HomepageSettings {
+    spotlightAnimeIds?: string[];
 }
+
 
 const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -329,17 +331,61 @@ const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes']
 
 
 export default function MainDashboardPage() {
-  const { data, isLoading, error, refetch } = useQuery<HomeData>({
+  const { data: homeData, isLoading: isLoadingHome, error, refetch } = useQuery<HomeData>({
     queryKey: ['homeData'],
     queryFn: AnimeService.home,
   });
+
+  const { data: homepageSettings } = useDoc<HomepageSettings>('settings/homepage');
+
+  const { data: customSpotlights, isLoading: isLoadingCustomSpotlights } = useQuery({
+      queryKey: ['customSpotlights', homepageSettings?.spotlightAnimeIds],
+      queryFn: async () => {
+          if (!homepageSettings?.spotlightAnimeIds) return null;
+
+          const animeDetailsPromises = homepageSettings.spotlightAnimeIds.map(id => 
+              AnimeService.anime(id).catch(() => null)
+          );
+          const results = await Promise.all(animeDetailsPromises);
+          
+          const detailedAnimes = results
+              .filter((res): res is AnimeAboutResponse => res !== null && !!res.anime?.info)
+              .map((res, index) => {
+                  const info = res.anime.info;
+                  const moreInfo = res.anime.moreInfo;
+                  
+                  const otherInfo = [];
+                  if (info.stats.type) otherInfo.push(info.stats.type);
+                  if (info.stats.duration) otherInfo.push(info.stats.duration);
+                  if (info.stats.rating && info.stats.rating !== 'N/A') otherInfo.push(info.stats.rating);
+                  if (info.stats.quality) otherInfo.push(info.stats.quality);
+
+                  return {
+                      id: info.id,
+                      name: info.name,
+                      jname: moreInfo.japanese,
+                      poster: info.poster,
+                      description: info.description,
+                      rank: index + 1,
+                      otherInfo,
+                      nextAiringEpisode: moreInfo.nextAiringEpisode,
+                  } as SpotlightAnime;
+              });
+          return detailedAnimes;
+      },
+      enabled: !!homepageSettings?.spotlightAnimeIds,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  const isLoading = isLoadingHome || (!!homepageSettings && isLoadingCustomSpotlights);
   
   if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
-  if (error || !data) {
+  if (error || !homeData) {
     return <ErrorDisplay onRetry={refetch} />;
   }
   
-  const { spotlightAnimes, top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = data;
+  const spotlightAnimes = customSpotlights && customSpotlights.length > 0 ? customSpotlights : homeData.spotlightAnimes;
+  const { top10Animes, topAiringAnimes, topUpcomingAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes } = homeData;
 
 
   return (
