@@ -1,7 +1,7 @@
 
 'use client';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface UserGrowthChartProps {
   data: { date: string; users: number }[];
@@ -12,8 +12,9 @@ export default function UserGrowthChart({ data }: UserGrowthChartProps) {
     <Card>
       <CardHeader>
         <CardTitle>User Growth</CardTitle>
+        <CardDescription>New user registrations over the last 30 days.</CardDescription>
       </CardHeader>
-      <CardContent className="h-80">
+      <CardContent className="h-[450px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <defs>
