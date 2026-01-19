@@ -1,6 +1,6 @@
 'use client';
 
-import { Twitter, Facebook, Reddit, Link as LinkIcon, Share2 } from 'lucide-react';
+import { Twitter, Facebook, Rss, Link as LinkIcon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -60,7 +60,7 @@ export default function ShareButtons({ title }: { title: string }) {
             </DropdownMenuItem>
              <DropdownMenuItem asChild>
                 <a href={redditUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 cursor-pointer w-full">
-                  <Reddit className="w-4 h-4" /> Share on Reddit
+                  <Rss className="w-4 h-4" /> Share on Reddit
                 </a>
             </DropdownMenuItem>
              <DropdownMenuItem onSelect={handleCopyLink} className="flex items-center gap-2 cursor-pointer">
@@ -70,5 +70,3 @@ export default function ShareButtons({ title }: { title: string }) {
     </DropdownMenu>
   );
 }
-
-    
