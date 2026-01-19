@@ -30,6 +30,12 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   const autoplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { language } = useTitleLanguageStore();
 
+  // Reset index when the spotlight data changes. This prevents out-of-bounds errors
+  // if the new list is shorter than the old one.
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [spotlights]);
+
   const handleNext = useCallback(() => {
     if (!spotlights || spotlights.length === 0) return;
     setCurrentIndex((prev) => (prev === spotlights.length - 1 ? 0 : prev + 1));
@@ -52,6 +58,11 @@ const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undef
   }, [spotlights, resetAutoplay]);
 
   if (!spotlights || spotlights.length === 0) return null;
+
+  // A defensive check to ensure currentIndex is valid before rendering
+  if (currentIndex >= spotlights.length) {
+    return null; 
+  }
 
   const spotlight = spotlights[currentIndex];
   
