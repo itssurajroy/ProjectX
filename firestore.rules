@@ -137,6 +137,15 @@ service cloud.firestore {
     match /settings_webhooks/{webhookId} {
         allow read, write: if isAdmin();
     }
+
+    /**
+     * @description Rules for admin-only ad slot settings.
+     * @path /settings_ad_slots/{slotId}
+     * @allow (read, write) An admin managing ad placement zones.
+     */
+    match /settings_ad_slots/{slotId} {
+        allow read, write: if isAdmin();
+    }
     
     /**
      * @description Rules for blog posts.
