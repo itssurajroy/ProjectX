@@ -11,6 +11,7 @@ export interface UserProfile {
   level?: number;
   xp?: number;
   premiumUntil?: any; // Could be Date or a server timestamp object
+  subscriptionTier?: 'free' | 'premium' | 'vip';
   createdAt: any;
   lastLogin: any;
   onboardingCompleted?: boolean;
