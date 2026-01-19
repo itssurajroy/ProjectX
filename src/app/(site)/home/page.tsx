@@ -1,5 +1,4 @@
 
-
 'use client';
 import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime, AnimeAboutResponse } from '@/lib/types/anime';
 import { useQuery } from '@tanstack/react-query';
@@ -389,8 +388,6 @@ export default function MainDashboardPage() {
       staleTime: 5 * 60 * 1000, // 5 minutes
   });
   
-  const isLoading = isLoadingHome || isLoadingSettings || (!!homepageSettings && isLoadingCustomSpotlights);
-  
   const spotlightAnimes = useMemo(() => {
     const apiSpotlights = homeData?.spotlightAnimes || [];
     const manualSpotlights = customSpotlights || [];
@@ -401,22 +398,18 @@ export default function MainDashboardPage() {
     return [...apiSpotlights, ...uniqueManualSpotlights];
   }, [homeData?.spotlightAnimes, customSpotlights]);
 
-  if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
-  if (error || !homeData) {
-    return <ErrorDisplay onRetry={refetch} />;
-  }
-  
-  const { top10Animes, topAiringAnimes, latestCompletedAnimes, trendingAnimes, latestEpisodeAnimes, mostPopularAnimes, mostFavoriteAnimes, topUpcomingAnimes } = homeData;
-
-  const allSections = useMemo(() => [
-        { id: 'trending', title: 'Trending', category: 'trending', isSpecial: 'trending', animes: trendingAnimes, component: AnimeSection },
-        { id: 'latest-episodes', title: 'Latest Episodes', category: 'latest-episodes', animes: latestEpisodeAnimes, component: AnimeSection },
-        { id: 'top-upcoming', title: 'Top Upcoming', category: 'top-upcoming', animes: topUpcomingAnimes, component: AnimeSection },
-        { id: 'top-airing', title: 'Top Airing', animes: topAiringAnimes, component: SmallListSection },
-        { id: 'completed-series', title: 'Completed Series', animes: latestCompletedAnimes, component: SmallListSection },
-        { id: 'most-popular', title: 'Most Popular', category: 'most-popular', animes: mostPopularAnimes, component: AnimeSection },
-        { id: 'most-favorite', title: 'Most Favorite', category: 'most-favorite', animes: mostFavoriteAnimes, component: AnimeSection },
-  ], [homeData]);
+  const allSections = useMemo(() => {
+    if (!homeData) return [];
+    return [
+        { id: 'trending', title: 'Trending', category: 'trending', isSpecial: 'trending', animes: homeData.trendingAnimes, component: AnimeSection },
+        { id: 'latest-episodes', title: 'Latest Episodes', category: 'latest-episodes', animes: homeData.latestEpisodeAnimes, component: AnimeSection },
+        { id: 'top-upcoming', title: 'Top Upcoming', category: 'top-upcoming', animes: homeData.topUpcomingAnimes, component: AnimeSection },
+        { id: 'top-airing', title: 'Top Airing', animes: homeData.topAiringAnimes, component: SmallListSection },
+        { id: 'completed-series', title: 'Completed Series', animes: homeData.latestCompletedAnimes, component: SmallListSection },
+        { id: 'most-popular', title: 'Most Popular', category: 'most-popular', animes: homeData.mostPopularAnimes, component: AnimeSection },
+        { id: 'most-favorite', title: 'Most Favorite', category: 'most-favorite', animes: homeData.mostFavoriteAnimes, component: AnimeSection },
+    ];
+  }, [homeData]);
 
   const orderedSections = useMemo(() => {
     if (homepageSettings?.featuredSections) {
@@ -430,6 +423,15 @@ export default function MainDashboardPage() {
     }
     return allSections;
   }, [homepageSettings, allSections]);
+
+  const isLoading = isLoadingHome || isLoadingSettings || (!!homepageSettings && isLoadingCustomSpotlights);
+
+  if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
+  if (error || !homeData) {
+    return <ErrorDisplay onRetry={refetch} />;
+  }
+  
+  const { top10Animes, topAiringAnimes } = homeData;
 
   const smallSectionIds = ['top-airing', 'completed-series'];
   const mainSections = orderedSections.filter(s => !smallSectionIds.includes(s.id));
@@ -479,8 +481,3 @@ export default function MainDashboardPage() {
     </div>
   );
 }
-
-    
-
-    
-
