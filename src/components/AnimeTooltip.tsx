@@ -13,7 +13,7 @@ import { Star, Tv, Clapperboard } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Badge } from "./ui/badge";
 import { AnimeService } from '@/lib/services/AnimeService';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTitleLanguageStore } from "@/store/title-language-store";
 
 const TooltipSkeleton = () => (
@@ -30,12 +30,17 @@ const TooltipSkeleton = () => (
 
 export function AnimeTooltip({ animeId, children }: { animeId: string, children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const { language } = useTitleLanguageStore();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const { data: qtipResult, isLoading } = useQuery<{anime: QtipAnime}>({
     queryKey: ['qtip', animeId],
     queryFn: () => AnimeService.qtip(animeId),
-    enabled: isOpen, // Only fetch when the tooltip is opened
+    enabled: isOpen && isMounted, // Only fetch when the tooltip is opened and component is mounted
     staleTime: 5 * 60 * 1000, // 5 minutes stale time
     refetchOnWindowFocus: false,
   });
@@ -49,7 +54,7 @@ export function AnimeTooltip({ animeId, children }: { animeId: string, children:
       <Tooltip onOpenChange={setIsOpen}>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
         <TooltipContent side="right" className="w-80 bg-card border-border shadow-lg p-0">
-          {isLoading || !anime ? (
+          {!isMounted || isLoading || !anime ? (
             <TooltipSkeleton />
           ) : (
             <div className="p-3 space-y-3">

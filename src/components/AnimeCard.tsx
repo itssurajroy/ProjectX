@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation"
 import { useTitleLanguageStore } from "@/store/title-language-store"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react"
+import { Skeleton } from "./ui/skeleton"
 
 type AnimeCardProps = {
   anime: AnimeBase;
@@ -113,7 +115,25 @@ const WatchlistButton = ({ animeId }: { animeId: string }) => {
 
 
 export function AnimeCard({ anime, rank }: AnimeCardProps) {
+  const [isMounted, setIsMounted] = useState(false);
   const { language } = useTitleLanguageStore();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+        <div className="mt-2 px-1 space-y-1">
+          <Skeleton className="h-5 w-4/5" />
+          <Skeleton className="h-4 w-3/5" />
+        </div>
+      </div>
+    );
+  }
+  
   const isAdult = anime.rating === 'R' || anime.rating === 'R+' || anime.rating === 'Rx';
   
   const title = language === 'romaji' && anime.jname ? anime.jname : anime.name;
