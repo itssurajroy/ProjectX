@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useCollection } from "@/firebase";
@@ -9,7 +8,10 @@ import UserGrowthChart from "@/components/admin/UserGrowthChart";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlayCircle, Users, Clock, CheckCircle, Download, Calendar, Globe } from 'lucide-react';
+import { PlayCircle, Users, Clock, CheckCircle, Download, Calendar, Loader2 } from 'lucide-react';
+import { useQuery } from "@tanstack/react-query";
+import { AnimeService } from "@/lib/services/AnimeService";
+import { HomeData } from "@/lib/types/anime";
 
 const kpiData = [
     { title: "Total Plays", value: "1.2M", change: "+5.2%", icon: PlayCircle },
@@ -18,17 +20,17 @@ const kpiData = [
     { title: "Completion Rate", value: "78.3%", change: "+0.5%", icon: CheckCircle },
 ];
 
-const topAnime = [
-    { name: "Jujutsu Kaisen", plays: "1,204,500", completion: "85%" },
-    { name: "One Piece", plays: "987,200", completion: "65%" },
-    { name: "Attack on Titan", plays: "856,100", completion: "92%" },
-    { name: "Frieren: Beyond Journey's End", plays: "781,900", completion: "95%" },
-    { name: "Solo Leveling", plays: "752,300", completion: "88%" },
-];
-
 
 export default function AdminAnalyticsPage() {
     const { data: users, loading: loadingUsers } = useCollection<UserProfile>('users');
+
+    const { data: homeData, isLoading: isLoadingHomeData } = useQuery<HomeData>({
+        queryKey: ['homeDataForAdmin'],
+        queryFn: AnimeService.home
+    });
+
+    const topAnime = homeData?.mostPopularAnimes || [];
+
 
     const userGrowthData = useMemo(() => {
         if (!users) return [];
@@ -118,25 +120,29 @@ export default function AdminAnalyticsPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle>Top Watched Content</CardTitle>
-                            <CardDescription>Most viewed anime this period.</CardDescription>
+                            <CardDescription>Most popular anime this period.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                           <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Anime</TableHead>
-                                        <TableHead className="text-right">Plays</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {topAnime.map(anime => (
-                                        <TableRow key={anime.name}>
-                                            <TableCell className="font-medium">{anime.name}</TableCell>
-                                            <TableCell className="text-right">{anime.plays}</TableCell>
+                           {isLoadingHomeData ? (
+                                <div className="flex justify-center items-center h-40"><Loader2 className="w-6 h-6 animate-spin"/></div>
+                           ) : (
+                               <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Anime</TableHead>
+                                            <TableHead className="text-right">Rank</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {topAnime.slice(0, 5).map(anime => (
+                                            <TableRow key={anime.name}>
+                                                <TableCell className="font-medium">{anime.name}</TableCell>
+                                                <TableCell className="text-right font-mono text-sm">{anime.rank}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                           )}
                         </CardContent>
                     </Card>
                 </div>

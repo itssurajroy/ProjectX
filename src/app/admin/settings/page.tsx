@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { AlertCircle, ShieldCheck, Loader2, Info, DollarSign } from "lucide-react";
+import { AlertCircle, ShieldCheck, Loader2, Info, DollarSign, Video, Zap } from "lucide-react";
 import { useCollection, useDoc, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
-import { doc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,11 +46,42 @@ const FeatureFlagItem = ({ flag }: { flag: FeatureFlag }) => {
 
 const FeatureFlagsCard = () => {
     const { data: featureFlags, loading } = useCollection<FeatureFlag>('settings_feature_flags');
+    const [isSeeding, setIsSeeding] = useState(false);
+    const firestore = useFirestore();
+
+    const handleSeedFlags = () => {
+        setIsSeeding(true);
+        const toastId = toast.loading("Creating default feature flags...");
+
+        const defaultFlags = [
+          { id: 'watchTogether', description: 'Enables real-time synchronized video rooms.', enabled: true },
+          { id: 'aiCurator', description: 'Allows users to generate AI-based playlists.', enabled: true },
+          { id: 'mangaReader', description: 'Activates the manga reading section of the site.', enabled: false },
+          { id: 'userProfilesV2', description: 'Rolls out the new social profile design.', enabled: false },
+        ];
+
+        const promises = defaultFlags.map(flag => {
+            const flagRef = doc(firestore, 'settings_feature_flags', flag.id);
+            return setDoc(flagRef, flag);
+        });
+
+        Promise.all(promises)
+            .then(() => {
+                toast.success("Default flags created!", { id: toastId });
+            })
+            .catch((error) => {
+                console.error("Error seeding flags:", error);
+                toast.error("Could not create default flags.", { id: toastId });
+            })
+            .finally(() => {
+                setIsSeeding(false);
+            });
+    };
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Feature Flags</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Zap className="w-5 h-5 text-purple-400" />Feature Flags</CardTitle>
                 <CardDescription>Enable or disable features across the site.</CardDescription>
             </CardHeader>
             <CardContent className="divide-y divide-border">
@@ -64,8 +95,14 @@ const FeatureFlagsCard = () => {
                     <p className="text-sm text-muted-foreground text-center py-4">No feature flags found in database.</p>
                 )}
             </CardContent>
-             <CardFooter>
+             <CardFooter className="justify-between">
                  <p className="text-xs text-muted-foreground">Changes are applied in real-time.</p>
+                 {!loading && featureFlags?.length === 0 && (
+                     <Button size="sm" variant="secondary" onClick={handleSeedFlags} disabled={isSeeding}>
+                         {isSeeding && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                         Create Default Flags
+                     </Button>
+                 )}
             </CardFooter>
         </Card>
     );
@@ -385,6 +422,98 @@ const MonetizationSettingsCard = () => {
     );
 };
 
+const StreamingControlsCard = () => {
+    const firestore = useFirestore();
+    const { data: settings, loading } = useDoc<any>('settings/streaming');
+
+    const [disabled, setDisabled] = useState(false);
+    const [failureThreshold, setFailureThreshold] = useState(3);
+    const [hostPriority, setHostPriority] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (settings) {
+            setDisabled(settings.disabled ?? false);
+            setFailureThreshold(settings.failureThreshold ?? 3);
+            setHostPriority(Array.isArray(settings.hostPriority) ? settings.hostPriority.join(', ') : '');
+        }
+    }, [settings]);
+
+    const handleSave = () => {
+        setIsSaving(true);
+        const toastId = toast.loading("Saving streaming controls...");
+        const settingsRef = doc(firestore, 'settings/streaming');
+        const priorityArray = hostPriority.split(',').map(h => h.trim()).filter(Boolean);
+        
+        setDocumentNonBlocking(settingsRef, { failureThreshold, hostPriority: priorityArray }, { merge: true });
+
+        toast.success("Settings saved!", { id: toastId });
+        setIsSaving(false);
+    };
+
+    const handleToggle = (newEnabledState: boolean) => {
+        setDisabled(newEnabledState);
+        const settingsRef = doc(firestore, 'settings/streaming');
+        setDocumentNonBlocking(settingsRef, { disabled: newEnabledState }, { merge: true });
+        toast.success(`Global embeds have been ${newEnabledState ? 'disabled' : 'enabled'}.`);
+    };
+
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Video className="w-5 h-5 text-blue-400" />Streaming Controls</CardTitle>
+                </CardHeader>
+                <CardContent className="h-40 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    return (
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Video className="w-5 h-5 text-blue-400" />Streaming Controls</CardTitle>
+                <CardDescription>Manage streaming sources and failure thresholds.</CardDescription>
+            </CardHeader>
+             <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/10 border border-destructive/30">
+                    <Label htmlFor="streaming-disabled" className="font-semibold text-destructive/90">Disable All Embeds (Kill-switch)</Label>
+                    <Switch id="streaming-disabled" checked={disabled} onCheckedChange={handleToggle} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="failure-threshold">Failure Threshold</Label>
+                    <Input 
+                        id="failure-threshold"
+                        type="number"
+                        value={failureThreshold}
+                        onChange={e => setFailureThreshold(Number(e.target.value))}
+                        className="max-w-[100px]"
+                    />
+                    <p className="text-xs text-muted-foreground">Auto-disable a source after this many consecutive failures.</p>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="host-priority">Host Priority</Label>
+                    <Textarea
+                        id="host-priority"
+                        value={hostPriority}
+                        onChange={e => setHostPriority(e.target.value)}
+                        placeholder="vidplay, megaplay, streamwish..."
+                    />
+                    <p className="text-xs text-muted-foreground">Comma-separated list of host names, in order of priority.</p>
+                </div>
+             </CardContent>
+             <CardFooter>
+                 <Button onClick={handleSave} disabled={isSaving} className="ml-auto">
+                    {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Save Controls
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
 
 export default function AdminSettingsPage() {
     return (
@@ -398,19 +527,8 @@ export default function AdminSettingsPage() {
                 
                 <div className="space-y-8">
                      <FeatureFlagsCard />
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Streaming Controls</CardTitle>
-                            <CardDescription>Manage streaming sources and failure thresholds.</CardDescription>
-                        </CardHeader>
-                         <CardContent>
-                             <p className="text-muted-foreground">Global host priority and link health settings will be here.</p>
-                         </CardContent>
-                    </Card>
-
-                    <MonetizationSettingsCard />
-
+                     <StreamingControlsCard />
+                     <MonetizationSettingsCard />
                 </div>
 
                 <div className="space-y-8">
@@ -433,4 +551,3 @@ export default function AdminSettingsPage() {
         </div>
     );
 }
-
