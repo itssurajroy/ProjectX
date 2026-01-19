@@ -1,4 +1,3 @@
-
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,8 @@ import ProgressiveImage from "@/components/ProgressiveImage";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDebounce } from "use-debounce";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface HomepageSettings {
     spotlightAnimeIds?: string[];
@@ -23,6 +24,17 @@ interface HomepageSettings {
 interface SpotlightAnime extends AnimeBase {
     // an id is already in AnimeBase
 }
+
+interface TrendingAlgorithmSettings {
+    algorithm: 'weighted_score' | 'most_views';
+    timeWindow: '24h' | '7d' | '30d';
+    weights: {
+        views: number;
+        likes: number;
+        comments: number;
+    };
+}
+
 
 // --- AddSpotlightDialog ---
 const AddSpotlightDialog = ({ onAdd }: { onAdd: (anime: SearchSuggestion) => void }) => {
@@ -86,6 +98,121 @@ const AddSpotlightDialog = ({ onAdd }: { onAdd: (anime: SearchSuggestion) => voi
                 </ScrollArea>
             </DialogContent>
         </Dialog>
+    )
+}
+
+const TrendingAlgorithmCard = () => {
+    const firestore = useFirestore();
+    const { data: settingsData, loading: loadingSettings } = useDoc<TrendingAlgorithmSettings>('settings/trending_algorithm');
+
+    const [settings, setSettings] = useState<TrendingAlgorithmSettings>({
+        algorithm: 'weighted_score',
+        timeWindow: '7d',
+        weights: { views: 0.6, likes: 0.3, comments: 0.1 }
+    });
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (settingsData) {
+            setSettings(settingsData);
+        }
+    }, [settingsData]);
+
+    const handleSave = () => {
+        setIsSaving(true);
+        const toastId = toast.loading("Saving algorithm settings...");
+        
+        const totalWeight = Object.values(settings.weights).reduce((sum, w) => sum + Number(w), 0);
+        if (settings.algorithm === 'weighted_score' && Math.abs(totalWeight - 1) > 0.01) {
+            toast.error("Weights must add up to 1.", { id: toastId });
+            setIsSaving(false);
+            return;
+        }
+
+        const settingsRef = doc(firestore, 'settings', 'trending_algorithm');
+        setDocumentNonBlocking(settingsRef, settings, { merge: true });
+        toast.success("Settings saved!", { id: toastId });
+        setIsSaving(false);
+    };
+
+    const handleWeightChange = (key: 'views' | 'likes' | 'comments', value: string) => {
+        const numValue = parseFloat(value);
+        if (!isNaN(numValue) && numValue >= 0 && numValue <= 1) {
+            setSettings(prev => ({
+                ...prev,
+                weights: {
+                    ...prev.weights,
+                    [key]: numValue
+                }
+            }));
+        } else if(value === '') {
+             setSettings(prev => ({
+                ...prev,
+                weights: {
+                    ...prev.weights,
+                    [key]: 0
+                }
+            }));
+        }
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Trending Algorithm</CardTitle>
+                <CardDescription>Adjust the factors that determine trending content.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {loadingSettings ? <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin"/></div> : <>
+                    <div className="space-y-2">
+                        <Label htmlFor="algorithm-select">Algorithm</Label>
+                        <Select value={settings.algorithm} onValueChange={(val) => setSettings(p => ({...p, algorithm: val as any}))}>
+                            <SelectTrigger id="algorithm-select"><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="weighted_score">Weighted Score</SelectItem>
+                                <SelectItem value="most_views">Most Views</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="timewindow-select">Time Window</Label>
+                        <Select value={settings.timeWindow} onValueChange={(val) => setSettings(p => ({...p, timeWindow: val as any}))}>
+                            <SelectTrigger id="timewindow-select"><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="24h">Last 24 Hours</SelectItem>
+                                <SelectItem value="7d">Last 7 Days</SelectItem>
+                                <SelectItem value="30d">Last 30 Days</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {settings.algorithm === 'weighted_score' && (
+                        <div className="space-y-4 pt-4 border-t border-border">
+                            <Label>Score Weights (must sum to 1)</Label>
+                            <div className="space-y-2">
+                                <Label htmlFor="views-weight" className="text-xs">Views Weight</Label>
+                                <Input id="views-weight" type="number" step="0.1" min="0" max="1" value={settings.weights.views} onChange={e => handleWeightChange('views', e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="likes-weight" className="text-xs">Likes Weight</Label>
+                                <Input id="likes-weight" type="number" step="0.1" min="0" max="1" value={settings.weights.likes} onChange={e => handleWeightChange('likes', e.target.value)} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="comments-weight" className="text-xs">Comments Weight</Label>
+                                <Input id="comments-weight" type="number" step="0.1" min="0" max="1" value={settings.weights.comments} onChange={e => handleWeightChange('comments', e.target.value)} />
+                            </div>
+                        </div>
+                    )}
+                </> }
+            </CardContent>
+             <CardFooter>
+                <Button onClick={handleSave} disabled={isSaving || loadingSettings} className="ml-auto">
+                    {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Save Algorithm
+                </Button>
+            </CardFooter>
+        </Card>
     )
 }
 
@@ -206,14 +333,7 @@ export default function AdminTrendingPage() {
                     </Card>
                 </div>
                 <div className="space-y-8">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Trending Algorithm</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">Configuration for trending algorithms is under development.</p>
-                        </CardContent>
-                    </Card>
+                     <TrendingAlgorithmCard />
                      <Card>
                         <CardHeader>
                             <CardTitle>Featured Sections</CardTitle>
