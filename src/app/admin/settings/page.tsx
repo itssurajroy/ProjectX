@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { AlertCircle, ShieldCheck, Loader2 } from "lucide-react";
+import { AlertCircle, ShieldCheck, Loader2, Info } from "lucide-react";
 import { useCollection, useDoc, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface FeatureFlag {
     id: string;
@@ -160,6 +162,112 @@ const MaintenanceModeCard = () => {
     )
 }
 
+interface AnnouncementSettings {
+    enabled: boolean;
+    text: string;
+    type: 'info' | 'warning' | 'critical';
+}
+
+const AnnouncementSettingsCard = () => {
+    const firestore = useFirestore();
+    const { data: announcement, loading } = useDoc<AnnouncementSettings>('settings/announcement');
+
+    const [enabled, setEnabled] = useState(false);
+    const [text, setText] = useState('');
+    const [type, setType] = useState<'info' | 'warning' | 'critical'>('info');
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (announcement) {
+            setEnabled(announcement.enabled ?? false);
+            setText(announcement.text ?? '');
+            setType(announcement.type ?? 'info');
+        }
+    }, [announcement]);
+
+    const handleSave = () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        const toastId = toast.loading("Saving announcement...");
+        const settingsRef = doc(firestore, 'settings/announcement');
+
+        setDocumentNonBlocking(settingsRef, { text, enabled, type }, { merge: true });
+
+        toast.success("Announcement saved!", { id: toastId });
+        setIsSaving(false);
+    };
+
+    const handleToggle = (newEnabledState: boolean) => {
+        setEnabled(newEnabledState);
+        const settingsRef = doc(firestore, 'settings/announcement');
+        setDocumentNonBlocking(settingsRef, { enabled: newEnabledState }, { merge: true });
+        toast.success(`Announcement has been ${newEnabledState ? 'enabled' : 'disabled'}.`);
+    };
+
+    if (loading) {
+         return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Site-wide Announcement</CardTitle>
+                    <CardDescription>Display a banner at the top of the site.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-40 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        )
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Site-wide Announcement</CardTitle>
+                <CardDescription>Display a banner at the top of the site.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                    <div className="flex items-center gap-3">
+                        <Info className="w-5 h-5 text-blue-500" />
+                        <div className="flex flex-col">
+                            <Label htmlFor="announcement-enabled" className="font-semibold text-blue-300">Enable Announcement</Label>
+                            <span className="text-xs text-blue-400/80">Show banner to all users.</span>
+                        </div>
+                    </div>
+                    <Switch id="announcement-enabled" checked={enabled} onCheckedChange={handleToggle} />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="announcement-text">Banner Text</Label>
+                    <Textarea 
+                        id="announcement-text" 
+                        placeholder="E.g., New Jujutsu Kaisen episode is now live!" 
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="announcement-type">Banner Type</Label>
+                    <Select value={type} onValueChange={(v) => setType(v as any)}>
+                        <SelectTrigger id="announcement-type">
+                            <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="info">Info (Blue)</SelectItem>
+                            <SelectItem value="warning">Warning (Amber)</SelectItem>
+                            <SelectItem value="critical">Critical (Red)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </CardContent>
+            <CardFooter>
+                 <Button onClick={handleSave} disabled={isSaving} className="ml-auto">
+                    {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Save Announcement
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
 
 export default function AdminSettingsPage() {
     return (
@@ -198,20 +306,7 @@ export default function AdminSettingsPage() {
 
                 <div className="space-y-8">
                     <MaintenanceModeCard />
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Site-wide Announcement</CardTitle>
-                            <CardDescription>Display a banner at the top of the site.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="space-y-2">
-                                 <Label htmlFor="announcement-text">Banner Text</Label>
-                                <Textarea id="announcement-text" placeholder="E.g., New Jujutsu Kaisen episode is now live!" disabled />
-                             </div>
-                            <Button disabled>Publish Announcement</Button>
-                        </CardContent>
-                    </Card>
+                    <AnnouncementSettingsCard />
                      <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
