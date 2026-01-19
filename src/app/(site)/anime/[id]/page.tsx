@@ -9,6 +9,8 @@ import CommentsContainer from '@/components/comments/CommentsContainer';
 import { getSeoTemplates, applyTemplate } from '@/lib/seo';
 import { SITE_NAME } from '@/lib/constants';
 
+export const runtime = 'nodejs';
+
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
     const animeResult = await AnimeService.anime(params.id);

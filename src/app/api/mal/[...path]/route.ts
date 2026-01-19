@@ -2,6 +2,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/firebase/server';
 
+export const runtime = 'nodejs';
+
 const API_BASE_URL = 'https://api.myanimelist.net/v2';
 
 let malClientIdCache: string | null = null;
@@ -82,5 +84,3 @@ export async function GET(
     );
   }
 }
-
-export const dynamic = 'force-dynamic';

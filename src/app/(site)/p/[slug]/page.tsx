@@ -10,6 +10,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getSeoTemplates, applyTemplate } from "@/lib/seo";
 
+export const runtime = 'nodejs';
+
 type Props = {
     params: { slug: string }
 }
