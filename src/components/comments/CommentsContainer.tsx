@@ -65,7 +65,7 @@ const buildCommentTree = (comments: CommentWithUser[]): CommentWithUser[] => {
     return commentTree;
 }
 
-const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: string | null; }) => {
+const CommentContent = ({ animeId, episodeId, episodeNumber }: { animeId: string; episodeId?: string | null; episodeNumber?: number | null; }) => {
     const { user, userProfile } = useUser();
     const firestore = useFirestore();
     const [comments, setComments] = useState<CommentWithUser[]>([]);
@@ -137,6 +137,7 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
             await addDocumentNonBlocking(collectionRef, {
                 animeId,
                 episodeId: episodeId || null,
+                episodeNumber: episodeNumber || null,
                 userId: user.uid,
                 username: userProfile.displayName,
                 userAvatar: userProfile.photoURL,
@@ -215,7 +216,7 @@ const CommentContent = ({ animeId, episodeId }: { animeId: string; episodeId?: s
 }
 
 
-export default function CommentsContainer({ animeId, episodeId }: { animeId: string; episodeId?: string | null; }) {
+export default function CommentsContainer({ animeId, episodeId, episodeNumber }: { animeId: string; episodeId?: string | null; episodeNumber?: number | null; }) {
   const [showComments, setShowComments] = useState(true);
   const [showRules, setShowRules] = useState(false);
   const [activeTab, setActiveTab] = useState(episodeId ? 'episode' : 'anime');
@@ -249,7 +250,7 @@ export default function CommentsContainer({ animeId, episodeId }: { animeId: str
                 <CommentContent animeId={animeId} />
             </TabsContent>
             <TabsContent value="episode">
-                <CommentContent animeId={animeId} episodeId={episodeId} />
+                <CommentContent animeId={animeId} episodeId={episodeId} episodeNumber={episodeNumber} />
             </TabsContent>
         </Tabs>
       )}

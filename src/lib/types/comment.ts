@@ -5,6 +5,7 @@ export interface Comment {
   id: string;
   animeId: string;
   episodeId?: string;
+  episodeNumber?: number;
   userId: string;
   username: string;
   text: string;
