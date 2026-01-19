@@ -1,9 +1,9 @@
 'use client';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AnimeService } from "@/lib/services/AnimeService";
-import { AnimeBase, SearchResult } from "@/lib/types/anime";
+import { AnimeBase, HomeData, SearchResult } from "@/lib/types/anime";
 import { useQuery } from "@tanstack/react-query";
 import { Film, Loader2, PlusCircle, Search } from "lucide-react";
 import { useState } from "react";
@@ -13,7 +13,7 @@ export default function AdminAnimePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [query, setQuery] = useState('');
 
-    const { data: searchResult, isLoading, error } = useQuery<{data: SearchResult}>({
+    const { data: searchResult, isLoading: isLoadingSearch, error: searchError } = useQuery<{data: SearchResult}>({
         queryKey: ['admin-anime-search', query],
         queryFn: () => {
             const params = new URLSearchParams({ q: query });
@@ -21,13 +21,27 @@ export default function AdminAnimePage() {
         },
         enabled: !!query,
     });
+    
+    const { data: homeData, isLoading: isLoadingHome, error: homeError } = useQuery<HomeData>({
+        queryKey: ['homeDataForAdminAnime'],
+        queryFn: AnimeService.home,
+        enabled: !query, // Only fetch if not searching
+    });
 
-    const animes = searchResult?.data?.animes || [];
+    const isLoading = isLoadingSearch || (!query && isLoadingHome);
+    const error = searchError || homeError;
+
+    const animes = query ? searchResult?.data?.animes : homeData?.mostPopularAnimes;
 
     const handleSearch = () => {
         if (searchTerm.trim()) {
             setQuery(searchTerm.trim());
         }
+    };
+    
+    const handleClear = () => {
+        setSearchTerm('');
+        setQuery('');
     }
 
     return (
@@ -49,6 +63,7 @@ export default function AdminAnimePage() {
                     />
                 </div>
                 <div className="flex gap-2">
+                    {query && <Button onClick={handleClear} variant="outline">Clear</Button>}
                     <Button onClick={handleSearch} disabled={!searchTerm.trim()}>Search</Button>
                     <Button className="gap-2">
                         <PlusCircle className="w-4 h-4" />
@@ -58,6 +73,10 @@ export default function AdminAnimePage() {
             </div>
 
             <Card>
+                <CardHeader>
+                    <CardTitle>{query ? `Search Results for "${query}"` : 'Popular Anime'}</CardTitle>
+                    <CardDescription>{query ? `${animes?.length || 0} results found.` : 'A list of currently popular anime.'}</CardDescription>
+                </CardHeader>
                 <CardContent className="p-0">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -83,7 +102,7 @@ export default function AdminAnimePage() {
                                             Error fetching anime: {error.message}
                                         </td>
                                     </tr>
-                                ) : animes.length > 0 ? (
+                                ) : animes && animes.length > 0 ? (
                                     animes.map((anime: AnimeBase) => (
                                     <tr key={anime.id} className="border-b last:border-b-0">
                                         <td className="p-4 flex items-center gap-3">
@@ -108,7 +127,7 @@ export default function AdminAnimePage() {
                                 ))) : (
                                     <tr>
                                         <td colSpan={5} className="text-center p-8 text-muted-foreground">
-                                            {query ? 'No results found.' : 'Search for an anime to manage.'}
+                                            {query ? 'No results found.' : 'No popular anime data available.'}
                                         </td>
                                     </tr>
                                 )}
