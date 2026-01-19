@@ -9,9 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShieldAlert, User, MessageSquare, Clock, AlertOctagon, CheckCircle, Eye, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
-import { useCollection, useFirestore, updateDocumentNonBlocking } from "@/firebase";
+import { useCollection, useFirestore, updateDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
 import { Report, ReportStatus } from "@/lib/types/report";
-import { doc } from "firebase/firestore";
+import { collection, doc, serverTimestamp } from "firebase/firestore";
 import toast from "react-hot-toast";
 
 const StatusBadge = ({ status }: { status: ReportStatus }) => {
@@ -56,6 +56,31 @@ export default function AdminModerationPage() {
     }
   }
 
+  const handleSeedReport = () => {
+    const toastId = toast.loading("Seeding a mock report...");
+    const mockReport = {
+        type: 'Comment',
+        contentId: 'mock_comment_id_' + Date.now(),
+        contentSnippet: 'This is a sample comment that was reported for being potentially offensive or spammy.',
+        reason: "Mock Report - Seeding",
+        status: "Pending",
+        severity: "High",
+        reportedUserId: 'mock_user_id',
+        reportedUserName: 'MockUser123',
+        reporterId: 'admin_user_id',
+        reporterName: 'Admin',
+        createdAt: serverTimestamp()
+    };
+    const reportsCol = collection(firestore, 'reports');
+    addDocumentNonBlocking(reportsCol, mockReport)
+        .then(() => {
+            toast.success("Mock report created! It should appear shortly.", { id: toastId });
+        })
+        .catch(err => {
+            toast.error("Failed to seed report.", { id: toastId });
+        });
+  };
+
 
   return (
     <div className="space-y-8">
@@ -95,7 +120,14 @@ export default function AdminModerationPage() {
                   </div>
                 </button>
               ))) : (
-                <div className="text-center p-8 text-muted-foreground">No reports in this category.</div>
+                <div className="text-center p-8 text-muted-foreground">
+                    <p>No reports in this category.</p>
+                    {reports && reports.length === 0 && (
+                        <Button size="sm" variant="secondary" className="mt-4" onClick={handleSeedReport}>
+                            Seed Mock Report
+                        </Button>
+                    )}
+                </div>
               )}
             </CardContent>
           </ScrollArea>
