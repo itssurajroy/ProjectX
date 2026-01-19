@@ -1,7 +1,8 @@
+
 'use client';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { useCollection, useFirestore, deleteDocumentNonBlocking } from "@/firebase";
+import { useCollection, useFirestore, deleteDocumentNonBlocking, addDocumentNonBlocking } from "@/firebase";
 import { Page } from "@/lib/types/page";
 import { Loader2, Files, PlusCircle, MoreHorizontal, PenSquare, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,11 +17,54 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import toast from "react-hot-toast";
-import { doc } from "firebase/firestore";
+import { doc, collection, serverTimestamp } from "firebase/firestore";
+import { useEffect, useRef } from "react";
 
 export default function AdminPagesPage() {
     const { data: pages, loading, error } = useCollection<Page>('pages');
     const firestore = useFirestore();
+    const seededRef = useRef(false);
+
+    useEffect(() => {
+        // Only run this logic on the client, once, if the collection is empty.
+        if (!loading && pages && pages.length === 0 && !seededRef.current) {
+            seededRef.current = true; // Prevents re-seeding on re-renders
+            
+            const toastId = toast.loading("No pages found. Seeding default pages...");
+            const pagesCol = collection(firestore, 'pages');
+            
+            const defaultPages: Omit<Page, 'id' | 'createdAt' | 'updatedAt'>[] = [
+                {
+                    title: 'Terms of Service',
+                    slug: 'terms-of-service',
+                    content: '# Terms of Service\n\nWelcome to our website. If you continue to browse and use this website, you are agreeing to comply with and be bound by the following terms and conditions of use, which together with our privacy policy govern our relationship with you in relation to this website. If you disagree with any part of these terms and conditions, please do not use our website.',
+                    status: 'draft',
+                    metaDescription: 'Read the Terms of Service for using our platform.'
+                },
+                {
+                    title: 'DMCA Policy',
+                    slug: 'dmca',
+                    content: '# DMCA Takedown Notice Policy\n\nWe comply with the Digital Millennium Copyright Act (DMCA). If you believe your copyrighted work has been infringed upon on our service, please contact us with the required information. We will respond to all valid takedown notices.',
+                    status: 'draft',
+                    metaDescription: 'Our DMCA policy and information on how to submit a takedown request.'
+                }
+            ];
+
+            const promises = defaultPages.map(page => {
+                const data = { ...page, createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
+                return addDocumentNonBlocking(pagesCol, data);
+            });
+
+            Promise.all(promises)
+                .then(() => {
+                    toast.success("Default pages created! The list will refresh automatically.", { id: toastId });
+                })
+                .catch(err => {
+                    toast.error("Failed to create default pages.", { id: toastId });
+                    console.error("Page seeding error:", err);
+                });
+        }
+    }, [loading, pages, firestore]);
 
     const sortedPages = pages?.sort((a, b) => (b.updatedAt?.toMillis() || 0) - (a.updatedAt?.toMillis() || 0));
 
