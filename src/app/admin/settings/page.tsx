@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { AlertCircle, ShieldCheck, Loader2, Info } from "lucide-react";
+import { AlertCircle, ShieldCheck, Loader2, Info, DollarSign } from "lucide-react";
 import { useCollection, useDoc, useFirestore, setDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase";
 import { doc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 
 interface FeatureFlag {
@@ -268,6 +269,122 @@ const AnnouncementSettingsCard = () => {
     );
 };
 
+interface MonetizationSettings {
+    enabled: boolean;
+    premiumNoAds: boolean;
+    adsFrequency: number;
+}
+
+const MonetizationSettingsCard = () => {
+    const firestore = useFirestore();
+    const { data: settings, loading } = useDoc<MonetizationSettings>('settings/monetization');
+
+    const [enabled, setEnabled] = useState(false);
+    const [premiumNoAds, setPremiumNoAds] = useState(true);
+    const [adsFrequency, setAdsFrequency] = useState(4);
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        if (settings) {
+            setEnabled(settings.enabled ?? false);
+            setPremiumNoAds(settings.premiumNoAds ?? true);
+            setAdsFrequency(settings.adsFrequency ?? 4);
+        }
+    }, [settings]);
+
+    const handleSave = () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        const toastId = toast.loading("Saving monetization settings...");
+        const settingsRef = doc(firestore, 'settings/monetization');
+
+        setDocumentNonBlocking(settingsRef, { adsFrequency }, { merge: true });
+
+        toast.success("Settings saved!", { id: toastId });
+        setIsSaving(false);
+    };
+
+    const handleToggle = (key: 'enabled' | 'premiumNoAds', value: boolean) => {
+        const settingsRef = doc(firestore, 'settings/monetization');
+        updateDocumentNonBlocking(settingsRef, { [key]: value });
+        toast.success(`Setting updated.`);
+    };
+
+    if (loading) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><DollarSign className="w-5 h-5 text-green-500" />Monetization</CardTitle>
+                    <CardDescription>Control ad placements and premium features.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-40 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-green-500" />
+                    Monetization
+                </CardTitle>
+                <CardDescription>Control ad placements and premium features.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <Label htmlFor="ads-enabled" className="font-semibold text-green-300">Enable Ads Globally</Label>
+                    <Switch
+                        id="ads-enabled"
+                        checked={enabled}
+                        onCheckedChange={(val) => {
+                            setEnabled(val);
+                            handleToggle('enabled', val);
+                        }}
+                    />
+                </div>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                        <Label htmlFor="premium-no-ads" className="font-semibold">Premium Disables Ads</Label>
+                        <span className="text-xs text-muted-foreground">Exempt premium users from seeing ads.</span>
+                    </div>
+                    <Switch
+                        id="premium-no-ads"
+                        checked={premiumNoAds}
+                        onCheckedChange={(val) => {
+                            setPremiumNoAds(val);
+                            handleToggle('premiumNoAds', val);
+                        }}
+                    />
+                </div>
+                
+                <div className="space-y-2">
+                    <Label htmlFor="ads-frequency">Ad Frequency</Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            id="ads-frequency"
+                            type="number"
+                            value={adsFrequency}
+                            onChange={(e) => setAdsFrequency(Number(e.target.value))}
+                            className="max-w-[100px]"
+                        />
+                        <span className="text-sm text-muted-foreground">ads per hour</span>
+                    </div>
+                </div>
+            </CardContent>
+            <CardFooter>
+                 <Button onClick={handleSave} disabled={isSaving} className="ml-auto">
+                    {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Save Frequency
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
 
 export default function AdminSettingsPage() {
     return (
@@ -292,15 +409,7 @@ export default function AdminSettingsPage() {
                          </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Monetization</CardTitle>
-                            <CardDescription>Control ad placements and premium features.</CardDescription>
-                        </CardHeader>
-                         <CardContent>
-                             <p className="text-muted-foreground">Ad frequency caps and sponsor banner settings will be here.</p>
-                         </CardContent>
-                    </Card>
+                    <MonetizationSettingsCard />
 
                 </div>
 
@@ -324,3 +433,4 @@ export default function AdminSettingsPage() {
         </div>
     );
 }
+
