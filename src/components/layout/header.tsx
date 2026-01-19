@@ -14,7 +14,7 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useDoc } from '@/firebase';
 import toast from 'react-hot-toast';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 
@@ -85,6 +85,13 @@ interface HeaderProps {
   onMenuClick?: () => void;
 }
 
+interface NavItem {
+    id?: string;
+    href: string;
+    label: string;
+}
+
+
 export default function Header({ onMenuClick }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -93,6 +100,14 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const { data: menuConfig } = useDoc<{items: NavItem[]}>('settings_menus/header');
+
+  const navItems = menuConfig?.items || [
+    { href: "/home", label: "Home" },
+    { href: "/movies", label: "Movies" },
+    { href: "/tv", label: "TV Shows" },
+  ];
 
   useEffect(() => {
     setMounted(true);
@@ -144,12 +159,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
     }
   };
   
-  const navItems = [
-    { href: "/home", label: "Home" },
-    { href: "/movies", label: "Movies" },
-    { href: "/tv", label: "TV Shows" },
-  ];
-
   return (
     <header className="fixed top-0 left-0 right-0 z-40 h-16 flex items-center bg-background/90 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto flex items-center justify-between gap-4">

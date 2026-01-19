@@ -6,6 +6,7 @@ import { Twitter, Send, Rss } from 'lucide-react';
 import AZList from './az-list-footer';
 import SiteLogo from './SiteLogo';
 import { useChangelogStore } from '@/store/changelog-store';
+import { useDoc } from '@/firebase';
 
 const socialLinks = [
     { name: 'Discord', href: 'https://discord.gg/nHwCpPx9yy', icon: <Send className="w-5 h-5" />, color: 'bg-blue-600' },
@@ -14,9 +15,24 @@ const socialLinks = [
     { name: 'Twitter', href: 'https://x.com', icon: <Twitter className="w-5 h-5" />, color: 'bg-sky-400' },
 ]
 
+interface FooterLink {
+    id?: string;
+    href: string;
+    label: string;
+}
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const { openChangelog } = useChangelogStore();
+  const { data: footerMenuConfig } = useDoc<{items: FooterLink[]}>('settings_menus/footer');
+
+  const footerLinks = footerMenuConfig?.items || [
+    { href: "/rules", label: "Rules" },
+    { href: "/terms", label: "Terms" },
+    { href: "/dmca", label: "DMCA" },
+    { href: "/contact", label: "Contact" },
+  ];
+
 
   return (
     <footer className="bg-card text-muted-foreground mt-12 border-t border-border">
@@ -38,10 +54,11 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm mb-8 text-center">
-            <Link href="/rules" className="hover:text-primary transition-colors">Rules</Link>
-            <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
-            <Link href="/dmca" className="hover:text-primary transition-colors">DMCA</Link>
-            <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
+            {footerLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-primary transition-colors">
+                    {link.label}
+                </Link>
+            ))}
             <button onClick={openChangelog} className="hover:text-primary transition-colors">What's New</button>
         </div>
 

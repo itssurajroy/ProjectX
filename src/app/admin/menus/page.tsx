@@ -83,30 +83,45 @@ function MenuEditor({ menuId, menuName }: { menuId: string, menuName: string }) 
     const [items, setItems] = useState<MenuItem[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+    const hasLoaded = useRef(false);
 
-    const isInitialLoad = useRef(true);
+    const defaultItems: MenuItem[] = menuId === 'header'
+    ? [
+        { id: '1', label: 'Home', href: '/home' },
+        { id: '2', label: 'Movies', href: '/movies' },
+        { id: '3', label: 'TV Shows', href: '/tv' },
+    ]
+    : [
+        { id: '1', label: 'Rules', href: '/rules' },
+        { id: '2', label: 'Terms', href: '/terms' },
+        { id: '3', label: 'DMCA', href: '/dmca' },
+        { id: '4', label: 'Contact', href: '/contact' },
+    ];
 
+
+    // Load from Firestore or set defaults
     useEffect(() => {
+        if (loading) return;
+
         if (menuConfig) {
+            // Use Firestore data if it exists, even if it's an empty array
             setItems(menuConfig.items || []);
-        } else if (!loading) {
-            // If doc doesn't exist, initialize with empty array
-            setItems([]);
+        } else {
+            // Doc doesn't exist, seed with default items
+            setItems(defaultItems);
         }
+        hasLoaded.current = true;
     }, [menuConfig, loading]);
 
+    // Save to Firestore on changes
     useEffect(() => {
-        if (isInitialLoad.current) {
-            if (!loading) {
-                isInitialLoad.current = false;
-            }
-            return;
-        }
+        // Don't save on initial render cycles before data is loaded
+        if (!hasLoaded.current || loading) return;
         
-        // Save changes to Firestore whenever `items` state changes
         setDocumentNonBlocking(docRef, { items }, { merge: true });
         
-    }, [items, docRef, loading]);
+    }, [items]);
+
 
     const handleSaveItem = (newItemData: Omit<MenuItem, 'id'>) => {
         if (editingItem) {
