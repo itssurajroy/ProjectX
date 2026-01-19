@@ -1,15 +1,44 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { adminDb } from '@/firebase/server';
 
 const API_BASE_URL = 'https://api.myanimelist.net/v2';
-const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID;
+
+let malClientIdCache: string | null = null;
+let lastKeyFetch = 0;
+const KEY_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+async function getMalClientId(): Promise<string | null> {
+    const now = Date.now();
+    if (malClientIdCache && (now - lastKeyFetch < KEY_CACHE_DURATION)) {
+        return malClientIdCache;
+    }
+
+    try {
+        const doc = await adminDb.doc('settings/api_keys').get();
+        if (doc.exists) {
+            const data = doc.data();
+            if (data?.malClientId) {
+                malClientIdCache = data.malClientId;
+                lastKeyFetch = now;
+                return malClientIdCache;
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching MAL Client ID from Firestore:", error);
+    }
+    return null;
+}
+
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
+  const CLIENT_ID = await getMalClientId();
+
   if (!CLIENT_ID) {
-    console.error('[MAL PROXY] Error: NEXT_PUBLIC_MAL_CLIENT_ID is not set.');
+    console.error('[MAL PROXY] Error: MAL Client ID not found in Firestore settings.');
     return new NextResponse(
       JSON.stringify({ success: false, message: 'Server configuration error: MAL Client ID is missing.' }),
       { status: 500 }

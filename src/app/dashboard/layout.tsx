@@ -1,3 +1,4 @@
+
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -5,12 +6,13 @@ import Link from 'next/link';
 import { Home, Bookmark, History, User, LogOut, Shield, X, Menu, BarChart3, Trophy, Users, Calendar, Sparkles, PartyPopper, Loader2 } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/layout/header';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useCollection } from '@/firebase';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import SiteLogo from '@/components/layout/SiteLogo';
 import AnnouncementBanner from '@/components/layout/AnnouncementBanner';
+import { FeatureFlag } from '@/lib/types/feature-flag';
 
 const desktopNavItems = [
   { name: 'Home', icon: Home, href: '/dashboard' },
@@ -21,8 +23,6 @@ const desktopNavItems = [
   { name: 'Achievements', icon: Trophy, href: '/dashboard/achievements' },
   { name: 'Friends', icon: Users, href: '/dashboard/friends' },
   { name: 'Calendar', icon: Calendar, href: '/dashboard/calendar' },
-  { name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' },
-  { name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' },
 ];
 
 const NavLink = ({ item, onClick }: { item: typeof desktopNavItems[0], onClick?: () => void }) => {
@@ -43,8 +43,12 @@ const NavLink = ({ item, onClick }: { item: typeof desktopNavItems[0], onClick?:
 
 const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     const { user, userProfile } = useUser();
+    const { data: featureFlags } = useCollection<FeatureFlag>('settings_feature_flags');
     const auth = useAuth();
     const router = useRouter();
+
+    const aiCuratorFlag = featureFlags?.find(f => f.id === 'aiCurator');
+    const watchTogetherFlag = featureFlags?.find(f => f.id === 'watchTogether');
 
     const handleSignOut = async () => {
       try {
@@ -75,6 +79,12 @@ const SidebarContent = ({ onLinkClick }: { onLinkClick?: () => void }) => {
                 {desktopNavItems.map(item => (
                     <NavLink key={item.href} item={item} onClick={onLinkClick} />
                 ))}
+                 {aiCuratorFlag?.enabled && (
+                    <NavLink item={{ name: 'AI Curator', icon: Sparkles, href: '/dashboard/ai-curator' }} onClick={onLinkClick} />
+                )}
+                {watchTogetherFlag?.enabled && (
+                    <NavLink item={{ name: 'Watch Parties', icon: PartyPopper, href: '/dashboard/watch-parties' }} onClick={onLinkClick} />
+                )}
                  {userProfile?.role === 'admin' && (
                     <Link href="/admin" className={cn(
                         "flex items-center gap-3 rounded-md transition-all duration-200 px-3 py-2 mt-4",

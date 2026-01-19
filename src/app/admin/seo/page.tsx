@@ -20,6 +20,8 @@ interface SeoTemplates {
     animeDesc: string;
     watchTitle: string;
     watchDesc: string;
+    pageTitle: string;
+    pageDesc: string;
     searchTitle: string;
     searchDesc: string;
     moviesTitle: string;
@@ -112,6 +114,8 @@ export default function AdminSeoPage() {
     const [animeDesc, setAnimeDesc] = useState('');
     const [watchTitle, setWatchTitle] = useState('');
     const [watchDesc, setWatchDesc] = useState('');
+    const [pageTitle, setPageTitle] = useState('');
+    const [pageDesc, setPageDesc] = useState('');
     const [searchTitle, setSearchTitle] = useState('');
     const [searchDesc, setSearchDesc] = useState('');
     const [moviesTitle, setMoviesTitle] = useState('');
@@ -137,6 +141,8 @@ export default function AdminSeoPage() {
             setAnimeDesc(seoData.animeDesc || 'Stream all episodes of {{anime_name}} in HD quality with English subtitles. Best place to watch anime online for free.');
             setWatchTitle(seoData.watchTitle || 'Watch {{anime_name}} Episode {{episode_number}} on {{site_name}}');
             setWatchDesc(seoData.watchDesc || 'Stream episode {{episode_number}} of {{anime_name}} online for free. No ads, HD quality.');
+            setPageTitle(seoData.pageTitle || '{{page_title}} | {{site_name}}');
+            setPageDesc(seoData.pageDesc || '{{page_description}}');
             setSearchTitle(seoData.searchTitle || 'Search results for "{{query}}" on {{site_name}}');
             setSearchDesc(seoData.searchDesc || 'Find and watch anime similar to "{{query}}".');
             setMoviesTitle(seoData.moviesTitle || 'Watch Anime Movies Online Free | {{site_name}}');
@@ -158,6 +164,7 @@ export default function AdminSeoPage() {
         const settingsRef = doc(firestore, 'settings', 'seo');
         const dataToSave: SeoTemplates = {
             animeTitle, animeDesc, watchTitle, watchDesc,
+            pageTitle, pageDesc,
             searchTitle, searchDesc, moviesTitle, moviesDesc,
             tvTitle, tvDesc
         };
@@ -216,7 +223,7 @@ export default function AdminSeoPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Metadata Templates</CardTitle>
-                        <CardDescription>{"Define default SEO titles and descriptions for different content types. Use variables like `{{anime_name}}`, `{{episode_number}}`, `{{query}}`, `{{site_name}}`."}</CardDescription>
+                        <CardDescription>{"Define default SEO titles and descriptions for different content types. Use variables like `{{anime_name}}`, `{{episode_number}}`, `{{query}}`, `{{page_title}}`, `{{page_description}}`, and `{{site_name}}`."}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {loadingSeo ? <div className="flex justify-center my-10"><Loader2 className="w-6 h-6 animate-spin"/></div> : (
@@ -230,6 +237,11 @@ export default function AdminSeoPage() {
                                 <Label htmlFor="watch-title" className="font-semibold">Watch Page</Label>
                                 <Input id="watch-title" value={watchTitle} onChange={e => setWatchTitle(e.target.value)} placeholder="Title for Watch pages..." />
                                 <Textarea id="watch-desc" value={watchDesc} onChange={e => setWatchDesc(e.target.value)} placeholder="Description for Watch pages..."/>
+                            </div>
+                            <div className="space-y-2 p-3 border rounded-lg">
+                                <Label htmlFor="page-title" className="font-semibold">Static Page</Label>
+                                <Input id="page-title" value={pageTitle} onChange={e => setPageTitle(e.target.value)} placeholder="Title for Static pages..."/>
+                                <Textarea id="page-desc" value={pageDesc} onChange={e => setPageDesc(e.target.value)} placeholder="Description for Static pages..." />
                             </div>
                              <div className="space-y-2 p-3 border rounded-lg">
                                 <Label htmlFor="search-title" className="font-semibold">Search Page</Label>

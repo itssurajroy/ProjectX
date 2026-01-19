@@ -8,6 +8,7 @@ import { Metadata } from "next";
 import { SITE_NAME } from "@/lib/constants";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getSeoTemplates, applyTemplate } from "@/lib/seo";
 
 type Props = {
     params: { slug: string }
@@ -39,10 +40,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
             title: `Page Not Found | ${SITE_NAME}`,
         }
     }
+    
+    const templates = await getSeoTemplates();
+    const replacements = {
+        '{{page_title}}': page.title,
+        '{{page_description}}': page.metaDescription || page.content.substring(0, 160),
+    };
+
+    const title = applyTemplate(templates.pageTitle || '{{page_title}} | {{site_name}}', replacements);
+    const description = applyTemplate(templates.pageDesc || '{{page_description}}', replacements);
 
     return {
-        title: `${page.title} | ${SITE_NAME}`,
-        description: page.metaDescription || page.content.substring(0, 160),
+        title,
+        description,
     }
 }
 

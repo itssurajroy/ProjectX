@@ -6,7 +6,6 @@ import { Search, Menu, Shuffle, X, Users, Bell, Loader2, Globe } from 'lucide-re
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { SearchSuggestion } from '@/lib/types/anime';
-import { genres } from '@/lib/data';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import SiteLogo from './SiteLogo';
@@ -14,10 +13,11 @@ import { AnimeService } from '@/lib/services/AnimeService';
 import ProgressiveImage from '../ProgressiveImage';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { useUser, useAuth, useDoc } from '@/firebase';
+import { useUser, useAuth, useDoc, useCollection } from '@/firebase';
 import toast from 'react-hot-toast';
 import { useTitleLanguageStore } from '@/store/title-language-store';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { FeatureFlag } from '@/lib/types/feature-flag';
 
 function UserAuth() {
   const { user, userProfile, loading } = useUser();
@@ -103,12 +103,15 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const [mounted, setMounted] = useState(false);
 
   const { data: menuConfig } = useDoc<{items: NavItem[]}>('settings_menus/header');
+  const { data: featureFlags } = useCollection<FeatureFlag>('settings_feature_flags');
 
   const navItems = menuConfig?.items || [
     { href: "/home", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
   ];
+
+  const watchTogetherFlag = featureFlags?.find(f => f.id === 'watchTogether');
 
   useEffect(() => {
     setMounted(true);
@@ -225,11 +228,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
           {mounted && (
             <>
               <LanguageToggleButton />
-              <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
-                <Link href="/watch2gether" title="Watch Together">
-                  <Users className="w-5 h-5 text-primary" />
-                </Link>
-              </Button>
+              {watchTogetherFlag?.enabled && (
+                <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
+                    <Link href="/watch2gether" title="Watch Together">
+                    <Users className="w-5 h-5 text-primary" />
+                    </Link>
+                </Button>
+              )}
               <NotificationBell />
               <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
                 <Link href="/random" title="Random Anime">

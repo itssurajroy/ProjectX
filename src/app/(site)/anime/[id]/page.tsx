@@ -6,23 +6,34 @@ import AnimeHero from '@/components/anime/AnimeHero';
 import EpisodeList from '@/components/anime/EpisodeList';
 import RelatedCarousel from '@/components/anime/RelatedCarousel';
 import CommentsContainer from '@/components/comments/CommentsContainer';
+import { getSeoTemplates, applyTemplate } from '@/lib/seo';
+import { SITE_NAME } from '@/lib/constants';
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   try {
     const animeResult = await AnimeService.anime(params.id);
     const anime = animeResult?.anime?.info;
+    const templates = await getSeoTemplates();
 
     if (!anime) {
       return {
-        title: 'Anime Not Found',
+        title: `Anime Not Found | ${SITE_NAME}`,
       }
     }
+    
+    const replacements = {
+        '{{anime_name}}': anime.name,
+    };
+
+    const title = applyTemplate(templates.animeTitle || 'Watch {{anime_name}} Online | {{site_name}}', replacements);
+    const description = applyTemplate(templates.animeDesc || anime.description.substring(0, 160), replacements);
 
     return {
-      title: `${anime.name} - Watch on ProjectX`,
-      description: anime.description.substring(0, 160),
+      title,
+      description,
     }
   } catch (error) {
+    console.error(`Error generating metadata for anime ${params.id}:`, error);
     return {
       title: 'Error',
       description: 'Could not load anime details.'
