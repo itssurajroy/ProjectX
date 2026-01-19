@@ -37,7 +37,7 @@ export default function NotificationsPage() {
                             )}>
                                 <div className="flex-shrink-0 mt-1">
                                     <div className="w-8 h-8 bg-card rounded-full flex items-center justify-center text-primary font-bold text-xl">
-                                      {notif.icon || '★'}
+                                      {notif.icon || '📣'}
                                     </div>
                                 </div>
                                 <div className="flex-1">

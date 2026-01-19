@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { collection, doc, serverTimestamp } from "firebase/firestore";
 import { Bell, Loader2, Send, Trash2, Users } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { SentNotification } from '@/lib/types/notification';
+import { AppNotification } from '@/lib/types/notification';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDistanceToNow } from "date-fns";
 
@@ -29,25 +30,25 @@ const NotificationComposer = () => {
         setIsSending(true);
         const toastId = toast.loading("Queuing notification for delivery...");
 
-        const notificationData = {
+        const notificationData: Omit<AppNotification, 'id'> = {
             title,
             message,
-            link: link || null,
-            sentAt: serverTimestamp(),
-            target: 'all_users', // Placeholder for now
+            link: link || undefined,
+            icon: '📣',
+            createdAt: serverTimestamp(),
         };
 
-        const notificationsCol = collection(firestore, 'sent_notifications');
+        const notificationsCol = collection(firestore, 'notifications');
         addDocumentNonBlocking(notificationsCol, notificationData)
             .then(() => {
-                toast.success("Notification queued successfully!", { id: toastId });
+                toast.success("Notification sent successfully!", { id: toastId });
                 setTitle('');
                 setMessage('');
                 setLink('');
             })
             .catch((err) => {
                 console.error("Error sending notification:", err);
-                toast.error("Failed to queue notification.", { id: toastId });
+                toast.error("Failed to send notification.", { id: toastId });
             })
             .finally(() => {
                 setIsSending(false);
@@ -90,16 +91,16 @@ const NotificationComposer = () => {
 };
 
 const NotificationHistory = () => {
-    const { data: notifications, loading, error } = useCollection<SentNotification>('sent_notifications');
+    const { data: notifications, loading, error } = useCollection<AppNotification>('notifications');
     const firestore = useFirestore();
 
-    const sortedNotifications = notifications?.sort((a,b) => (b.sentAt?.toMillis() || 0) - (a.sentAt?.toMillis() || 0));
+    const sortedNotifications = notifications?.sort((a,b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
 
     const handleDelete = (id: string) => {
-        if (!confirm("Are you sure you want to delete this log? This does not un-send the notification.")) return;
-        const toastId = toast.loading("Deleting log...");
-        deleteDocumentNonBlocking(doc(firestore, 'sent_notifications', id));
-        toast.success("Log entry deleted.", { id: toastId });
+        if (!confirm("Are you sure you want to delete this notification? This will remove it for all users.")) return;
+        const toastId = toast.loading("Deleting notification...");
+        deleteDocumentNonBlocking(doc(firestore, 'notifications', id));
+        toast.success("Notification deleted.", { id: toastId });
     }
 
     return (
@@ -128,7 +129,7 @@ const NotificationHistory = () => {
                                 <TableRow key={notif.id}>
                                     <TableCell className="font-semibold">{notif.title}</TableCell>
                                     <TableCell className="text-muted-foreground line-clamp-1">{notif.message}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{notif.sentAt ? formatDistanceToNow(notif.sentAt.toDate(), { addSuffix: true }) : 'Sending...'}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{notif.createdAt ? formatDistanceToNow(notif.createdAt.toDate(), { addSuffix: true }) : 'Sending...'}</TableCell>
                                     <TableCell className="text-right">
                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(notif.id)}>
                                             <Trash2 className="w-4 h-4"/>
@@ -152,7 +153,7 @@ export default function AdminNotificationsPage() {
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold flex items-center gap-3"><Bell className="w-8 h-8"/> Notifications</h1>
-                <p className="text-muted-foreground">Send push notifications to all users.</p>
+                <p className="text-muted-foreground">Send global push notifications to all users.</p>
             </div>
             
             <NotificationComposer />
@@ -160,10 +161,10 @@ export default function AdminNotificationsPage() {
 
              <Card>
                 <CardHeader>
-                    <CardTitle>Backend Required</CardTitle>
+                    <CardTitle>Important Note</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">This interface creates a "notification request" in the database. A backend service (like a Cloud Function) is required to read these requests and send the actual push notifications via Firebase Cloud Messaging (FCM). This part is not implemented.</p>
+                    <p className="text-muted-foreground">This interface creates a notification document in the database. A backend service (like a Cloud Function) is required to listen for these documents and send actual push notifications via Firebase Cloud Messaging (FCM). However, this app includes a client-side listener that will show a "toast" notification in real-time for any user currently on the site.</p>
                 </CardContent>
             </Card>
         </div>

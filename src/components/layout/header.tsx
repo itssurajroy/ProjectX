@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useUser, useAuth, useDoc } from '@/firebase';
 import toast from 'react-hot-toast';
 import { useTitleLanguageStore } from '@/store/title-language-store';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 function UserAuth() {
   const { user, userProfile, loading } = useUser();
@@ -229,7 +230,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
                   <Users className="w-5 h-5 text-primary" />
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" title="Notifications"><Link href="/dashboard/notifications"><Bell className="w-5 h-5" /></Link></Button>
+              <NotificationBell />
               <Button asChild variant="ghost" size="icon" className="hidden sm:flex">
                 <Link href="/random" title="Random Anime">
                   <Shuffle className="w-5 h-5 text-primary" />

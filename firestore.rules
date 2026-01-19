@@ -157,12 +157,14 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for sent notifications log.
-     * @path /sent_notifications/{notificationId}
-     * @allow (read, write) An admin managing notification logs.
+     * @description Rules for global notifications.
+     * @path /notifications/{notificationId}
+     * @allow (read) Any signed-in user.
+     * @allow (write, delete) Admins only.
      */
-    match /sent_notifications/{notificationId} {
-        allow read, write, delete: if isAdmin();
+    match /notifications/{notificationId} {
+        allow read: if isSignedIn();
+        allow write, delete: if isAdmin();
     }
     
     /**
