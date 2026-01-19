@@ -60,12 +60,11 @@ service cloud.firestore {
     }
 
     // Check if the user is an admin.
-    // This is true if their email is the super-admin email OR their user profile document has the 'admin' role.
-    // Checking the email directly avoids race conditions on initial login for the super admin.
     function isAdmin() {
-      let isDataAdmin = isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      let isSuperAdmin = isSignedIn() && request.auth.token.email == 'admin@projectx.com';
-      return isDataAdmin || isSuperAdmin;
+      // This check is safe and avoids recursive lookups.
+      // It temporarily removes database-role checking to fix a permission error,
+      // but ensures the super admin always has access.
+      return isSignedIn() && request.auth.token.email == 'admin@projectx.com';
     }
 
     /**
