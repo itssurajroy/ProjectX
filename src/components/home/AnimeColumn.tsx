@@ -18,10 +18,10 @@ export default function AnimeColumn({ title, animes, category }: { title: string
         <div className="space-y-4">
             <h3 className="text-xl font-bold">{title}</h3>
             <div className="space-y-3">
-                {animes.slice(0, 7).map(anime => {
+                {animes.slice(0, 7).map((anime, index) => {
                     const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
                     return (
-                        <Link key={anime.id} href={`/anime/${anime.id}`} className="flex items-center gap-3 group">
+                        <Link key={`${anime.id}-${index}`} href={`/anime/${anime.id}`} className="flex items-center gap-3 group">
                              <div className="relative w-12 h-16 flex-shrink-0">
                                 <ProgressiveImage src={anime.poster} alt={animeTitle} fill className="object-cover rounded-md" />
                             </div>
