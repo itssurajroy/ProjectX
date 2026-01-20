@@ -24,9 +24,8 @@ export default function SiteLayout({
 
   return (
     <div className="flex flex-col min-h-screen w-full">
-      <AnnouncementBanner />
-      {showHeader && <Header />}
-      <main className={`flex-grow ${showHeader ? 'pt-16' : ''}`}>
+      <Header />
+      <main className={`flex-grow pt-16`}>
         {children}
       </main>
       {showFooter && <Footer />}

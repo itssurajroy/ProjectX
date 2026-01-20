@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -40,14 +39,24 @@ export default function AnimeListModal({ isOpen, onClose, title, category }: Ani
         isFetchingNextPage,
         isLoading,
         refetch
-    } = useInfiniteQuery<SearchResult, Error, SearchResult, ['category', string], number>({
+    } = useInfiniteQuery<{data: SearchResult}>({
         queryKey: ['category', category],
-        queryFn: async ({ pageParam = 1 }) => AnimeService.getCategory(category, pageParam),
+        queryFn: async ({ pageParam = 1 }) => {
+            const params = new URLSearchParams();
+            if (['top-airing', 'most-popular', 'most-favorite', 'completed', 'top-upcoming', 'latest-episode'].includes(category)) {
+                params.set('sort', 'popularity'); // default sort
+                if(category === 'top-airing') params.set('status', 'Airing');
+                if(category === 'latest-episode') params.set('sort', 'latest');
+                if(category === 'top-upcoming') params.set('status', 'Not yet aired');
+            }
+            params.set('page', pageParam.toString());
+            return AnimeService.search(params);
+        },
         initialPageParam: 1,
-        getNextPageParam: (lastPage: any) => lastPage.hasNextPage ? lastPage.currentPage + 1 : undefined,
-        enabled: isOpen, // only fetch when modal is open
+        getNextPageParam: (lastPage: any) => lastPage.data.hasNextPage ? lastPage.data.currentPage + 1 : undefined,
+        enabled: isOpen,
     });
-
+    
     const observer = useRef<IntersectionObserver>();
     const lastAnimeElementRef = useCallback((node: HTMLDivElement) => {
         if (isLoading || isFetchingNextPage) return;
