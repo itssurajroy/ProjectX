@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -7,6 +6,9 @@ import ProgressiveImage from '@/components/ProgressiveImage';
 import { Search, Share2, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SITE_NAME } from '@/lib/constants';
+import { useQuery } from '@tanstack/react-query';
+import { AnimeService } from '@/lib/services/AnimeService';
+import { HomeData } from '@/lib/types/anime';
 
 const topSearch = [
     'Jujutsu Kaisen: The Culling..', 'One Piece', 'Hells Paradise Season 2',
@@ -15,6 +17,11 @@ const topSearch = [
 ];
 
 export default function LandingPage() {
+    const { data: homeData } = useQuery<HomeData>({
+        queryKey: ['homeData'],
+        queryFn: AnimeService.home,
+    });
+    const trendingAnime = homeData?.trendingAnimes?.[0];
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -22,12 +29,12 @@ export default function LandingPage() {
             <section className="relative h-screen min-h-[700px] flex flex-col items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <ProgressiveImage
-                        src="https://picsum.photos/seed/kaido-hero/1920/1080"
-                        alt="Kaido background"
+                        src={trendingAnime?.poster || "https://picsum.photos/seed/kaido-hero/1920/1080"}
+                        alt={trendingAnime?.name || "Kaido background"}
                         data-ai-hint="one piece kaido"
                         fill
                         priority
-                        className="object-cover opacity-30"
+                        className="object-cover opacity-70"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
                 </div>
