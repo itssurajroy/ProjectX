@@ -20,9 +20,9 @@ export default function LandingPage() {
             <section className="relative h-screen min-h-[700px] flex flex-col items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <ProgressiveImage
-                        src="/anime banner.png"
-                        alt="Anime background"
-                        data-ai-hint="anime wallpaper"
+                        src="https://picsum.photos/seed/onepunchman/1920/1080"
+                        alt="One Punch Man background"
+                        data-ai-hint="one punch man anime"
                         fill
                         priority
                         className="object-cover opacity-70"
