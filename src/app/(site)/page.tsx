@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -7,10 +6,6 @@ import ProgressiveImage from '@/components/ProgressiveImage';
 import { Search, Share2, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SITE_NAME } from '@/lib/constants';
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
-import { HomeData, AnimeBase } from '@/lib/types/anime';
-import { useState, useEffect } from 'react';
 
 const topSearch = [
     'Jujutsu Kaisen: The Culling..', 'One Piece', 'Hells Paradise Season 2',
@@ -19,38 +14,14 @@ const topSearch = [
 ];
 
 export default function LandingPage() {
-    const { data: homeData } = useQuery<HomeData>({
-        queryKey: ['homeData'],
-        queryFn: AnimeService.home,
-    });
-    
-    const [backgroundAnime, setBackgroundAnime] = useState<AnimeBase | null>(null);
-
-    useEffect(() => {
-        if (homeData) {
-            const animePool = [
-                ...(homeData.spotlightAnimes || []),
-                ...(homeData.trendingAnimes || []),
-                ...(homeData.topAiringAnimes || []),
-                ...(homeData.mostPopularAnimes || []),
-            ].filter(Boolean); // Filter out any potential null/undefined entries
-
-            if (animePool.length > 0) {
-                const randomIndex = Math.floor(Math.random() * animePool.length);
-                setBackgroundAnime(animePool[randomIndex]);
-            }
-        }
-    }, [homeData]);
-
-
     return (
         <div className="min-h-screen bg-background text-foreground">
             {/* Hero Section */}
             <section className="relative h-screen min-h-[700px] flex flex-col items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <ProgressiveImage
-                        src={backgroundAnime?.poster || "https://picsum.photos/seed/hero-fallback/1920/1080"}
-                        alt={backgroundAnime?.name || "Dynamic anime background"}
+                        src="https://picsum.photos/seed/manual-bg/1920/1080"
+                        alt="Anime background"
                         data-ai-hint="anime wallpaper"
                         fill
                         priority
