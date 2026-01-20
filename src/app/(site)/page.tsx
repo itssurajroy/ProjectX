@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -58,6 +57,7 @@ export default function LandingPage() {
     }, []);
 
     const trendingAnimes = (homeData?.trendingAnimes || []).slice(0, 5);
+    const topTrendingAnime = homeData?.trendingAnimes?.[0];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -74,8 +74,8 @@ export default function LandingPage() {
                 <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
                     <div className="absolute inset-0 z-0 h-full w-full">
                         <ProgressiveImage 
-                            src="https://picsum.photos/seed/anime-collage/1920/1080" 
-                            alt="Anime Collage" 
+                            src={topTrendingAnime?.poster || "https://picsum.photos/seed/anime-collage/1920/1080"} 
+                            alt={topTrendingAnime?.name || "Anime Collage"} 
                             fill 
                             priority 
                             className="object-cover opacity-10 blur-sm" 
