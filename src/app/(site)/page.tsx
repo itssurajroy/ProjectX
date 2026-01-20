@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export default function LandingPage() {
                             alt={topTrendingAnime?.name || "Anime Collage"} 
                             fill 
                             priority 
-                            className="object-cover opacity-10 blur-sm" 
+                            className="object-cover opacity-70 blur-sm" 
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
                     </div>
