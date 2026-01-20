@@ -14,7 +14,7 @@ export default function NotFound() {
         Oops! The page you are looking for doesn't exist. It might have been moved or deleted.
       </p>
       <Button asChild>
-        <Link href="/home">Go Back Home</Link>
+        <Link href="/">Go Back Home</Link>
       </Button>
     </div>
   )

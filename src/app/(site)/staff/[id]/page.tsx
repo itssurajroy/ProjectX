@@ -83,7 +83,7 @@ export default function StaffPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-24">
              <div className="mb-6">
                 <Breadcrumb items={[
-                    { label: 'Home', href: '/home' },
+                    { label: 'Home', href: '/' },
                     { label: 'Staff', href: '#' },
                     { label: staff.name }
                 ]} />

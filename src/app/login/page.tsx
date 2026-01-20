@@ -99,7 +99,7 @@ export default function LoginPage() {
       </div>
       
       <Tabs defaultValue="login" className="w-full max-w-md z-10 relative">
-        <Link href="/home" passHref>
+        <Link href="/" passHref>
             <Button variant="ghost" size="icon" className="absolute top-4 right-4 z-20 text-muted-foreground hover:text-foreground">
                 <X className="w-5 h-5" />
             </Button>

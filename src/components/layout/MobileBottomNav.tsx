@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
     const pathname = usePathname();
-    const isActive = pathname === href || (pathname.startsWith(href) && href !== '/home');
+    const isActive = pathname === href || (pathname.startsWith(href) && href !== '/');
 
     return (
         <Link href={href} className={cn(
@@ -23,7 +23,7 @@ const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.Elemen
 
 export default function MobileBottomNav() {
     const navItems = [
-        { href: "/home", icon: Home, label: "Home" },
+        { href: "/", icon: Home, label: "Home" },
         { href: "/dashboard/watchlist", icon: Bookmark, label: "My Lists" },
         { href: "/az-list/all", icon: LayoutGrid, label: "Browse" },
         { href: "/search", icon: Search, label: "Search" },

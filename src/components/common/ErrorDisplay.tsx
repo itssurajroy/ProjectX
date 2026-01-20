@@ -42,7 +42,7 @@ export default function ErrorDisplay({
           </Button>
         )}
         <Button variant="secondary" asChild>
-          <Link href="/home">
+          <Link href="/">
             <Home className="w-4 h-4 mr-2" /> Go Home
           </Link>
         </Button>

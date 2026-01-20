@@ -27,7 +27,7 @@ function UserAuth() {
   const handleSignOut = async () => {
     await auth.signOut();
     toast.success("Signed out successfully.");
-    router.push('/home');
+    router.push('/');
   };
 
 
@@ -106,7 +106,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { data: featureFlags } = useCollection<FeatureFlag>('settings_feature_flags');
 
   const navItems = menuConfig?.items || [
-    { href: "/home", label: "Home" },
+    { href: "/", label: "Home" },
     { href: "/movies", label: "Movies" },
     { href: "/tv", label: "TV Shows" },
   ];

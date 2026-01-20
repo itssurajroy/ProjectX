@@ -1,220 +1,483 @@
 
 'use client';
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Search, ChevronDown, Twitter, Send, Rss, Shuffle, Sparkles, ArrowRight } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import Balancer from "react-wrap-balancer";
-import { AnimeBase, HomeData, SearchSuggestion } from "@/lib/types/anime";
-import { useQuery } from "@tanstack/react-query";
+import { AnimeBase, SpotlightAnime, HomeData, ScheduleResponse, Top10Anime, QtipAnime, AnimeAboutResponse } from '@/lib/types/anime';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight, PlayCircle, Clapperboard, Tv, Play, TrendingUp, Heart, Calendar, Loader2, Info } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { cn } from '@/lib/utils';
+import { AnimeCard } from '@/components/AnimeCard';
+import { Bookmark } from 'lucide-react';
+import ErrorDisplay from '@/components/common/ErrorDisplay';
+import { AnimeSection } from '@/components/home/AnimeSection';
 import { AnimeService } from '@/lib/services/AnimeService';
-import ProgressiveImage from "@/components/ProgressiveImage";
+import ProgressiveImage from '@/components/ProgressiveImage';
+import { motion, AnimatePresence } from 'framer-motion';
+import Balancer from 'react-wrap-balancer';
+import { Button } from '@/components/ui/button';
+import EpisodeCountdown from '@/components/watch/EpisodeCountdown';
+import { useTitleLanguageStore } from '@/store/title-language-store';
+import { useDoc } from '@/firebase';
 
-const socialLinks = [
-    { name: "Discord", count: "82.6k", icon: Send, color: "bg-blue-600", href: "https://discord.gg/nHwCpPx9yy" },
-    { name: "Telegram", count: "14.5k", icon: Send, color: "bg-sky-500", href: "#" },
-    { name: "Twitter", count: "11.6k", icon: Twitter, color: "bg-sky-400", href: "#" },
-    { name: "Reddit", count: "12.7k", icon: Rss, color: "bg-orange-600", href: "#" },
-];
-
-export default function LandingPage() {
-    const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const router = useRouter();
-    const searchContainerRef = useRef<HTMLDivElement>(null);
+interface HomepageSettings {
+    spotlightAnimeIds?: string[];
+    featuredSections?: { id: string; title: string; enabled: boolean; }[];
+}
 
 
-    const { data: homeData } = useQuery<HomeData>({
-        queryKey: ['homeData'],
-        queryFn: AnimeService.home,
-    });
-    
-    useEffect(() => {
-        if (query.length < 2) {
-            setSuggestions([]);
-            return;
-        }
-        const fetchSuggestions = async () => {
-            const data = await AnimeService.getSearchSuggestions(query);
-            setSuggestions(data.suggestions || []);
-            setShowSuggestions(true);
-        };
-        const debounce = setTimeout(fetchSuggestions, 300);
-        return () => clearTimeout(debounce);
-    }, [query]);
+const SpotlightSection = ({ spotlights }: { spotlights: SpotlightAnime[] | undefined }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const autoplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { language } = useTitleLanguageStore();
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
-                setShowSuggestions(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+  // Reset index when the spotlight data changes. This prevents out-of-bounds errors
+  // if the new list is shorter than the old one.
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [spotlights]);
 
-    const trendingAnimes = (homeData?.trendingAnimes || []).slice(0, 5);
-    const topTrendingAnime = homeData?.trendingAnimes?.[0];
+  const handleNext = useCallback(() => {
+    if (!spotlights || spotlights.length === 0) return;
+    setCurrentIndex((prev) => (prev === spotlights.length - 1 ? 0 : prev + 1));
+  }, [spotlights]);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        if(query.trim()) {
-            router.push(`/search?q=${query.trim()}`);
-            setShowSuggestions(false);
-        }
+  const resetAutoplay = useCallback(() => {
+    if (autoplayTimeoutRef.current) {
+        clearInterval(autoplayTimeoutRef.current);
     }
+    autoplayTimeoutRef.current = setInterval(handleNext, 7000);
+  },[handleNext]);
+
+  useEffect(() => {
+    resetAutoplay();
+    return () => {
+      if (autoplayTimeoutRef.current) {
+        clearInterval(autoplayTimeoutRef.current);
+      }
+    };
+  }, [spotlights, resetAutoplay]);
+
+  if (!spotlights || spotlights.length === 0) return null;
+
+  // A defensive check to ensure currentIndex is valid before rendering
+  if (currentIndex >= spotlights.length) {
+    return null; 
+  }
+
+  const spotlight = spotlights[currentIndex];
+  
+  if (!spotlight) return null;
+
+  const title = language === 'romaji' && spotlight.jname ? spotlight.jname : spotlight.name;
+
+  return (
+    <div className="relative w-full h-[60vh] md:h-[85vh] group overflow-hidden">
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={spotlight.id}
+          className="absolute inset-0"
+          initial={{ opacity: 0, scale: 1.05 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1 }}
+          transition={{ duration: 1.5, ease: [0.43, 0.13, 0.23, 0.96] }}
+        >
+          <ProgressiveImage
+            src={spotlight.poster}
+            alt={spotlight.name || "Spotlight Banner"}
+            fill
+            className={'object-cover'}
+            priority
+          />
+        </motion.div>
+      </AnimatePresence>
+      
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
+        
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 h-full flex flex-col justify-end items-start text-left pb-16 md:pb-24">
+        <motion.div 
+          key={`${spotlight.id}-content`}
+          className="w-full max-w-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+        >
+          <span className="text-primary font-bold text-sm md:text-base">#{spotlight.rank} Spotlight</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-display my-3 text-glow">
+            <Balancer>{title}</Balancer>
+          </h1>
+          <div className="flex items-center gap-4 text-xs md:text-sm text-muted-foreground mb-4 flex-wrap">
+              {spotlight.otherInfo.map((info, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                   {info}
+                </span>
+              ))}
+          </div>
+          <p className="max-w-xl text-gray-300 mb-6 line-clamp-3 text-sm md:text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: spotlight.description }}></p>
+          
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <Button asChild size="lg" className="shadow-lg shadow-primary/30 transform hover:scale-105 transition-transform w-full sm:w-auto">
+                  <Link href={`/watch/${spotlight.id}`} className="flex items-center gap-2">
+                      <Play className="w-5 h-5" /> Watch Now
+                  </Link>
+              </Button>
+              <Button asChild size="lg" variant="secondary" className="transform hover:scale-105 transition-transform bg-white/10 hover:bg-white/20 w-full sm:w-auto">
+                   <Link href={`/anime/${spotlight.id}`} className="flex items-center gap-2">
+                      <Info className="w-5 h-5" /> Details
+                  </Link>
+              </Button>
+          </div>
+          <div className="mt-4">
+             <EpisodeCountdown airingTime={spotlight.nextAiringEpisode?.airingTime} />
+          </div>
+        </motion.div>
+      </div>
+        
+      <div className="absolute right-4 md:right-8 bottom-8 z-20 flex items-center gap-3">
+          <button onClick={() => {
+              setCurrentIndex((prev) => (prev === 0 ? spotlights.length - 1 : prev - 1));
+              resetAutoplay();
+          }} className="p-2 bg-white/10 rounded-full transition-all hover:bg-white/20 hover:scale-110">
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6"/>
+          </button>
+          <span className='font-semibold text-sm md:text-base'>{currentIndex + 1}/{spotlights.length}</span>
+          <button onClick={() => {
+              handleNext();
+              resetAutoplay();
+          }} className="p-2 bg-white/10 rounded-full transition-all hover:bg-white/20 hover:scale-110">
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6"/>
+          </button>
+      </div>
+    </div>
+  );
+};
+
+const PollSection = () => (
+    <div className="bg-card/50 p-4 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-border/50">
+        <div className="flex items-center gap-3">
+            <Heart className="w-8 h-8 text-primary" />
+            <div>
+                <h3 className="font-bold font-display text-lg">💖 Love this site?</h3>
+                <p className="text-xs text-muted-foreground">Share it with others to let them know!</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap justify-center">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">💖 40k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">🤯 4.4k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">😢 6.5k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-muted hover:border-primary/50 border-2 border-transparent">😂 5.8k</button>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-sm transition-all duration-200 bg-red-500/20 text-red-300 hover:border-red-500/50 border-2 border-transparent">😠 18.3k</button>
+        </div>
+    </div>
+)
+
+const SmallListSection = ({ title, animes }: { title: string, animes: AnimeBase[] | undefined }) => {
+    const { language } = useTitleLanguageStore();
+    if (!animes || animes.length === 0) return null;
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <main className="flex-grow">
-                {/* Hero Section */}
-                <section className="relative flex flex-col items-center justify-center text-center py-20 md:py-32 min-h-[60vh] overflow-hidden">
-                    <div className="absolute inset-0 z-0 h-full w-full">
-                        <ProgressiveImage 
-                            src={topTrendingAnime?.poster || "https://picsum.photos/seed/anime-collage/1920/1080"} 
-                            alt={topTrendingAnime?.name || "Anime Collage"} 
-                            fill 
-                            priority 
-                            className="object-cover opacity-70 blur-sm" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-b from-background/50 via-background to-background"></div>
-                    </div>
-                    <div className="relative z-10 container mx-auto px-4">
-                        <h1 className="text-4xl md:text-5xl font-bold text-glow mb-4">
-                           <Balancer>Find Your Favorite Anime</Balancer>
-                        </h1>
-                        <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                            <Balancer>
-                                ProjectX is the ultimate destination to watch anime online for free, with subbed or dubbed options in HD and no ads.
-                            </Balancer>
-                        </p>
-
-                        <div ref={searchContainerRef} className="max-w-2xl mx-auto mb-4 relative">
-                            <form onSubmit={handleSearch}>
-                                <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                                    <Input 
-                                        id="landing-page-search"
-                                        name="q"
-                                        type="search"
-                                        value={query}
-                                        onChange={(e) => setQuery(e.target.value)}
-                                        onFocus={() => query.length > 2 && setShowSuggestions(true)}
-                                        placeholder="Search anime..."
-                                        className="w-full h-14 pl-12 pr-32 rounded-full bg-card/80 border-2 border-border focus:ring-primary focus:border-primary text-lg"
+        <div>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold font-display">{title}</h2>
+            </div>
+            <div className="bg-card p-2 rounded-lg border border-border">
+                <div className="space-y-2">
+                    {animes.slice(0, 7).map((anime, index) => {
+                        const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
+                        return (
+                            <Link href={`/anime/${anime.id}`} key={`${anime.id}-${index}`} className="flex items-start gap-3 p-2 rounded-md hover:bg-muted transition-colors group">
+                                <div className="relative w-12 h-[72px] flex-shrink-0">
+                                    <ProgressiveImage 
+                                      src={anime.poster}
+                                      alt={anime.name || "Anime Poster"} 
+                                      fill 
+                                      className="object-cover rounded-md" 
                                     />
-                                    <Button type="submit" variant="ghost" className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-full flex items-center gap-2">
-                                        Filter <ChevronDown className="w-4 h-4"/>
-                                    </Button>
                                 </div>
-                            </form>
-                            {showSuggestions && suggestions.length > 0 && (
-                                <div className="absolute top-full mt-2 w-full bg-card rounded-lg shadow-xl z-20 max-h-96 overflow-y-auto border border-border text-left">
-                                    {suggestions.map(anime => (
-                                    <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => { setQuery(''); setShowSuggestions(false); }} className="w-full text-left flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
-                                        <div className="relative w-10 h-14 flex-shrink-0">
-                                            <ProgressiveImage 
-                                                src={anime.poster}
-                                                alt={anime.name || "Anime Poster"} 
-                                                fill 
-                                                className="rounded-md object-cover" 
-                                            />
-                                        </div>
-                                        <div className='overflow-hidden'>
-                                            <p className="font-semibold truncate text-sm">{anime.name}</p>
-                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
-                                                {anime.moreInfo.map(info => <span key={info}>{info}</span>)}
-                                            </div>
-                                        </div>
-                                    </Link>
-                                    ))}
+                                <div className='overflow-hidden flex-1'>
+                                    <p className='font-semibold text-sm group-hover:text-primary line-clamp-2'>{animeTitle}</p>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                        {anime.type && <span>{anime.type}</span>}
+                                        {anime.duration && <span>&bull; {anime.duration}</span>}
+                                    </div>
                                 </div>
-                            )}
-                        </div>
-
-                        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground max-w-xl mx-auto">
-                            <span>Trending:</span>
-                            {trendingAnimes.map((anime: AnimeBase) => (
-                                <Link key={anime.id} href={`/anime/${anime.id}`} className="hover:text-primary hover:underline">
-                                    {anime.name}
-                                </Link>
-                            ))}
-                        </div>
-
-                         <div className="mt-8">
-                             <Button size="lg" className="h-14 px-10 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/30 transform hover:scale-105 transition-transform" onClick={() => router.push('/home')}>
-                                View Full Site <ArrowRight className="w-5 h-5 ml-2" />
-                            </Button>
-                        </div>
-                    </div>
-                </section>
-                
-                <div className="container mx-auto px-4">
-                    {/* Social Proof */}
-                    <section className="-mt-12 mb-16 relative z-10">
-                        <div className="flex flex-wrap items-center justify-center gap-4">
-                            {socialLinks.map(link => (
-                                <a key={link.name} href={link.href} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-3 px-4 py-2 rounded-lg text-white font-semibold text-sm ${link.color} transition-transform hover:scale-105`}>
-                                    {link.icon && <link.icon className="w-5 h-5"/>}
-                                    <span>{link.name}</span>
-                                    <span className="text-white/70">{link.count}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </section>
-                    
-                    <div className="flex justify-center my-16">
-                        <Link href="/random"
-                            className="group relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-1 shadow-2xl transition-all hover:scale-105 active:scale-95"
-                        >
-                          <div className="flex items-center gap-3 px-8 py-5 bg-black rounded-2xl transition-all group-hover:bg-black/80">
-                              <Shuffle className="w-7 h-7 text-white animate-pulse" />
-                              <span className="text-2xl font-black text-white bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
-                                RANDOM ANIME
-                              </span>
-                              <Sparkles className="w-6 h-6 text-yellow-400 animate-ping" />
-                          </div>
-                           <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary to-cyan-500 blur-3xl opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </Link>
-                    </div>
-
-
-                    {/* SEO Content Section */}
-                    <section className="py-16">
-                        <div className="max-w-4xl mx-auto text-left space-y-8 text-muted-foreground text-sm">
-                            <h2 className="text-2xl font-bold text-center text-foreground mb-10">The Best Site to Watch Anime Online for Free</h2>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-primary">What is ProjectX?</h3>
-                                <p>ProjectX is a free anime streaming site where you can watch anime in HD quality with both subbed and dubbed options, all without the hassle of registration or payment. And the best part? There are absolutely no ads! We're dedicated to making it the safest and most enjoyable place for anime lovers to watch anime for free.</p>
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-primary">Is ProjectX safe?</h3>
-                                <p>Yes. We are a new website, but we have a team of dedicated people who are committed to providing the best and safest anime streaming experience for our users. We do not have any ads on our website, and we do not require any registration to watch anime. You can come and watch your favorite anime without any worries.</p>
-                            </div>
-                             <div className="space-y-2">
-                                <h3 className="text-xl font-semibold text-primary">What makes ProjectX the best site to watch anime free online?</h3>
-                                <p>Before creating ProjectX, we thoroughly explored numerous other free anime sites and learned from their strengths and weaknesses. We kept only the best features and eliminated all the drawbacks, combining them into our platform. That's why we're so confident in claiming to be the best site for anime streaming. Experience it yourself and see the difference!</p>
-                                <ul className="list-disc list-inside space-y-2 pl-4">
-                                    <li><strong>Safety:</strong> No ads, no redirects, and absolutely no viruses. Your safety and enjoyment are our top priorities.</li>
-                                    <li><strong>Content Library:</strong> We offer an extensive collection of anime, spanning from 1980s classics to the latest releases.</li>
-                                    <li><strong>Quality/Resolution:</strong> All anime on ProjectX is available in the best possible resolution, including 720p and 1080p.</li>
-                                    <li><strong>Streaming Experience:</strong> We offer faster loading speeds and a completely buffer-free experience.</li>
-                                    <li><strong>User Interface:</strong> Our user-friendly UI and UX design make navigation a breeze for everyone.</li>
-                                    <li><strong>Device Compatibility:</strong> ProjectX works seamlessly on both mobile and desktop devices.</li>
-                                </ul>
-                            </div>
-                             <div className="space-y-2">
-                                <p>If you're searching for a reliable and safe site for anime streaming, give ProjectX a try. If you enjoy your time with us, please spread the word and don't forget to bookmark our site! Your support means the world to us.</p>
-                                <p>Thank you!</p>
-                            </div>
-                        </div>
-                    </section>
+                            </Link>
+                        )
+                    })}
                 </div>
-            </main>
+            </div>
+        </div>
+    )
+}
+
+
+const ScheduleSidebar = ({ topAiringAnimes }: { topAiringAnimes: AnimeBase[] | undefined }) => {
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const { language } = useTitleLanguageStore();
+
+    const { data: scheduleData, isLoading, error, refetch } = useQuery<ScheduleResponse>({
+        queryKey: ['schedule', selectedDate.toISOString().split('T')[0]],
+        queryFn: () => AnimeService.getSchedule(selectedDate.toISOString().split('T')[0]),
+    });
+
+    const handleDateChange = (days: number) => {
+        setSelectedDate(prevDate => {
+            const newDate = new Date(prevDate);
+            newDate.setDate(newDate.getDate() + days);
+            return newDate;
+        });
+    }
+
+    const topAiringIds = new Set((topAiringAnimes || []).map(a => a.id));
+    const scheduledAnimes = scheduleData?.scheduledAnimes || [];
+    
+    return (
+        <section className='bg-card p-4 rounded-lg border border-border'>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-bold font-display flex items-center gap-2">🗓️ Schedule</h2>
+            </div>
+            <div className="flex justify-between items-center bg-background p-1 rounded-lg mb-4 flex-wrap">
+                <button onClick={() => handleDateChange(-1)} className="p-2 rounded-md hover:bg-muted">
+                    <ChevronLeft className="w-5 h-5"/>
+                </button>
+                <div className="text-center text-sm font-semibold">
+                    {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </div>
+                <button onClick={() => handleDateChange(1)} className="p-2 rounded-md hover:bg-muted">
+                    <ChevronRight className="w-5 h-5"/>
+                </button>
+            </div>
+            <div className="space-y-1 max-h-[300px] md:max-h-[400px] overflow-y-auto pr-1">
+                {isLoading ? (
+                    <div className="flex justify-center items-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                ) : error ? (
+                     <ErrorDisplay description='Could not load schedule.' onRetry={refetch} isCompact/>
+                ) : scheduledAnimes && scheduledAnimes.length > 0 ? scheduledAnimes.map((anime: any) => {
+                    const isTopAiring = topAiringIds.has(anime.id);
+                    const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
+                    return (
+                        <Link key={anime.id} href={`/anime/${anime.id}`} className={cn(
+                            "flex justify-between items-center group p-2 rounded-md hover:bg-muted/50 border-b border-border/50 last:border-b-0",
+                             isTopAiring && "bg-primary/10 hover:bg-primary/20"
+                        )}>
+                            <div className="flex items-center gap-3 overflow-hidden">
+                                <span className={cn(
+                                    "text-sm font-bold w-10 text-center",
+                                    isTopAiring ? "text-primary" : "text-muted-foreground"
+                                )}>{anime.time}</span>
+                                <p className={cn(
+                                    "truncate font-semibold text-sm group-hover:text-primary transition-colors",
+                                     isTopAiring && "text-primary"
+                                )}>{animeTitle}</p>
+                            </div>
+                            <span className='text-xs text-muted-foreground'>EP {anime.episode || '?'}</span>
+                        </Link>
+                    )
+                }) : (
+                    <p className="text-sm text-center text-muted-foreground py-8">No releases scheduled today. 😴</p>
+                )}
+            </div>
+        </section>
+    );
+};
+
+
+const TrendingSidebar = ({ top10Animes }: { top10Animes: HomeData['top10Animes'] | undefined }) => {
+    const [trendingPeriod, setTrendingPeriod] = useState<'today' | 'week' | 'month'>('today');
+    const { language } = useTitleLanguageStore();
+    if (!top10Animes) return null;
+
+    const animesToDisplay = top10Animes[trendingPeriod] || [];
+
+    return (
+        <div className='bg-card p-4 rounded-lg border border-border'>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+                <h2 className="text-lg font-bold font-display flex items-center gap-2">🏆 Top 10</h2>
+                <div className="flex items-center text-sm bg-background p-1 rounded-md gap-1">
+                    <button onClick={() => setTrendingPeriod('today')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'today' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Today</button>
+                    <button onClick={() => setTrendingPeriod('week')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'week' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Week</button>
+                    <button onClick={() => setTrendingPeriod('month')} className={cn("px-3 py-1 text-xs rounded-md", trendingPeriod === 'month' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted')}>Month</button>
+                </div>
+            </div>
+            <div className="space-y-2">
+            {animesToDisplay.map((anime, index) => {
+                const animeTitle = language === 'romaji' && anime.jname ? anime.jname : anime.name;
+                return (
+                    <Link
+                        key={anime.id}
+                        href={`/anime/${anime.id}`}
+                        className="relative block p-3 rounded-lg overflow-hidden group hover:bg-muted transition-colors"
+                    >
+                        <ProgressiveImage
+                            src={anime.poster}
+                            alt={anime.name || "Anime Poster"}
+                            fill
+                            className="object-cover transition-transform duration-500 group-hover:scale-105 opacity-20"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-card via-card/70 to-transparent"></div>
+                        
+                        <div className="relative flex items-center gap-3">
+                             <div className="flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-lg"
+                                style={{ borderColor: index === 0 ? 'hsl(var(--primary))' : 'hsl(var(--border))'}}>
+                                {anime.rank || index + 1}
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">{animeTitle}</p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                    {anime.episodes?.sub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-primary/20 text-primary"><Clapperboard className="w-3 h-3"/> {anime.episodes.sub}</span>}
+                                    {anime.episodes?.dub && <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-green-500/20 text-green-300">DUB {anime.episodes.dub}</span>}
+                                    <span className='hidden sm:inline'>{anime.type}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                )
+            })}
+            </div>
         </div>
     );
+};
+
+
+export default function HomePage() {
+  const { data: homeData, isLoading: isLoadingHome, error, refetch } = useQuery<HomeData>({
+    queryKey: ['homeData'],
+    queryFn: AnimeService.home,
+  });
+
+  const { data: homepageSettings, isLoading: isLoadingSettings } = useDoc<HomepageSettings>('settings/homepage');
+
+  const { data: customSpotlights, isLoading: isLoadingCustomSpotlights } = useQuery({
+      queryKey: ['customSpotlights', homepageSettings?.spotlightAnimeIds],
+      queryFn: async () => {
+          if (!homepageSettings?.spotlightAnimeIds) return null;
+
+          const animeDetailsPromises = homepageSettings.spotlightAnimeIds.map(id => 
+              AnimeService.anime(id).catch(() => null)
+          );
+          const results = await Promise.all(animeDetailsPromises);
+          
+          const detailedAnimes = results
+              .filter((res): res is AnimeAboutResponse => res !== null && !!res.anime?.info)
+              .map((res, index) => {
+                  const info = res.anime.info;
+                  const moreInfo = res.anime.moreInfo;
+                  
+                  const otherInfo = [];
+                  if (info.stats.type) otherInfo.push(info.stats.type);
+                  if (info.stats.duration) otherInfo.push(info.stats.duration);
+                  if (info.stats.rating && info.stats.rating !== 'N/A') otherInfo.push(info.stats.rating);
+                  if (info.stats.quality) otherInfo.push(info.stats.quality);
+
+                  return {
+                      id: info.id,
+                      name: info.name,
+                      jname: moreInfo.japanese,
+                      poster: info.poster,
+                      description: info.description,
+                      rank: index + 1,
+                      otherInfo,
+                      nextAiringEpisode: moreInfo.nextAiringEpisode,
+                  } as SpotlightAnime;
+              });
+          return detailedAnimes;
+      },
+      enabled: !!homepageSettings?.spotlightAnimeIds,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  const spotlightAnimes = useMemo(() => {
+    const apiSpotlights = homeData?.spotlightAnimes || [];
+    const manualSpotlights = customSpotlights || [];
+
+    const apiSpotlightIds = new Set(apiSpotlights.map(anime => anime.id));
+    const uniqueManualSpotlights = manualSpotlights.filter(anime => !apiSpotlightIds.has(anime.id));
+
+    return [...apiSpotlights, ...uniqueManualSpotlights];
+  }, [homeData?.spotlightAnimes, customSpotlights]);
+
+  const allSections = useMemo(() => {
+    if (!homeData) return [];
+    return [
+        { id: 'trending', title: 'Trending', category: 'trending', isSpecial: 'trending', animes: homeData.trendingAnimes, component: AnimeSection },
+        { id: 'latest-episodes', title: 'Latest Episodes', category: 'latest-episodes', animes: homeData.latestEpisodeAnimes, component: AnimeSection },
+        { id: 'top-upcoming', title: 'Top Upcoming', category: 'top-upcoming', animes: homeData.topUpcomingAnimes, component: AnimeSection },
+        { id: 'top-airing', title: 'Top Airing', animes: homeData.topAiringAnimes, component: SmallListSection },
+        { id: 'completed-series', title: 'Completed Series', animes: homeData.latestCompletedAnimes, component: SmallListSection },
+        { id: 'most-popular', title: 'Most Popular', category: 'most-popular', animes: homeData.mostPopularAnimes, component: AnimeSection },
+        { id: 'most-favorite', title: 'Most Favorite', category: 'most-favorite', animes: homeData.mostFavoriteAnimes, component: AnimeSection },
+    ];
+  }, [homeData]);
+
+  const orderedSections = useMemo(() => {
+    if (homepageSettings?.featuredSections) {
+        return homepageSettings.featuredSections
+            .filter(s => s.enabled)
+            .map(s => {
+                const sectionData = allSections.find(as => as.id === s.id);
+                return sectionData ? { ...sectionData, title: s.title } : null;
+            })
+            .filter((s): s is typeof allSections[0] => !!s);
+    }
+    return allSections;
+  }, [homepageSettings, allSections]);
+
+  const isLoading = isLoadingHome || isLoadingSettings || (!!homepageSettings && isLoadingCustomSpotlights);
+
+  if (isLoading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-primary w-16 h-16" /></div>;
+  if (error || !homeData) {
+    return <ErrorDisplay onRetry={refetch} />;
+  }
+  
+  const { top10Animes, topAiringAnimes } = homeData;
+
+  const smallSectionIds = ['top-airing', 'completed-series'];
+  const mainSections = orderedSections.filter(s => !smallSectionIds.includes(s.id));
+  const smallSections = orderedSections.filter(s => smallSectionIds.includes(s.id));
+
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="-mx-4 sm:-mx-6 lg:-mx-8">
+        <SpotlightSection spotlights={spotlightAnimes} />
+      </div>
+      
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        <div className="mt-[-4rem] relative z-10">
+          <PollSection />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div className="md:col-span-12 xl:col-span-9 space-y-12">
+                {mainSections.map((section) => (
+                    <section.component 
+                        key={section.id} 
+                        title={section.title} 
+                        animes={section.animes} 
+                        {...(section.component === AnimeSection && { category: section.id, isSpecial: section.isSpecial })} 
+                    />
+                ))}
+                
+                {smallSections.length > 0 && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {smallSections.map(section => (
+                            <section.component 
+                                key={section.id}
+                                title={section.title}
+                                animes={section.animes}
+                            />
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="md:col-span-12 xl:col-span-3 space-y-8">
+                <TrendingSidebar top10Animes={top10Animes} />
+                <ScheduleSidebar topAiringAnimes={topAiringAnimes} />
+            </div>
+        </div>
+      </div>
+    </div>
+  );
 }

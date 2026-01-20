@@ -197,7 +197,7 @@ function WatchPageComponent() {
         )}
       <Breadcrumb
         items={[
-          { label: 'Home', href: '/home' },
+          { label: 'Home', href: '/' },
           { label: about.info.stats.type, href: `/search?type=${about.info.stats.type}` },
           { label: about.info.name, href: `/anime/${animeId}` },
           { label: `Episode ${currentEpisode?.number}` },
