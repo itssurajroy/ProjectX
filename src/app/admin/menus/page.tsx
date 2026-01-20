@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -87,9 +88,11 @@ function MenuEditor({ menuId, menuName }: { menuId: string, menuName: string }) 
 
     const defaultItems: MenuItem[] = menuId === 'header'
     ? [
-        { id: '1', label: 'Home', href: '/home' },
+        { id: '1', label: 'Home', href: '/' },
         { id: '2', label: 'Movies', href: '/movies' },
-        { id: '3', label: 'TV Shows', href: '/tv' },
+        { id: '3', label: 'TV Series', href: '/tv' },
+        { id: '4', label: 'Most Popular', href: '/search?sort=popularity' },
+        { id: '5', label: 'Top Airing', href: '/search?status=Airing&sort=popularity' },
     ]
     : [
         { id: '1', label: 'Rules', href: '/rules' },

@@ -105,11 +105,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { data: menuConfig } = useDoc<{items: NavItem[]}>('settings_menus/header');
   const { data: featureFlags } = useCollection<FeatureFlag>('settings_feature_flags');
 
-  const navItems = menuConfig?.items || [
-    { href: "/", label: "Home" },
-    { href: "/movies", label: "Movies" },
-    { href: "/tv", label: "TV Shows" },
-  ];
+  const navItems = menuConfig?.items || [];
 
   const watchTogetherFlag = featureFlags?.find(f => f.id === 'watchTogether');
 

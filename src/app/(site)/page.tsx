@@ -1,138 +1,121 @@
 
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { AnimeService } from '@/lib/services/AnimeService';
-import { HomeData } from '@/lib/types/anime';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import ProgressiveImage from '@/components/ProgressiveImage';
-import { Shield, Clapperboard, Bookmark, Tv, Sparkles, Wind } from 'lucide-react';
-import { AnimeCard } from '@/components/AnimeCard';
-import { motion } from 'framer-motion';
-import Balancer from 'react-wrap-balancer';
-import { SITE_NAME } from '@/lib/constants';
+import { Search, Share2, ArrowRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
-const features = [
-  {
-    icon: <Tv className="w-8 h-8 text-primary" />,
-    title: 'HD Streaming',
-    description: 'Enjoy your favorite anime in crisp high-definition quality, with support for up to 1080p.',
-  },
-  {
-    icon: <Shield className="w-8 h-8 text-primary" />,
-    title: 'Ad-Free Experience',
-    description: 'Immerse yourself completely without any interruptions. We believe in a seamless viewing experience.',
-  },
-  {
-    icon: <Bookmark className="w-8 h-8 text-primary" />,
-    title: 'Personal Watchlist',
-    description: 'Keep track of what you’re watching, what you’ve completed, and what you plan to watch next.',
-  },
+const topSearch = [
+    'Jujutsu Kaisen: The Culling..', 'One Piece', 'Hells Paradise Season 2',
+    'Jujutsu Kaisen 2nd Season', 'Overflow (Uncensored)', 'Cachiakuta', 'Bleach',
+    'Frieren: Beyond Journey’s...', 'Demon Slayer: Kimetsu no..', 'Frieren: Beyond Journey’s...'
 ];
 
 export default function LandingPage() {
-    const { data: homeData, isLoading } = useQuery<HomeData>({
-        queryKey: ['homeDataForLanding'],
-        queryFn: AnimeService.home,
-    });
-
-    const trendingAnimes = homeData?.trendingAnimes || [];
 
     return (
         <div className="min-h-screen bg-background text-foreground">
             {/* Hero Section */}
-            <section className="relative h-[80vh] min-h-[500px] flex items-center justify-center text-center overflow-hidden">
+            <section className="relative h-screen min-h-[700px] flex flex-col items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <ProgressiveImage
-                        src="https://picsum.photos/seed/landing-hero/1920/1080"
-                        alt="Anime Collage"
+                        src="https://picsum.photos/seed/kaido-hero/1920/1080"
+                        alt="Kaido background"
+                        data-ai-hint="one piece kaido"
                         fill
                         priority
-                        className="object-cover opacity-20 blur-sm scale-110"
+                        className="object-cover opacity-30"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
                 </div>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className="relative z-10 px-4"
-                >
-                    <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-glow tracking-tight uppercase">
-                        <Balancer>Enter Your Anime Domain.</Balancer>
+                <div className="relative z-10 px-4 w-full max-w-3xl">
+                    <h1 className="text-6xl md:text-8xl font-black text-white text-glow tracking-tight uppercase" style={{fontFamily: 'var(--font-display)', fontWeight: 900}}>
+                        kaido
                     </h1>
-                    <p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-3xl mx-auto">
-                        <Balancer>
-                            Discover and stream thousands of anime series and movies. Ad-free, in high definition, and on any device. Your next great adventure is just a click away.
-                        </Balancer>
-                    </p>
-                    <div className="mt-8 flex justify-center gap-4">
-                        <Button asChild size="lg" className="h-12 px-8 text-base">
-                            <Link href="/tv">Start Watching</Link>
+                    <form className="relative mt-8" action="/search">
+                        <Input
+                            name="q"
+                            type="text"
+                            placeholder="Search anime..."
+                            className="w-full h-14 rounded-full bg-background/50 backdrop-blur-sm border-2 border-border focus:border-primary pl-6 pr-16 text-lg"
+                        />
+                        <Button type="submit" size="icon" className="absolute right-2.5 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-primary hover:bg-primary/90">
+                            <Search className="w-5 h-5" />
                         </Button>
-                        <Button asChild size="lg" variant="outline" className="h-12 px-8 text-base">
-                            <Link href="/dashboard">My Dashboard</Link>
-                        </Button>
+                    </form>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                        <span className="font-semibold text-foreground">Top search:</span>
+                        {topSearch.slice(0, 5).map((term, i) => (
+                            <Link key={i} href={`/search?q=${term.replace(/\./g, '')}`} className="hover:text-primary hover:underline">{term}</Link>
+                        ))}
                     </div>
-                </motion.div>
-            </section>
 
-            {/* Features Section */}
-            <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                    {features.map((feature, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true, amount: 0.5 }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                        >
-                            <div className="inline-block p-4 bg-primary/10 rounded-full">
-                                {feature.icon}
-                            </div>
-                            <h3 className="text-xl font-bold mt-4">{feature.title}</h3>
-                            <p className="text-muted-foreground mt-2">{feature.description}</p>
-                        </motion.div>
-                    ))}
+                    <Button asChild size="lg" className="h-14 px-12 text-lg mt-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full">
+                        <Link href="/tv">View Full Site <ArrowRight className="w-5 h-5 ml-2"/></Link>
+                    </Button>
                 </div>
             </section>
             
-            {/* Trending Section */}
-            {trendingAnimes.length > 0 && (
-                <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-                     <h2 className="text-3xl font-bold text-center mb-10 flex items-center justify-center gap-3">
-                        <Sparkles className="w-8 h-8 text-primary" />
-                        Trending Now
-                    </h2>
-                     <div className="grid-cards">
-                        {trendingAnimes.slice(0, 12).map((anime, index) => (
-                             <motion.div
-                                key={anime.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, amount: 0.2 }}
-                                transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
-                             >
-                                <AnimeCard anime={anime} />
-                            </motion.div>
-                        ))}
+            {/* Content Section */}
+            <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 max-w-4xl">
+                 <div className="bg-card/50 p-4 rounded-lg border border-border flex items-center justify-between mb-12">
+                    <p className="font-semibold">Share Kaido with your friends</p>
+                    <Button variant="outline" size="sm" className="gap-2"><Share2 className="w-4 h-4"/> Share</Button>
+                 </div>
+                 
+                 <div className="space-y-8">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold">Kaido.to - Your Safe and Fast Site To Watch Anime Free Online</h2>
                     </div>
-                </section>
-            )}
+                    <div className="prose prose-invert lg:prose-lg max-w-none text-muted-foreground [&_h3]:text-foreground [&_h3]:font-bold">
+                        <p>Anime has become a global phenomenon, and its popularity has skyrocketed in recent years. No matter how old you are or what background you grew up with, you can always find a good anime to watch. With 36% of viewers worldwide enjoying watching anime in 2021, according to Ampere Consumer data, free anime websites are snowballing as a result. Some are created to quench your thirst for anime, and some are there to break both your heart and bank account. Every anime enthusiast knows the pain of searching for safe and free anime websites to watch. We know it too, and we created Kaido to end it all.</p>
+                        <p>Kaido is the new kid on the block, and that is not a disadvantage! We didn’t come to this industry of anime streaming to begin from new. Kaido team has done a two-year of extensive research on what our users need and desire from a free anime streaming site. Kaido is here in an attempt to meet all of your demands and make your streaming experience better, safer, and faster than ever.</p>
 
-            {/* Final CTA */}
-            <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-                <h2 className="text-3xl sm:text-4xl font-bold">Ready to Start Your Adventure?</h2>
-                <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
-                    Create a free account to build your watchlist, track your progress, and join the community.
-                </p>
-                <Button asChild size="lg" className="mt-8 h-12 px-8 text-base">
-                    <Link href="/login">Join {SITE_NAME} Today</Link>
-                </Button>
+                        <h3>1/ What is Kaido.to?</h3>
+                        <p>Kaido is a reliable and fast website for free anime watch. You can enjoy exceptional features such as ultra-HD quality and a seamless streaming experience that compares with AnimePlay, GoGoAnime, or 9anime. Plus, there’s no need to register to stream your favorite anime, which keeps your information safe. With daily updates of new episodes and titles and a vast library of popular titles, Kaido offers year-round entertainment for all anime enthusiasts. While the website runs seamlessly on both desktop and mobile devices, it is recommended to use a desktop computer for an optimal viewing experience.</p>
+                        
+                        <h3>2/ Is Using Kaido Safe?</h3>
+                        <p>Absolutely! Kaido is entirely secure and has from any potential risks. You can stream without worrying about your personal data leaking since there is no registration requirement. Additionally, there are no ads or pop ups, making it 100% safe from cybersecurity risks. Rest assured that Kaido is as safe as Google or YouTube. So, set aside your worries and indulge in ultra-HD quality, quick loading times, and other top-notch features, all for free!</p>
+
+                        <h3>3/ Is Using Kaido Legal or Illegal?</h3>
+                        <p>Using Kaido to watch anime dub is deemed legal in the United States. Copyright attorneys assert that streaming anime on AnimePlay does not breach copyright law. Nevertheless, downloading or distributing pirated content is illegal. To stay out of any legal issues, it is advisable to limit yourself to online streaming or take preventive measures such as using a reputable VPN.</p>
+
+                        <h3>4/ Is Kaido Trustworthy? Does Kaido Have Viruses or Malware?</h3>
+                        <p>We find no point in exaggerating our features. We do not see the need to exaggerate our features, as a few clicks will show you the truth. We take pride in being the safest site to watch anime for free, as there is absolutely no risk involved. With no registration or login required, you can stay anonymous and leave no trace behind. Additionally, Kaido is completely ad-free, which means you are 100% safe from viruses and malware.</p>
+
+                        <h3>5/ Can You Download a Kaido App?</h3>
+                        <p>Our iOS or Android apps are on the way, and we will make sure you are the first to know once they arrive. Therefore, if you happen to find any app claiming to be Kaido at the moment, we advise against downloading from those sources as they are all fraudulent. They typically offer substandard content and often contain malicious software that can harm your device or data. To avoid any potential harms, we strongly recommend using the only legitimate domain, Kaido.to.</p>
+
+                        <h3>6/ How to Watch Anime Free on Kaido?</h3>
+                        <p>Watching anime online on Kaido is as easy as watching a video on YouTube. Simply follow these steps to enjoy your anime of interest:<br/>
+                        - Search for the anime to watch by typing the title in the search bar or browsing through the site’s library.<br/>
+                        - Click on the anime title to open its page.<br/>
+                        - Check the video quality to ensure that it is suitable for your viewing experience. Some sites offer different video qualities, such as 360p, 720p, or 1080p.<br/>
+                        - Click the play button to start watching.<br/>
+                        - Adjust the settings of subtitles, speed, etc to suit your preferences.</p>
+
+                        <h3>7/ Can Kaido Compare to 9anime, 4anime, or AnimixPlay?</h3>
+                        <p>While Kaido might not be the first name that comes to mind when looking for where to watch anime for free, it has its advantages. As a newcomer to the market, Kaido offers updated features that even some of the most popular sites like 9anime, 4anime, or AnimixPlay have yet to roll out. Overall, Kaido provides all the same features and titles as those sites, without any cost to the user. In fact, Kaido’s streaming speed may be faster due to less traffic. Plus, discovering a lesser-known gem like Kaido can be a source of pride for anime enthusiasts. Overall, Kaido is a solid choice for anyone looking for a high-quality free anime site on the internet, comparable even to some premium sites.</p>
+
+                        <h3>8/ Why You Should Use Kaido To Watch Anime Online?</h3>
+                        <p>After researching various free anime sites, we cherry-picked the best features and eliminated the flaws to create Kaido.to. Here's why we're confident in our claim of being the best site for anime streaming:</p>
+                        <ul>
+                            <li><strong>Safety:</strong> With no ads, no pop-ups, and no registration required, Kaido is the safest site for you to watch free anime online.</li>
+                            <li><strong>Content library:</strong> Kaido boasts a vast collection of popular, classic, and current titles spanning all genres, including action, drama, kids, fantasy, horror, mystery, police, romance, school, comedy, music, game, and more. You can even find here content that is blocked by other sites such as free anime porn. All of these titles are either subbed in English or dubbed in various languages.</li>
+                            <li><strong>Quality/Resolution:</strong> Our titles are all of excellent quality and resolution. We offer quality setting functions to cater to users with different internet speeds, ranging from 360p to 1080p.</li>
+                            <li><strong>Streaming experience:</strong> With fast loading speed and no interruptions from ads and pop-ups, Kaido provides a smooth as butter watching experience.</li>
+                            <li><strong>Updates:</strong> We update our titles daily and fulfill user requests to ensure that there is always something new to watch on Kaido.</li>
+                            <li><strong>User Interface:</strong> Our user interface is user-friendly and intuitive, making it easy for everyone to navigate the site. You can search for specific titles using our search box, browse our categories, or scroll down to view new releases.</li>
+                            <li><strong>Device compatibility:</strong> Kaido works seamlessly on both desktop and mobile devices, although we recommend using a desktop for optimal streaming quality.</li>
+                            <li><strong>Customer support:</strong> Our customer service team is available 24/7 to assist with any queries, requests, or business inquiries. Feel free to shoot us a message at anytime and we will get back to you ASAP.</li>
+                        </ul>
+                        <p>Checking out a new site takes courage. Not everyone looks for better alternatives once they are satisfied with their current anime site. We thank you for giving Kaido a try and we hope the site does not disappoint you. If you enjoy using Kaido, please spread the word and bookmark our site for future use.</p>
+                        <p>Thank you!</p>
+                    </div>
+                 </div>
             </section>
-
         </div>
     );
 }
