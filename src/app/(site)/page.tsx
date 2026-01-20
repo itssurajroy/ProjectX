@@ -20,7 +20,7 @@ export default function LandingPage() {
             <section className="relative h-screen min-h-[700px] flex flex-col items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <ProgressiveImage
-                        src="https://picsum.photos/seed/manual-bg/1920/1080"
+                        src="https://storage.googleapis.com/aif-stg-build-clean-02192024/prod/v1/project_builder/6d0046e7-8b43-41ea-9c4c-a1f727827e74/user_images/b637f90e-b7a9-45e0-9111-e63b7e7c0500.jpeg"
                         alt="Anime background"
                         data-ai-hint="anime wallpaper"
                         fill
