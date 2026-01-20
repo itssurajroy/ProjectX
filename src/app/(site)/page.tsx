@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import ProgressiveImage from '@/components/ProgressiveImage';
 import { Search, Share2, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { SITE_NAME } from '@/lib/constants';
 
 const topSearch = [
     'Jujutsu Kaisen: The Culling..', 'One Piece', 'Hells Paradise Season 2',
@@ -32,7 +33,7 @@ export default function LandingPage() {
                 </div>
                 <div className="relative z-10 px-4 w-full max-w-3xl">
                     <h1 className="text-6xl md:text-8xl font-black text-white text-glow tracking-tight uppercase" style={{fontFamily: 'var(--font-display)', fontWeight: 900}}>
-                        kaido
+                        {SITE_NAME}
                     </h1>
                     <form className="relative mt-8" action="/search">
                         <Input
