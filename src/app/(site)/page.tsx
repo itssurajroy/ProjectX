@@ -52,7 +52,7 @@ export default function LandingPage() {
                     </div>
 
                     <Button asChild size="lg" className="h-14 px-12 text-lg mt-12 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-full">
-                        <Link href="/tv">View Full Site <ArrowRight className="w-5 h-5 ml-2"/></Link>
+                        <Link href="/home">View Full Site <ArrowRight className="w-5 h-5 ml-2"/></Link>
                     </Button>
                 </div>
             </section>
