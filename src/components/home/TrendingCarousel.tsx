@@ -31,8 +31,8 @@ export default function TrendingCarousel({ animes }: { animes: Top10Anime[] }) {
                         const title = language === 'romaji' && anime.jname ? anime.jname : anime.name;
                         return (
                             <CarouselItem key={anime.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-[12%] pl-4">
-                                <Link href={`/anime/${anime.id}`} className="group flex items-end gap-3">
-                                    <div className="text-7xl font-black text-glow-sm text-transparent bg-clip-text bg-gradient-to-b from-card to-muted-foreground -mb-2" style={{ WebkitTextStroke: '2px hsl(var(--border))' }}>
+                                <Link href={`/anime/${anime.id}`} className="group flex items-end gap-3 p-1 rounded-md hover:bg-muted/50 transition-colors">
+                                    <div className="text-5xl sm:text-6xl lg:text-7xl font-black text-glow-sm text-transparent bg-clip-text bg-gradient-to-b from-card to-muted-foreground -mb-2" style={{ WebkitTextStroke: '2px hsl(var(--border))' }}>
                                         {String(index + 1).padStart(2, '0')}
                                     </div>
                                     <div className="relative aspect-[2/3] w-full max-w-[150px] rounded-md overflow-hidden group-hover:-translate-y-2 transition-transform duration-300">

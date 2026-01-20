@@ -44,9 +44,9 @@ export default function SpotlightCarousel({ animes }: { animes: SpotlightAnime[]
                                 <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent" />
                                 <div className="absolute inset-0 flex items-center">
                                     <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                                        <div className="max-w-md space-y-4 text-left">
+                                        <div className="max-w-md md:max-w-xl lg:max-w-2xl space-y-4 text-left">
                                             <Badge variant="secondary" className="text-primary font-bold animate-pulse"># {anime.rank} Spotlight</Badge>
-                                            <h2 className="text-3xl md:text-5xl font-black text-glow font-display line-clamp-3">
+                                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-glow font-display line-clamp-3">
                                                 {title}
                                             </h2>
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">

@@ -3,7 +3,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { AnimeService } from '@/lib/services/AnimeService';
 import { HomeData } from '@/lib/types/anime';
-import { Loader2 } from 'lucide-react';
 import ErrorDisplay from '@/components/common/ErrorDisplay';
 import SpotlightCarousel from '@/components/home/SpotlightCarousel';
 import TrendingCarousel from '@/components/home/TrendingCarousel';
@@ -11,6 +10,7 @@ import { AnimeSection } from '@/components/home/AnimeSection';
 import AnimeColumn from '@/components/home/AnimeColumn';
 import HomeSidebar from '@/components/home/HomeSidebar';
 import ScheduleSection from '@/components/home/ScheduleSection';
+import HomePageSkeleton from '@/components/home/HomePageSkeleton';
 
 export default function HomePage() {
   const { data: homeData, isLoading, error, refetch } = useQuery<HomeData>({
@@ -20,11 +20,7 @@ export default function HomePage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
+    return <HomePageSkeleton />;
   }
 
   if (error) {
