@@ -23,6 +23,7 @@ export async function GET(
     const apiRes = await fetch(url, {
       headers: {
         'User-Agent': 'ProjectX/1.0 (Server-Side Proxy)',
+        'Connection': 'close',
       },
       next: { revalidate: 300 } // Revalidate every 5 minutes
     });

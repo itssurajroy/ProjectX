@@ -45,7 +45,13 @@ export async function GET(request: NextRequest) {
   try {
     const searchRes = await fetch(
       `${BASE_URL}/api/v2/hianime/search?${advancedParams.toString()}`,
-      { next: { revalidate: 300 } } // Cache for 5 minutes
+      { 
+        headers: {
+            'User-Agent': 'ProjectX/1.0 (Server-Side Proxy)',
+            'Connection': 'close',
+        },
+        next: { revalidate: 300 } // Cache for 5 minutes
+      }
     );
     
     if (!searchRes.ok) {
